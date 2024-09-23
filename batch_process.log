@@ -1,0 +1,144 @@
+2024-09-23 09:38:12,141 - INFO - Batch processing started for folder: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001/2024-09-12_CetamuraUploadBatch
+2024-09-23 09:38:13,481 - INFO - No photo sets found in the folder.
+2024-09-23 09:38:21,399 - INFO - Batch processing started for folder: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W
+2024-09-23 09:38:21,404 - INFO - Processing set 1/1: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W\FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 09:38:24,372 - ERROR - Error during batch processing: batch_process() takes 1 positional argument but 4 were given
+2024-09-23 09:41:50,123 - INFO - Batch processing started for folder: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 09:41:50,123 - INFO - Processing set 1/1: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 09:41:51,353 - ERROR - Error during batch processing: batch_process() takes 1 positional argument but 4 were given
+2024-09-23 09:41:56,096 - INFO - Batch processing started for folder: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 09:41:56,096 - INFO - Processing set 1/1: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 09:42:00,895 - ERROR - Error during batch processing: batch_process() takes 1 positional argument but 4 were given
+2024-09-23 09:42:09,292 - INFO - Batch processing started for folder: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 09:42:09,302 - INFO - Processing set 1/1: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 09:42:10,182 - ERROR - Error during batch processing: batch_process() takes 1 positional argument but 4 were given
+2024-09-23 09:57:10,940 - INFO - Batch processing started for folder: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 09:57:10,943 - INFO - Found 1 photo sets in C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 09:57:10,946 - INFO - Processing set 1/1: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 09:57:12,444 - ERROR - Error during batch processing: batch_process() takes 1 positional argument but 4 were given
+2024-09-23 09:58:12,062 - INFO - Batch processing started for folder: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 09:58:12,063 - INFO - Found 1 photo sets in C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 09:58:12,066 - INFO - Processing set 1/1: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 09:58:14,889 - ERROR - Error during batch processing: batch_process() takes 1 positional argument but 4 were given
+2024-09-23 10:15:29,890 - INFO - Batch processing started for folder: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 10:15:29,890 - INFO - Found 1 photo sets in C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 10:15:29,895 - INFO - Processing set 1/1: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 10:15:29,895 - INFO - Updated manifest at C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001\manifest.ini with collection cetamuraphotos2006
+2024-09-23 10:15:29,975 - INFO - Converted C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001\5-12-06 012.jpg to C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001\5-12-06 012.tiff
+2024-09-23 10:15:29,975 - ERROR - Error during batch processing: list index out of range
+2024-09-23 10:15:33,413 - ERROR - Error during batch processing: list index out of range
+2024-09-23 10:19:28,724 - INFO - Batch processing started for folder: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 10:19:28,725 - INFO - Found 1 photo sets in C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 10:19:28,729 - INFO - Processing set 1/1: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 10:19:28,731 - INFO - Updated manifest at C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001\manifest.ini with collection cetamuraphotos2006
+2024-09-23 10:19:28,815 - INFO - Converted C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001\5-12-06 012.jpg to C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001\5-12-06 012.tiff
+2024-09-23 10:19:28,816 - INFO - Root path: C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 10:19:28,817 - INFO - Path parts: ['C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001']
+2024-09-23 10:19:28,817 - INFO - Number of path parts: 1
+2024-09-23 10:19:28,817 - ERROR - Insufficient path parts in C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 10:19:28,817 - ERROR - Error during batch processing: Insufficient path parts in C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 10:19:33,643 - ERROR - Error during batch processing: Insufficient path parts in C:/Users/saa24b/OneDrive - Florida State University/Desktop/Completed/5-12-2006/46N_3W/FSU_Cetamura_photos_20060512_46N3W_001
+2024-09-23 10:34:44,078 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-09-23 10:34:44,082 - INFO - Found 1 photo sets in C:/Data/Photos
+2024-09-23 10:34:44,083 - INFO - Processing set 1/1: C:/Data/Photos\2006\20060512\46N_3W\001
+2024-09-23 10:34:44,086 - INFO - Updated manifest at C:/Data/Photos\2006\20060512\46N_3W\001\manifest.ini with collection cetamuraphotos2006
+2024-09-23 10:34:44,164 - INFO - Converted C:/Data/Photos\2006\20060512\46N_3W\001\5-12-06 012.jpg to C:/Data/Photos\2006\20060512\46N_3W\001\5-12-06 012.tiff
+2024-09-23 10:34:44,167 - INFO - Renamed files to FSU_Cetamura_photos_20060512_46N3W_001.tiff and FSU_Cetamura_photos_20060512_46N3W_001.xml
+2024-09-23 10:34:44,167 - ERROR - Error during batch processing: 'str' object has no attribute 'parent'
+2024-09-23 10:34:48,173 - ERROR - Error during batch processing: 'str' object has no attribute 'parent'
+2024-09-23 10:34:53,943 - INFO - Batch processing started for folder: C:/Data/Photos/2006
+2024-09-23 10:34:53,947 - INFO - Found 0 photo sets in C:/Data/Photos/2006
+2024-09-23 10:34:55,753 - INFO - No photo sets found in the folder.
+2024-09-23 10:35:00,436 - INFO - Batch processing started for folder: C:/Data/Photos/2006/20060512
+2024-09-23 10:35:00,439 - INFO - Found 0 photo sets in C:/Data/Photos/2006/20060512
+2024-09-23 10:35:01,353 - INFO - No photo sets found in the folder.
+2024-09-23 10:35:05,410 - INFO - Batch processing started for folder: C:/Data/Photos/2006/20060512/46N_3W
+2024-09-23 10:35:05,413 - INFO - Found 0 photo sets in C:/Data/Photos/2006/20060512/46N_3W
+2024-09-23 10:35:06,815 - INFO - No photo sets found in the folder.
+2024-09-23 10:35:10,704 - INFO - Batch processing started for folder: C:/Data/Photos/2006/20060512/46N_3W/001
+2024-09-23 10:35:10,706 - INFO - Found 0 photo sets in C:/Data/Photos/2006/20060512/46N_3W/001
+2024-09-23 10:35:11,964 - INFO - No photo sets found in the folder.
+2024-09-23 10:39:42,828 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-09-23 10:39:42,831 - INFO - Found 1 photo sets in C:/Data/Photos
+2024-09-23 10:39:42,832 - INFO - Processing set 1/1: C:/Data/Photos\2006\20060512\46N_3W\001
+2024-09-23 10:39:42,835 - INFO - Updated manifest at C:/Data/Photos\2006\20060512\46N_3W\001\manifest.ini with collection cetamuraphotos2006
+2024-09-23 10:39:42,891 - INFO - Converted C:/Data/Photos\2006\20060512\46N_3W\001\5-12-06 012.jpg to C:/Data/Photos\2006\20060512\46N_3W\001\5-12-06 012.tiff
+2024-09-23 10:39:42,894 - INFO - Renamed files to FSU_Cetamura_photos_20060512_46N3W_001.tiff and FSU_Cetamura_photos_20060512_46N3W_001.xml
+2024-09-23 10:39:42,894 - ERROR - Error during batch processing: 'str' object has no attribute 'parent'
+2024-09-23 10:39:44,197 - ERROR - Error during batch processing: 'str' object has no attribute 'parent'
+2024-09-23 10:49:52,031 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-09-23 10:49:52,032 - INFO - Found 1 photo sets in C:/Data/Photos
+2024-09-23 10:49:52,033 - INFO - Processing set 1/1: C:/Data/Photos\2006\20060512\46N_3W\001
+2024-09-23 10:49:52,035 - INFO - Updated manifest at C:/Data/Photos\2006\20060512\46N_3W\001\manifest.ini with collection cetamuraphotos2006
+2024-09-23 10:49:52,110 - INFO - Converted C:/Data/Photos\2006\20060512\46N_3W\001\5-12-06 012.jpg to C:/Data/Photos\2006\20060512\46N_3W\001\5-12-06 012.tiff
+2024-09-23 10:49:52,110 - INFO - Renamed files to FSU_Cetamura_photos_20060512_46N3W_001.tiff and FSU_Cetamura_photos_20060512_46N3W_001.xml
+2024-09-23 10:49:52,110 - ERROR - Error during batch processing: 'str' object has no attribute 'parent'
+2024-09-23 10:49:53,438 - ERROR - Error during batch processing: 'str' object has no attribute 'parent'
+2024-09-23 10:50:32,897 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-09-23 10:50:32,897 - INFO - Found 1 photo sets in C:/Data/Photos
+2024-09-23 10:50:32,897 - INFO - Processing set 1/1: C:/Data/Photos\2006\20060512\46N_3W\001
+2024-09-23 10:50:32,897 - INFO - Updated manifest at C:/Data/Photos\2006\20060512\46N_3W\001\manifest.ini with collection cetamuraphotos2006
+2024-09-23 10:50:32,944 - INFO - Converted C:/Data/Photos\2006\20060512\46N_3W\001\5-12-06 012.jpg to C:/Data/Photos\2006\20060512\46N_3W\001\5-12-06 012.tiff
+2024-09-23 10:50:32,944 - INFO - Renamed files to FSU_Cetamura_photos_20060512_46N3W_001.tiff and FSU_Cetamura_photos_20060512_46N3W_001.xml
+2024-09-23 10:50:32,944 - ERROR - Error during batch processing: 'str' object has no attribute 'parent'
+2024-09-23 10:50:34,332 - ERROR - Error during batch processing: 'str' object has no attribute 'parent'
+2024-09-23 10:50:48,875 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-09-23 10:50:48,885 - INFO - Found 1 photo sets in C:/Data/Photos
+2024-09-23 10:50:48,885 - INFO - Processing set 1/1: C:/Data/Photos\2006\20060512\46N_3W\001
+2024-09-23 10:50:48,885 - INFO - Updated manifest at C:/Data/Photos\2006\20060512\46N_3W\001\manifest.ini with collection cetamuraphotos2006
+2024-09-23 10:50:48,938 - INFO - Converted C:/Data/Photos\2006\20060512\46N_3W\001\5-12-06 012.jpg to C:/Data/Photos\2006\20060512\46N_3W\001\5-12-06 012.tiff
+2024-09-23 10:50:48,938 - ERROR - Error renaming files in C:/Data/Photos\2006\20060512\46N_3W\001: [WinError 183] Cannot create a file when that file already exists: 'C:/Data/Photos\\2006\\20060512\\46N_3W\\001\\5-12-06 012.tiff' -> 'C:/Data/Photos\\2006\\20060512\\46N_3W\\001\\FSU_Cetamura_photos_20060512_46N3W_001.tiff'
+2024-09-23 10:50:48,938 - ERROR - Error during batch processing: [WinError 183] Cannot create a file when that file already exists: 'C:/Data/Photos\\2006\\20060512\\46N_3W\\001\\5-12-06 012.tiff' -> 'C:/Data/Photos\\2006\\20060512\\46N_3W\\001\\FSU_Cetamura_photos_20060512_46N3W_001.tiff'
+2024-09-23 10:50:55,035 - ERROR - Error during batch processing: [WinError 183] Cannot create a file when that file already exists: 'C:/Data/Photos\\2006\\20060512\\46N_3W\\001\\5-12-06 012.tiff' -> 'C:/Data/Photos\\2006\\20060512\\46N_3W\\001\\FSU_Cetamura_photos_20060512_46N3W_001.tiff'
+2024-09-23 10:51:14,385 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-09-23 10:51:14,395 - INFO - Found 1 photo sets in C:/Data/Photos
+2024-09-23 10:51:14,395 - INFO - Processing set 1/1: C:/Data/Photos\2006\20060512\46N_3W\001
+2024-09-23 10:51:14,401 - INFO - Updated manifest at C:/Data/Photos\2006\20060512\46N_3W\001\manifest.ini with collection cetamuraphotos2006
+2024-09-23 10:51:14,448 - INFO - Converted C:/Data/Photos\2006\20060512\46N_3W\001\5-12-06 012.jpg to C:/Data/Photos\2006\20060512\46N_3W\001\5-12-06 012.tiff
+2024-09-23 10:51:14,448 - INFO - Renamed files to FSU_Cetamura_photos_20060512_46N3W_001.tiff and FSU_Cetamura_photos_20060512_46N3W_001.xml
+2024-09-23 10:51:14,448 - ERROR - Error during batch processing: 'str' object has no attribute 'parent'
+2024-09-23 10:51:15,967 - ERROR - Error during batch processing: 'str' object has no attribute 'parent'
+2024-09-23 10:51:36,115 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-09-23 10:51:36,115 - INFO - Found 1 photo sets in C:/Data/Photos
+2024-09-23 10:51:36,115 - INFO - Processing set 1/1: C:/Data/Photos\2006\20060512\46N_3W\001
+2024-09-23 10:51:36,115 - INFO - Updated manifest at C:/Data/Photos\2006\20060512\46N_3W\001\manifest.ini with collection cetamuraphotos2006
+2024-09-23 10:51:36,162 - INFO - Converted C:/Data/Photos\2006\20060512\46N_3W\001\5-12-06 012.jpg to C:/Data/Photos\2006\20060512\46N_3W\001\5-12-06 012.tiff
+2024-09-23 10:51:36,178 - INFO - Renamed files to FSU_Cetamura_photos_20060512_46N3W_001.tiff and FSU_Cetamura_photos_20060512_46N3W_001.xml
+2024-09-23 10:51:36,178 - ERROR - Error during batch processing: 'str' object has no attribute 'parent'
+2024-09-23 10:51:37,214 - ERROR - Error during batch processing: 'str' object has no attribute 'parent'
+2024-09-23 10:54:43,264 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-09-23 10:54:43,264 - INFO - Found 1 photo sets in C:/Data/Photos
+2024-09-23 10:54:43,264 - INFO - Processing set 1/1: C:\Data\Photos\2006\20060512\46N_3W\001
+2024-09-23 10:54:43,264 - INFO - Updated manifest at C:\Data\Photos\2006\20060512\46N_3W\001\manifest.ini with collection cetamuraphotos2006
+2024-09-23 10:54:43,343 - INFO - Converted C:\Data\Photos\2006\20060512\46N_3W\001\5-12-06 012.jpg to C:\Data\Photos\2006\20060512\46N_3W\001\5-12-06 012.tiff
+2024-09-23 10:54:43,343 - ERROR - Error renaming files in C:\Data\Photos\2006\20060512\46N_3W\001: [WinError 183] Cannot create a file when that file already exists: 'C:\\Data\\Photos\\2006\\20060512\\46N_3W\\001\\5-12-06 012.tiff' -> 'C:\\Data\\Photos\\2006\\20060512\\46N_3W\\001\\FSU_Cetamura_photos_20060512_46N3W_001.tiff'
+2024-09-23 10:54:43,343 - ERROR - Error during batch processing: [WinError 183] Cannot create a file when that file already exists: 'C:\\Data\\Photos\\2006\\20060512\\46N_3W\\001\\5-12-06 012.tiff' -> 'C:\\Data\\Photos\\2006\\20060512\\46N_3W\\001\\FSU_Cetamura_photos_20060512_46N3W_001.tiff'
+2024-09-23 10:54:47,385 - ERROR - Error during batch processing: [WinError 183] Cannot create a file when that file already exists: 'C:\\Data\\Photos\\2006\\20060512\\46N_3W\\001\\5-12-06 012.tiff' -> 'C:\\Data\\Photos\\2006\\20060512\\46N_3W\\001\\FSU_Cetamura_photos_20060512_46N3W_001.tiff'
+2024-09-23 10:55:09,763 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-09-23 10:55:09,763 - INFO - Found 1 photo sets in C:/Data/Photos
+2024-09-23 10:55:09,763 - INFO - Processing set 1/1: C:\Data\Photos\2006\20060512\46N_3W\001
+2024-09-23 10:55:09,763 - INFO - Updated manifest at C:\Data\Photos\2006\20060512\46N_3W\001\manifest.ini with collection cetamuraphotos2006
+2024-09-23 10:55:09,807 - INFO - Converted C:\Data\Photos\2006\20060512\46N_3W\001\5-12-06 012.jpg to C:\Data\Photos\2006\20060512\46N_3W\001\5-12-06 012.tiff
+2024-09-23 10:55:09,807 - INFO - Renamed files to FSU_Cetamura_photos_20060512_46N3W_001.tiff and FSU_Cetamura_photos_20060512_46N3W_001.xml
+2024-09-23 10:55:09,854 - INFO - Created zip archive: C:\Data\Photos\2006\20060512_CetamuraUploadBatch\FSU_Cetamura_photos_20060512_46N3W_001.zip
+2024-09-23 10:55:09,854 - INFO - Batch processing completed successfully!
+2024-09-23 11:11:12,265 - ERROR - Error loading logo image: couldn't open "logo.png": no such file or directory
+2024-09-23 11:13:14,069 - ERROR - Error loading logo image: couldn't recognize data in image file "C:/Users/saa24b/Downloads/aTaI2oUh_400x400.jpg"
+2024-09-23 11:16:00,486 - ERROR - Error loading logo image: module 'PIL.Image' has no attribute 'ANTIALIAS'
+2024-09-23 11:16:52,335 - ERROR - Error loading logo image: module 'PIL.Image' has no attribute 'ANTIALIAS'
+2024-09-23 11:19:37,953 - ERROR - Error loading background image: module 'PIL.Image' has no attribute 'ANTIALIAS'
+2024-09-23 11:23:17,245 - ERROR - Error loading background image: module 'PIL.Image' has no attribute 'ANTIALIAS'
+2024-09-23 11:26:38,857 - ERROR - Error loading background image: module 'PIL.Image' has no attribute 'ANTIALIAS'
+2024-09-23 11:27:57,317 - ERROR - Error loading background image: module 'PIL.Image' has no attribute 'ANTIALIAS'
+2024-09-23 11:28:49,702 - ERROR - Error loading background image: module 'PIL.Image' has no attribute 'ANTIALIAS'
+2024-09-23 11:31:44,096 - ERROR - Error loading background image: module 'PIL.Image' has no attribute 'ANTIALIAS'
+2024-09-23 11:32:42,121 - ERROR - Error loading background image: module 'PIL.Image' has no attribute 'ANTIALIAS'
+2024-09-23 11:45:47,548 - ERROR - Error loading background image: module 'PIL.Image' has no attribute 'ANTIALIAS'
+2024-09-23 12:53:43,710 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-09-23 12:53:43,725 - INFO - Found 1 photo sets in C:/Data/Photos
+2024-09-23 12:53:43,729 - INFO - Processing set 1/1: C:\Data\Photos\2006\20060512\46N_3W\001
+2024-09-23 12:53:43,729 - INFO - Updated manifest at C:\Data\Photos\2006\20060512\46N_3W\001\manifest.ini with collection cetamuraphotos2006
+2024-09-23 12:53:43,773 - INFO - Converted C:\Data\Photos\2006\20060512\46N_3W\001\5-12-06 012.jpg to C:\Data\Photos\2006\20060512\46N_3W\001\5-12-06 012.tiff
+2024-09-23 12:53:43,773 - INFO - Renamed files to FSU_Cetamura_photos_20060512_46N3W_001.tiff and FSU_Cetamura_photos_20060512_46N3W_001.xml
+2024-09-23 12:53:43,829 - INFO - Created zip archive: C:\Data\Photos\2006\20060512_CetamuraUploadBatch\FSU_Cetamura_photos_20060512_46N3W_001.zip
+2024-09-23 12:53:43,829 - INFO - Batch processing completed successfully!
