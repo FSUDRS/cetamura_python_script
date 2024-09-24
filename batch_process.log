@@ -142,3 +142,18 @@
 2024-09-23 12:53:43,773 - INFO - Renamed files to FSU_Cetamura_photos_20060512_46N3W_001.tiff and FSU_Cetamura_photos_20060512_46N3W_001.xml
 2024-09-23 12:53:43,829 - INFO - Created zip archive: C:\Data\Photos\2006\20060512_CetamuraUploadBatch\FSU_Cetamura_photos_20060512_46N3W_001.zip
 2024-09-23 12:53:43,829 - INFO - Batch processing completed successfully!
+2024-09-24 12:59:37,016 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-09-24 12:59:37,016 - INFO - Found 1 photo sets in C:/Data/Photos
+2024-09-24 12:59:37,016 - INFO - Processing set 1/1: C:\Data\Photos\2006\20060512\46N_3W\001
+2024-09-24 12:59:37,031 - INFO - Updated manifest at C:\Data\Photos\2006\20060512\46N_3W\001\manifest.ini with collection cetamuraphotos2006
+2024-09-24 12:59:37,078 - INFO - Converted C:\Data\Photos\2006\20060512\46N_3W\001\5-12-06 012.jpg to C:\Data\Photos\2006\20060512\46N_3W\001\5-12-06 012.tiff
+2024-09-24 12:59:37,078 - INFO - Renamed files to FSU_Cetamura_photos_20060512_46N3W_001.tiff and FSU_Cetamura_photos_20060512_46N3W_001.xml
+2024-09-24 12:59:37,125 - INFO - Created zip archive: C:\Data\Photos\2006\20060512_CetamuraUploadBatch\FSU_Cetamura_photos_20060512_46N3W_001.zip
+2024-09-24 12:59:37,125 - INFO - Batch processing completed successfully!
+2024-09-24 13:13:33,955 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-09-24 13:13:33,960 - INFO - Found 2 photo sets in C:/Data/Photos
+2024-09-24 13:13:33,960 - INFO - Processing set 1/2: C:\Data\Photos\2006\20060512\46N_3W\001
+2024-09-24 13:13:33,960 - INFO - Updated manifest at C:\Data\Photos\2006\20060512\46N_3W\001\manifest.ini with collection cetamuraphotos2006
+2024-09-24 13:13:34,007 - INFO - Converted C:\Data\Photos\2006\20060512\46N_3W\001\5-12-06 012.jpg to C:\Data\Photos\2006\20060512\46N_3W\001\5-12-06 012.tiff
+2024-09-24 13:13:34,007 - ERROR - Error renaming files in C:\Data\Photos\2006\20060512\46N_3W\001: [WinError 183] Cannot create a file when that file already exists: 'C:\\Data\\Photos\\2006\\20060512\\46N_3W\\001\\5-12-06 012.tiff' -> 'C:\\Data\\Photos\\2006\\20060512\\46N_3W\\001\\FSU_Cetamura_photos_20060512_46N3W_001.tiff'
+2024-09-24 13:13:34,007 - ERROR - Error during batch processing: [WinError 183] Cannot create a file when that file already exists: 'C:\\Data\\Photos\\2006\\20060512\\46N_3W\\001\\5-12-06 012.tiff' -> 'C:\\Data\\Photos\\2006\\20060512\\46N_3W\\001\\FSU_Cetamura_photos_20060512_46N3W_001.tiff'

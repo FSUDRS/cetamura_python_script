@@ -119,6 +119,11 @@ def batch_process(root, jpg_files, xml_files, ini_files):
                 path, tiff_file, xml_file, trench_name, photo_number, date
             )
 
+            #Make changes to manifest file
+            # change to set already defined string
+            #manily manifest file
+            
+
             # Package into zip
             output_folder = path.parents[2] / f'{date}_CetamuraUploadBatch'
             if not output_folder.exists():

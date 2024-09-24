@@ -15,7 +15,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
-
+# Function to select Root Folder
 def select_folder():
     folder_selected = filedialog.askdirectory()
     if folder_selected:
