@@ -2328,3 +2328,351 @@
 2024-11-01 10:35:31,354 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_015.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_015.xml
 2024-11-01 10:35:31,385 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_015.zip
 2024-11-01 10:35:31,401 - INFO - Batch processing completed successfully!
+2024-11-01 11:29:55,273 - INFO - Batch processing started for folder: C:/Data/Photos/5-12-2006
+2024-11-01 11:29:55,281 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0 missing: JPG files, XML files, manifest.ini
+2024-11-01 11:29:55,285 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001 missing: JPG files
+2024-11-01 11:29:55,287 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002 missing: JPG files
+2024-11-01 11:29:55,289 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003 missing: JPG files
+2024-11-01 11:29:55,292 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004 missing: JPG files
+2024-11-01 11:29:55,295 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005 missing: JPG files
+2024-11-01 11:29:55,297 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006 missing: JPG files
+2024-11-01 11:29:55,304 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007 missing: JPG files
+2024-11-01 11:29:55,306 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008 missing: JPG files
+2024-11-01 11:29:55,308 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009 missing: JPG files
+2024-11-01 11:29:55,312 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010 missing: JPG files
+2024-11-01 11:29:55,314 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011 missing: JPG files
+2024-11-01 11:29:55,316 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012 missing: JPG files
+2024-11-01 11:29:55,318 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013 missing: JPG files
+2024-11-01 11:29:55,318 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014 missing: JPG files
+2024-11-01 11:29:55,320 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015 missing: JPG files
+2024-11-01 11:29:55,374 - INFO - Total photo sets found: 0 in C:/Data/Photos/5-12-2006
+2024-11-01 11:29:57,084 - INFO - No photo sets found in the folder.
+2024-11-01 11:30:55,626 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-11-01 11:30:55,631 - WARNING - Directory C:\Data\Photos\5-12-2006 missing: JPG files, XML files, manifest.ini
+2024-11-01 11:30:55,635 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0 missing: JPG files, XML files, manifest.ini
+2024-11-01 11:30:55,643 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001 missing: JPG files
+2024-11-01 11:30:55,645 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002 missing: JPG files
+2024-11-01 11:30:55,646 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003 missing: JPG files
+2024-11-01 11:30:55,648 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004 missing: JPG files
+2024-11-01 11:30:55,648 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005 missing: JPG files
+2024-11-01 11:30:55,651 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006 missing: JPG files
+2024-11-01 11:30:55,652 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007 missing: JPG files
+2024-11-01 11:30:55,654 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008 missing: JPG files
+2024-11-01 11:30:55,657 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009 missing: JPG files
+2024-11-01 11:30:55,660 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010 missing: JPG files
+2024-11-01 11:30:55,660 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011 missing: JPG files
+2024-11-01 11:30:55,662 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012 missing: JPG files
+2024-11-01 11:30:55,664 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013 missing: JPG files
+2024-11-01 11:30:55,666 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014 missing: JPG files
+2024-11-01 11:30:55,667 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015 missing: JPG files
+2024-11-01 11:30:55,685 - INFO - Total photo sets found: 0 in C:/Data/Photos
+2024-11-01 11:30:56,977 - INFO - No photo sets found in the folder.
+2024-11-01 11:31:03,152 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-11-01 11:31:03,154 - WARNING - Directory C:\Data\Photos\5-12-2006 missing: JPG files, XML files, manifest.ini
+2024-11-01 11:31:03,155 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0 missing: JPG files, XML files, manifest.ini
+2024-11-01 11:31:03,157 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001 missing: JPG files
+2024-11-01 11:31:03,158 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002 missing: JPG files
+2024-11-01 11:31:03,159 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003 missing: JPG files
+2024-11-01 11:31:03,160 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004 missing: JPG files
+2024-11-01 11:31:03,160 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005 missing: JPG files
+2024-11-01 11:31:03,161 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006 missing: JPG files
+2024-11-01 11:31:03,161 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007 missing: JPG files
+2024-11-01 11:31:03,163 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008 missing: JPG files
+2024-11-01 11:31:03,163 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009 missing: JPG files
+2024-11-01 11:31:03,164 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010 missing: JPG files
+2024-11-01 11:31:03,165 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011 missing: JPG files
+2024-11-01 11:31:03,166 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012 missing: JPG files
+2024-11-01 11:31:03,166 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013 missing: JPG files
+2024-11-01 11:31:03,167 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014 missing: JPG files
+2024-11-01 11:31:03,168 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015 missing: JPG files
+2024-11-01 11:31:03,180 - INFO - Total photo sets found: 0 in C:/Data/Photos
+2024-11-01 11:31:04,315 - INFO - No photo sets found in the folder.
+2024-11-01 11:31:10,324 - INFO - Batch processing started for folder: C:/Data/Photos/5-12-2006
+2024-11-01 11:31:10,328 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0 missing: JPG files, XML files, manifest.ini
+2024-11-01 11:31:10,331 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001 missing: JPG files
+2024-11-01 11:31:10,332 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002 missing: JPG files
+2024-11-01 11:31:10,334 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003 missing: JPG files
+2024-11-01 11:31:10,335 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004 missing: JPG files
+2024-11-01 11:31:10,337 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005 missing: JPG files
+2024-11-01 11:31:10,338 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006 missing: JPG files
+2024-11-01 11:31:10,339 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007 missing: JPG files
+2024-11-01 11:31:10,340 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008 missing: JPG files
+2024-11-01 11:31:10,342 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009 missing: JPG files
+2024-11-01 11:31:10,343 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010 missing: JPG files
+2024-11-01 11:31:10,344 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011 missing: JPG files
+2024-11-01 11:31:10,345 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012 missing: JPG files
+2024-11-01 11:31:10,346 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013 missing: JPG files
+2024-11-01 11:31:10,347 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014 missing: JPG files
+2024-11-01 11:31:10,348 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015 missing: JPG files
+2024-11-01 11:31:10,358 - INFO - Total photo sets found: 0 in C:/Data/Photos/5-12-2006
+2024-11-01 11:31:11,548 - INFO - No photo sets found in the folder.
+2024-11-01 11:35:55,901 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-11-01 11:35:55,906 - WARNING - Directory C:\Data\Photos\5-12-2006 missing: JPG files, XML files, manifest.ini
+2024-11-01 11:35:55,911 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0 missing: JPG files, XML files, manifest.ini
+2024-11-01 11:35:55,917 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001 missing: JPG files
+2024-11-01 11:35:55,922 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002 missing: JPG files
+2024-11-01 11:35:55,929 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003 missing: JPG files
+2024-11-01 11:35:55,931 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004 missing: JPG files
+2024-11-01 11:35:55,932 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005 missing: JPG files
+2024-11-01 11:35:55,936 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006 missing: JPG files
+2024-11-01 11:35:55,937 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007 missing: JPG files
+2024-11-01 11:35:55,941 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008 missing: JPG files
+2024-11-01 11:35:55,943 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009 missing: JPG files
+2024-11-01 11:35:55,945 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010 missing: JPG files
+2024-11-01 11:35:55,946 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011 missing: JPG files
+2024-11-01 11:35:55,950 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012 missing: JPG files
+2024-11-01 11:35:55,955 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013 missing: JPG files
+2024-11-01 11:35:55,956 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014 missing: JPG files
+2024-11-01 11:35:55,957 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015 missing: JPG files
+2024-11-01 11:35:55,969 - INFO - Total photo sets found: 0 in C:/Data/Photos
+2024-11-01 11:35:57,518 - INFO - No photo sets found in the folder.
+2024-11-01 11:38:36,355 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-11-01 11:38:36,358 - WARNING - Directory C:\Data\Photos\5-12-2006 missing: JPG files, XML files, manifest.ini
+2024-11-01 11:38:36,359 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0 missing: JPG files, XML files, manifest.ini
+2024-11-01 11:38:36,362 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001 missing: JPG files
+2024-11-01 11:38:36,362 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002 missing: JPG files
+2024-11-01 11:38:36,363 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003 missing: JPG files
+2024-11-01 11:38:36,364 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004 missing: JPG files
+2024-11-01 11:38:36,365 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005 missing: JPG files
+2024-11-01 11:38:36,366 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006 missing: JPG files
+2024-11-01 11:38:36,366 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007 missing: JPG files
+2024-11-01 11:38:36,368 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008 missing: JPG files
+2024-11-01 11:38:36,369 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009 missing: JPG files
+2024-11-01 11:38:36,370 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010 missing: JPG files
+2024-11-01 11:38:36,371 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011 missing: JPG files
+2024-11-01 11:38:36,372 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012 missing: JPG files
+2024-11-01 11:38:36,372 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013 missing: JPG files
+2024-11-01 11:38:36,373 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014 missing: JPG files
+2024-11-01 11:38:36,374 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015 missing: JPG files
+2024-11-01 11:38:36,381 - INFO - Total photo sets found: 0 in C:/Data/Photos
+2024-11-01 11:38:37,996 - INFO - No photo sets found in the folder.
+2024-11-01 11:40:00,603 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-11-01 11:40:00,608 - WARNING - Directory C:\Data\Photos\5-12-2006 missing: JPG files, XML files, manifest.ini
+2024-11-01 11:40:00,610 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0 missing: JPG files, XML files, manifest.ini
+2024-11-01 11:40:00,612 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001
+2024-11-01 11:40:00,614 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002
+2024-11-01 11:40:00,615 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003
+2024-11-01 11:40:00,617 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004
+2024-11-01 11:40:00,618 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005
+2024-11-01 11:40:00,620 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006
+2024-11-01 11:40:00,622 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007
+2024-11-01 11:40:00,624 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008
+2024-11-01 11:40:00,627 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009
+2024-11-01 11:40:00,628 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010
+2024-11-01 11:40:00,630 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011
+2024-11-01 11:40:00,631 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012
+2024-11-01 11:40:00,632 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013
+2024-11-01 11:40:00,633 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014
+2024-11-01 11:40:00,634 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015
+2024-11-01 11:40:00,642 - INFO - Total photo sets found: 15 in C:/Data/Photos
+2024-11-01 11:40:00,642 - INFO - Processing set 1/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001
+2024-11-01 11:40:00,644 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001\manifest.ini with collection Photos
+2024-11-01 11:40:00,725 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001\5-17-06 001.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001\5-17-06 001.tiff
+2024-11-01 11:40:00,727 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_001.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_001.xml
+2024-11-01 11:40:00,799 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_001.zip
+2024-11-01 11:40:00,802 - INFO - Processing set 2/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002
+2024-11-01 11:40:00,804 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002\manifest.ini with collection Photos
+2024-11-01 11:40:00,884 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002\5-17-06 002.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002\5-17-06 002.tiff
+2024-11-01 11:40:00,886 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_002.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_002.xml
+2024-11-01 11:40:00,953 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_002.zip
+2024-11-01 11:40:00,957 - INFO - Processing set 3/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003
+2024-11-01 11:40:00,959 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003\manifest.ini with collection Photos
+2024-11-01 11:40:01,039 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003\5-17-06 003.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003\5-17-06 003.tiff
+2024-11-01 11:40:01,041 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_003.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_003.xml
+2024-11-01 11:40:01,107 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_003.zip
+2024-11-01 11:40:01,109 - INFO - Processing set 4/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004
+2024-11-01 11:40:01,110 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004\manifest.ini with collection Photos
+2024-11-01 11:40:01,187 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004\5-17-06 004.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004\5-17-06 004.tiff
+2024-11-01 11:40:01,190 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_004.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_004.xml
+2024-11-01 11:40:01,245 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_004.zip
+2024-11-01 11:40:01,247 - INFO - Processing set 5/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005
+2024-11-01 11:40:01,249 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005\manifest.ini with collection Photos
+2024-11-01 11:40:01,324 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005\5-17-06 005.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005\5-17-06 005.tiff
+2024-11-01 11:40:01,327 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_005.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_005.xml
+2024-11-01 11:40:01,382 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_005.zip
+2024-11-01 11:40:01,386 - INFO - Processing set 6/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006
+2024-11-01 11:40:01,387 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006\manifest.ini with collection Photos
+2024-11-01 11:40:01,457 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006\5-17-06 006.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006\5-17-06 006.tiff
+2024-11-01 11:40:01,458 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_006.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_006.xml
+2024-11-01 11:40:01,515 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_006.zip
+2024-11-01 11:40:01,516 - INFO - Processing set 7/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007
+2024-11-01 11:40:01,517 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007\manifest.ini with collection Photos
+2024-11-01 11:40:01,605 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007\5-17-06 007.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007\5-17-06 007.tiff
+2024-11-01 11:40:01,607 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_007.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_007.xml
+2024-11-01 11:40:01,665 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_007.zip
+2024-11-01 11:40:01,666 - INFO - Processing set 8/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008
+2024-11-01 11:40:01,668 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008\manifest.ini with collection Photos
+2024-11-01 11:40:01,781 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008\5-17-06 008.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008\5-17-06 008.tiff
+2024-11-01 11:40:01,783 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_008.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_008.xml
+2024-11-01 11:40:01,864 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_008.zip
+2024-11-01 11:40:01,868 - INFO - Processing set 9/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009
+2024-11-01 11:40:01,869 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009\manifest.ini with collection Photos
+2024-11-01 11:40:01,924 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009\5-17-06 009.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009\5-17-06 009.tiff
+2024-11-01 11:40:01,926 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_009.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_009.xml
+2024-11-01 11:40:01,981 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_009.zip
+2024-11-01 11:40:01,983 - INFO - Processing set 10/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010
+2024-11-01 11:40:01,985 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010\manifest.ini with collection Photos
+2024-11-01 11:40:02,043 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010\5-17-06 010.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010\5-17-06 010.tiff
+2024-11-01 11:40:02,045 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_010.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_010.xml
+2024-11-01 11:40:02,102 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_010.zip
+2024-11-01 11:40:02,104 - INFO - Processing set 11/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011
+2024-11-01 11:40:02,107 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011\manifest.ini with collection Photos
+2024-11-01 11:40:02,167 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011\5-17-06 011.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011\5-17-06 011.tiff
+2024-11-01 11:40:02,168 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_011.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_011.xml
+2024-11-01 11:40:02,225 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_011.zip
+2024-11-01 11:40:02,227 - INFO - Processing set 12/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012
+2024-11-01 11:40:02,228 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012\manifest.ini with collection Photos
+2024-11-01 11:40:02,285 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012\5-17-06 012.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012\5-17-06 012.tiff
+2024-11-01 11:40:02,287 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_012.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_012.xml
+2024-11-01 11:40:02,360 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_012.zip
+2024-11-01 11:40:02,361 - INFO - Processing set 13/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013
+2024-11-01 11:40:02,363 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013\manifest.ini with collection Photos
+2024-11-01 11:40:02,441 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013\5-17-06 013.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013\5-17-06 013.tiff
+2024-11-01 11:40:02,443 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_013.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_013.xml
+2024-11-01 11:40:02,501 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_013.zip
+2024-11-01 11:40:02,503 - INFO - Processing set 14/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014
+2024-11-01 11:40:02,507 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014\manifest.ini with collection Photos
+2024-11-01 11:40:02,565 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014\5-17-06 014.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014\5-17-06 014.tiff
+2024-11-01 11:40:02,567 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_014.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_014.xml
+2024-11-01 11:40:02,621 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_014.zip
+2024-11-01 11:40:02,623 - INFO - Processing set 15/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015
+2024-11-01 11:40:02,624 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015\manifest.ini with collection Photos
+2024-11-01 11:40:02,683 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015\5-17-06 015.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015\5-17-06 015.tiff
+2024-11-01 11:40:02,685 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_015.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_015.xml
+2024-11-01 11:40:02,742 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_015.zip
+2024-11-01 11:40:02,744 - INFO - Batch processing completed successfully!
+2024-11-01 12:10:45,974 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-11-01 12:10:45,977 - WARNING - Directory C:\Data\Photos\5-12-2006 missing: JPG files, XML files, manifest.ini
+2024-11-01 12:10:45,979 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0 missing: JPG files, XML files, manifest.ini
+2024-11-01 12:10:45,983 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001 missing: JPG files
+2024-11-01 12:10:45,985 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002 missing: JPG files
+2024-11-01 12:10:45,987 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003 missing: JPG files
+2024-11-01 12:10:45,988 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004 missing: JPG files
+2024-11-01 12:10:45,989 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005 missing: JPG files
+2024-11-01 12:10:45,990 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006 missing: JPG files
+2024-11-01 12:10:45,992 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007 missing: JPG files
+2024-11-01 12:10:45,992 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008 missing: JPG files
+2024-11-01 12:10:45,993 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009 missing: JPG files
+2024-11-01 12:10:45,995 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010 missing: JPG files
+2024-11-01 12:10:45,996 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011 missing: JPG files
+2024-11-01 12:10:45,997 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012 missing: JPG files
+2024-11-01 12:10:45,997 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013 missing: JPG files
+2024-11-01 12:10:45,999 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014 missing: JPG files
+2024-11-01 12:10:46,000 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015 missing: JPG files
+2024-11-01 12:10:46,008 - INFO - Total photo sets found: 0 in C:/Data/Photos
+2024-11-01 12:10:49,132 - INFO - No photo sets found in the folder.
+2024-11-01 12:10:52,012 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-11-01 12:10:52,015 - WARNING - Directory C:\Data\Photos\5-12-2006 missing: JPG files, XML files, manifest.ini
+2024-11-01 12:10:52,017 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0 missing: JPG files, XML files, manifest.ini
+2024-11-01 12:10:52,021 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001 missing: JPG files
+2024-11-01 12:10:52,022 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002 missing: JPG files
+2024-11-01 12:10:52,024 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003 missing: JPG files
+2024-11-01 12:10:52,025 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004 missing: JPG files
+2024-11-01 12:10:52,026 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005 missing: JPG files
+2024-11-01 12:10:52,027 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006 missing: JPG files
+2024-11-01 12:10:52,028 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007 missing: JPG files
+2024-11-01 12:10:52,029 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008 missing: JPG files
+2024-11-01 12:10:52,031 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009 missing: JPG files
+2024-11-01 12:10:52,032 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010 missing: JPG files
+2024-11-01 12:10:52,033 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011 missing: JPG files
+2024-11-01 12:10:52,035 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012 missing: JPG files
+2024-11-01 12:10:52,036 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013 missing: JPG files
+2024-11-01 12:10:52,037 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014 missing: JPG files
+2024-11-01 12:10:52,038 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015 missing: JPG files
+2024-11-01 12:10:52,047 - INFO - Total photo sets found: 0 in C:/Data/Photos
+2024-11-01 12:10:53,326 - INFO - No photo sets found in the folder.
+2024-11-01 12:11:41,947 - INFO - Batch processing started for folder: C:/Data/Photos
+2024-11-01 12:11:41,950 - WARNING - Directory C:\Data\Photos\5-12-2006 missing: JPG files, XML files, manifest.ini
+2024-11-01 12:11:41,952 - WARNING - Directory C:\Data\Photos\5-12-2006\46N0 missing: JPG files, XML files, manifest.ini
+2024-11-01 12:11:41,955 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001
+2024-11-01 12:11:41,957 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002
+2024-11-01 12:11:41,958 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003
+2024-11-01 12:11:41,959 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004
+2024-11-01 12:11:41,961 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005
+2024-11-01 12:11:41,962 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006
+2024-11-01 12:11:41,964 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007
+2024-11-01 12:11:41,965 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008
+2024-11-01 12:11:41,966 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009
+2024-11-01 12:11:41,968 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010
+2024-11-01 12:11:41,969 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011
+2024-11-01 12:11:41,970 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012
+2024-11-01 12:11:41,971 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013
+2024-11-01 12:11:41,972 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014
+2024-11-01 12:11:41,973 - INFO - Valid photo set found in C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015
+2024-11-01 12:11:41,982 - INFO - Total photo sets found: 15 in C:/Data/Photos
+2024-11-01 12:11:41,985 - INFO - Processing set 1/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001
+2024-11-01 12:11:41,986 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001\manifest.ini with collection Photos
+2024-11-01 12:11:42,034 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001\5-17-06 001.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_001\5-17-06 001.tiff
+2024-11-01 12:11:42,036 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_001.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_001.xml
+2024-11-01 12:11:42,090 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_001.zip
+2024-11-01 12:11:42,093 - INFO - Processing set 2/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002
+2024-11-01 12:11:42,094 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002\manifest.ini with collection Photos
+2024-11-01 12:11:42,152 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002\5-17-06 002.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_002\5-17-06 002.tiff
+2024-11-01 12:11:42,153 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_002.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_002.xml
+2024-11-01 12:11:42,204 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_002.zip
+2024-11-01 12:11:42,208 - INFO - Processing set 3/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003
+2024-11-01 12:11:42,210 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003\manifest.ini with collection Photos
+2024-11-01 12:11:42,258 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003\5-17-06 003.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_003\5-17-06 003.tiff
+2024-11-01 12:11:42,259 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_003.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_003.xml
+2024-11-01 12:11:42,308 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_003.zip
+2024-11-01 12:11:42,310 - INFO - Processing set 4/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004
+2024-11-01 12:11:42,311 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004\manifest.ini with collection Photos
+2024-11-01 12:11:42,358 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004\5-17-06 004.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_004\5-17-06 004.tiff
+2024-11-01 12:11:42,359 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_004.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_004.xml
+2024-11-01 12:11:42,410 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_004.zip
+2024-11-01 12:11:42,412 - INFO - Processing set 5/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005
+2024-11-01 12:11:42,414 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005\manifest.ini with collection Photos
+2024-11-01 12:11:42,463 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005\5-17-06 005.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_005\5-17-06 005.tiff
+2024-11-01 12:11:42,465 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_005.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_005.xml
+2024-11-01 12:11:42,514 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_005.zip
+2024-11-01 12:11:42,516 - INFO - Processing set 6/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006
+2024-11-01 12:11:42,517 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006\manifest.ini with collection Photos
+2024-11-01 12:11:42,565 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006\5-17-06 006.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_006\5-17-06 006.tiff
+2024-11-01 12:11:42,567 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_006.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_006.xml
+2024-11-01 12:11:42,617 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_006.zip
+2024-11-01 12:11:42,620 - INFO - Processing set 7/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007
+2024-11-01 12:11:42,621 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007\manifest.ini with collection Photos
+2024-11-01 12:11:42,680 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007\5-17-06 007.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_007\5-17-06 007.tiff
+2024-11-01 12:11:42,682 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_007.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_007.xml
+2024-11-01 12:11:42,753 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_007.zip
+2024-11-01 12:11:42,755 - INFO - Processing set 8/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008
+2024-11-01 12:11:42,756 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008\manifest.ini with collection Photos
+2024-11-01 12:11:42,807 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008\5-17-06 008.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_008\5-17-06 008.tiff
+2024-11-01 12:11:42,809 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_008.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_008.xml
+2024-11-01 12:11:42,858 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_008.zip
+2024-11-01 12:11:42,861 - INFO - Processing set 9/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009
+2024-11-01 12:11:42,862 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009\manifest.ini with collection Photos
+2024-11-01 12:11:42,914 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009\5-17-06 009.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_009\5-17-06 009.tiff
+2024-11-01 12:11:42,916 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_009.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_009.xml
+2024-11-01 12:11:42,965 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_009.zip
+2024-11-01 12:11:42,968 - INFO - Processing set 10/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010
+2024-11-01 12:11:42,969 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010\manifest.ini with collection Photos
+2024-11-01 12:11:43,020 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010\5-17-06 010.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_010\5-17-06 010.tiff
+2024-11-01 12:11:43,022 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_010.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_010.xml
+2024-11-01 12:11:43,081 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_010.zip
+2024-11-01 12:11:43,082 - INFO - Processing set 11/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011
+2024-11-01 12:11:43,083 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011\manifest.ini with collection Photos
+2024-11-01 12:11:43,136 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011\5-17-06 011.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_011\5-17-06 011.tiff
+2024-11-01 12:11:43,139 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_011.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_011.xml
+2024-11-01 12:11:43,193 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_011.zip
+2024-11-01 12:11:43,194 - INFO - Processing set 12/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012
+2024-11-01 12:11:43,196 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012\manifest.ini with collection Photos
+2024-11-01 12:11:43,249 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012\5-17-06 012.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_012\5-17-06 012.tiff
+2024-11-01 12:11:43,250 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_012.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_012.xml
+2024-11-01 12:11:43,305 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_012.zip
+2024-11-01 12:11:43,307 - INFO - Processing set 13/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013
+2024-11-01 12:11:43,309 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013\manifest.ini with collection Photos
+2024-11-01 12:11:43,362 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013\5-17-06 013.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_013\5-17-06 013.tiff
+2024-11-01 12:11:43,364 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_013.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_013.xml
+2024-11-01 12:11:43,419 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_013.zip
+2024-11-01 12:11:43,422 - INFO - Processing set 14/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014
+2024-11-01 12:11:43,423 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014\manifest.ini with collection Photos
+2024-11-01 12:11:43,479 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014\5-17-06 014.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_014\5-17-06 014.tiff
+2024-11-01 12:11:43,481 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_014.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_014.xml
+2024-11-01 12:11:43,532 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_014.zip
+2024-11-01 12:11:43,535 - INFO - Processing set 15/15: C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015
+2024-11-01 12:11:43,536 - INFO - Updated manifest at C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015\manifest.ini with collection Photos
+2024-11-01 12:11:43,590 - INFO - Converted C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015\5-17-06 015.jpg to C:\Data\Photos\5-12-2006\46N0\FSU_Cetamura_photos_20060517_46N0_015\5-17-06 015.tiff
+2024-11-01 12:11:43,592 - INFO - Renamed files to FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_015.tiff and FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_015.xml
+2024-11-01 12:11:43,641 - INFO - Created zip archive: C:\Data\Photos\5-12-2006_CetamuraUploadBatch\FSU_Cetamura_photos_5-12-2006_46N0_FSU_Cetamura_photos_20060517_46N0_015.zip
+2024-11-01 12:11:43,645 - INFO - Batch processing completed successfully!
