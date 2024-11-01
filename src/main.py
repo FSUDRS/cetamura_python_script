@@ -1,10 +1,9 @@
-from tkinter import Tk, filedialog, messagebox, Menu, Toplevel, Text, Scrollbar
+from tkinter import Tk, filedialog, messagebox, Menu, Toplevel, Text, Scrollbar, Label
 from tkinter.ttk import Button, Progressbar, Style, Frame
-from tkinter import Label
 from utils import batch_process, find_photo_sets
 import threading
-import os
 import logging
+from pathlib import Path
 from PIL import Image, ImageTk
 
 # Set up logging
@@ -52,29 +51,26 @@ def show_instructions():
        - Ensure manifest.ini is correctly placed in each Trench folder.
        - View progress and status updates in the main window.
     """
-    text_widget = Text(instruction_window, wrap="word", font=('Helvetica', 10))
+    # Instructions in a scrollable text widget
+    text_widget = Text(instruction_window, wrap="word", font=('Helvetica', 10), state="normal")
     text_widget.insert("1.0", instruction_text)
     text_widget.config(state="disabled")
     text_widget.pack(expand=True, fill="both")
 
-    scrollbar = Scrollbar(text_widget)
-    scrollbar.pack(side="right", fill="y")
+    scrollbar = Scrollbar(instruction_window, command=text_widget.yview)
     text_widget.config(yscrollcommand=scrollbar.set)
+    scrollbar.pack(side="right", fill="y")
 
 # Function to select Root Folder
 def select_folder():
     folder_selected = filedialog.askdirectory()
-    if folder_selected:
-        label.config(text=f"Selected parent folder: {folder_selected}")
-        btn_process.config(state="normal")
-    else:
-        label.config(text="No folder selected!")
-        btn_process.config(state="disabled")
+    label.config(text=f"Selected parent folder: {folder_selected}" if folder_selected else "No folder selected!")
+    btn_process.config(state="normal" if folder_selected else "disabled")
 
 # Function to start batch processing
 def start_batch_process():
     folder = label.cget("text").replace("Selected parent folder: ", "")
-    if not folder or not os.path.exists(folder):
+    if not Path(folder).is_dir():
         messagebox.showerror("Error", "Please select a valid parent folder.")
         return
 
@@ -100,8 +96,7 @@ def start_batch_process():
                 logging.info(f"Processing set {index + 1}/{total_sets}: {root}")
                 batch_process(root, jpg_files, xml_files, ini_files)
                 progress["value"] = index + 1
-                percent_complete = int((index + 1) / total_sets * 100)
-                progress_label.config(text=f"{percent_complete}%")
+                progress_label.config(text=f"{int((index + 1) / total_sets * 100)}%")
                 root_window.update_idletasks()
 
             status_label.config(text="Batch processing completed successfully!")
@@ -115,8 +110,7 @@ def start_batch_process():
             btn_select.config(state="normal")
             btn_process.config(state="normal")
 
-    process_thread = threading.Thread(target=run_process)
-    process_thread.start()
+    threading.Thread(target=run_process).start()
 
 # Initialize the main Tkinter window
 root_window = Tk()
@@ -125,116 +119,72 @@ root_window.geometry("600x500")
 
 # Set the window icon (favicon)
 try:
-    icon_image = Image.open("C:/Users/saa24b/Downloads/FSU_Lockup_W_V_solid_rgb.ico")  
-    icon_image = icon_image.resize((32, 32), Image.LANCZOS)  
-    icon_photo = ImageTk.PhotoImage(icon_image)
-    root_window.iconphoto(False, icon_photo)
+    icon_path = Path("C:/Users/saa24b/Downloads/FSU_Lockup_W_V_solid_rgb.ico")
+    if icon_path.exists():
+        icon_image = Image.open(icon_path).resize((32, 32), Image.LANCZOS)
+        root_window.iconphoto(False, ImageTk.PhotoImage(icon_image))
 except Exception as e:
     logging.error(f"Error loading window icon: {e}")
 
 # Load the logo image using PIL
 try:
-    logo_image = Image.open("C:/Users/saa24b/Downloads/FSU_Lockup_W_V_solid_rgb.png") 
-    logo_image = logo_image.resize((400, 100), Image.LANCZOS)  
-    logo_photo = ImageTk.PhotoImage(logo_image)
+    logo_path = Path("C:/Users/saa24b/Downloads/FSU_Lockup_W_V_solid_rgb.png")
+    if logo_path.exists():
+        logo_image = Image.open(logo_path).resize((400, 100), Image.LANCZOS)
+        logo_photo = ImageTk.PhotoImage(logo_image)
 except Exception as e:
     logging.error(f"Error loading logo image: {e}")
     logo_photo = None
 
-# Create a Style object
+# UI Configuration
 style = Style()
 style.theme_use('clam')
-
-# Define custom colors
-foreground_color = "#FFFFFF"
-button_background = "#8B2E2E"
-button_foreground = "#FFFFFF"
-progressbar_color = "#8B2E2E"
-
-# Configure styles for widgets
-style.configure('TButton', background=button_background, foreground=button_foreground, font=('Helvetica', 12))
+style.configure('TButton', background="#8B2E2E", foreground="#FFFFFF", font=('Helvetica', 12))
 style.map('TButton', background=[('active', '#732424')])  
-style.configure('red.Horizontal.TProgressbar', background=progressbar_color, thickness=20)
+style.configure('red.Horizontal.TProgressbar', background="#8B2E2E", thickness=20)
 
-# Define label background color
-label_bg_color = "#333333"
-
-# Create a frame to hold the logo and the rest of the UI
 main_frame = Frame(root_window)
 main_frame.pack(fill='both', expand=True)
 
-# Add the logo at the top
+# Display the logo or fallback title
 if logo_photo:
     logo_label = Label(main_frame, image=logo_photo)
     logo_label.image = logo_photo
-    logo_label.pack(pady=(20, 10))
 else:
     logo_label = Label(main_frame, text="Cetamura Batch Ingest Tool", font=('Helvetica', 16, 'bold'))
-    logo_label.pack(pady=(20, 10))
+logo_label.pack(pady=(20, 10))
 
-# UI Elements
+# Label for folder selection
 label = Label(
     main_frame,
     text="Select the parent folder to process",
-    fg=foreground_color,
-    bg=label_bg_color,
-    font=('Helvetica', 12),
-    highlightthickness=0,
-    borderwidth=0,
+    fg="#FFFFFF",
+    bg="#333333",
+    font=('Helvetica', 12)
 )
 label.pack(pady=5)
 
+# Folder selection and processing buttons
 button_frame = Frame(main_frame)
 button_frame.pack(pady=10)
 
-btn_select = Button(
-    button_frame,
-    text="Select Folder",
-    command=select_folder,
-    style='TButton',
-)
+btn_select = Button(button_frame, text="Select Folder", command=select_folder, style='TButton')
 btn_select.grid(row=0, column=0, padx=10)
 
-btn_process = Button(
-    button_frame,
-    text="Start Batch Process",
-    command=start_batch_process,
-    state="disabled",
-    style='TButton',
-)
+btn_process = Button(button_frame, text="Start Batch Process", command=start_batch_process, state="disabled", style='TButton')
 btn_process.grid(row=0, column=1, padx=10)
 
-progress = Progressbar(
-    main_frame,
-    orient="horizontal",
-    mode="determinate",
-    style='red.Horizontal.TProgressbar',
-)
+# Progress bar and status indicators
+progress = Progressbar(main_frame, orient="horizontal", mode="determinate", style='red.Horizontal.TProgressbar')
 progress.pack(pady=20, fill='x', padx=40)
 
-progress_label = Label(
-    main_frame,
-    text="0%",
-    fg=foreground_color,
-    bg=label_bg_color,
-    font=('Helvetica', 12),
-    highlightthickness=0,
-    borderwidth=0,
-)
+progress_label = Label(main_frame, text="0%", fg="#FFFFFF", bg="#333333", font=('Helvetica', 12))
 progress_label.pack()
 
-status_label = Label(
-    main_frame,
-    text="Status: Waiting for folder selection",
-    fg=foreground_color,
-    bg=label_bg_color,
-    font=('Helvetica', 12),
-    highlightthickness=0,
-    borderwidth=0,
-)
+status_label = Label(main_frame, text="Status: Waiting for folder selection", fg="#FFFFFF", bg="#333333", font=('Helvetica', 12))
 status_label.pack(pady=10)
 
-# Menu Bar with Help Option
+# Menu bar with Help Option
 menu_bar = Menu(root_window)
 root_window.config(menu=menu_bar)
 
@@ -244,7 +194,6 @@ file_menu.add_separator()
 file_menu.add_command(label="Exit", command=root_window.quit)
 menu_bar.add_cascade(label="File", menu=file_menu)
 
-# Help menu for instructions
 help_menu = Menu(menu_bar, tearoff=False)
 help_menu.add_command(label="How to Use", command=show_instructions)
 menu_bar.add_cascade(label="Help", menu=help_menu)

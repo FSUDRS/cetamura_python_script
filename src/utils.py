@@ -1,160 +1,108 @@
-from PIL import Image
-import zipfile
-import logging
 from pathlib import Path
-import os
+import logging
+import zipfile
+from PIL import Image
 
 def find_photo_sets(parent_folder):
     photo_sets = []
     parent_path = Path(parent_folder)
 
-    for structure_name, year_dirs in [
-        ('New', list(parent_path.iterdir())), 
-        ('Original', [year_dir for year_dir in parent_path.iterdir() if year_dir.is_dir()])
-    ]:
-        logging.info(f"Checking {structure_name} structure")
+    # Directly use rglob to find directories with required files
+    for candidate_dir in parent_path.rglob('*'):
+        if candidate_dir.is_dir():
+            jpg_files = list(candidate_dir.glob('*.jpg'))
+            xml_files = list(candidate_dir.glob('*.xml'))
+            ini_file = next(candidate_dir.glob('manifest.ini'), None)  # Only one manifest.ini expected
 
-        for year_path in year_dirs:
-            if year_path.is_dir():
-                logging.info(f"Checking year directory: {year_path}")
-                
-                for date_path in list(year_path.iterdir()):
-                    if date_path.is_dir():
-                        logging.info(f"Checking date directory: {date_path}")
-                        
-                        for trench_path in list(date_path.iterdir()):
-                            if trench_path.is_dir():
-                                logging.info(f"Checking trench directory: {trench_path}")
-                                
-                                for photo_num_path in list(trench_path.iterdir()):
-                                    if photo_num_path.is_dir():
-                                        logging.info(f"Checking photo number directory: {photo_num_path}")
-
-                                        # List and log all files found in the directory
-                                        files = [f.name for f in photo_num_path.iterdir()]
-                                        logging.info(f"Files found in {photo_num_path}: {files}")
-
-                                        # Filter for required files with case-insensitivity
-                                        jpg_files = [f for f in files if f.lower().endswith('.jpg')]
-                                        xml_files = [f for f in files if f.lower().endswith('.xml')]
-                                        ini_files = [f for f in files if f.lower() == 'manifest.ini']
-
-                                        # Log missing file types if any
-                                        if not jpg_files:
-                                            logging.warning(f"No .jpg files found in {photo_num_path}")
-                                        if not xml_files:
-                                            logging.warning(f"No .xml files found in {photo_num_path}")
-                                        if not ini_files:
-                                            logging.warning(f"No manifest.ini found in {photo_num_path}")
-
-                                        # Confirm if all required files are present
-                                        if jpg_files and xml_files and ini_files:
-                                            photo_sets.append((photo_num_path, jpg_files, xml_files, ini_files))
-                                            logging.info(f"Valid photo set found in {photo_num_path}")
-                                        else:
-                                            logging.warning(f"Required files missing in {photo_num_path}")
+            # Append to photo_sets if all required files are present
+            if jpg_files and xml_files and ini_file:
+                photo_sets.append((candidate_dir, jpg_files, xml_files, [ini_file]))
+                logging.info(f"Valid photo set found in {candidate_dir}")
+            else:
+                missing = []
+                if not jpg_files:
+                    missing.append("JPG files")
+                if not xml_files:
+                    missing.append("XML files")
+                if not ini_file:
+                    missing.append("manifest.ini")
+                logging.warning(f"Directory {candidate_dir} missing: {', '.join(missing)}")
 
     logging.info(f"Total photo sets found: {len(photo_sets)} in {parent_folder}")
     return photo_sets
-    
-def convert_jpg_to_tiff(jpg_path, tiff_path):
-    """ Converts a given .jpg file to .tiff format and deletes the original .jpg file. """
+
+def convert_jpg_to_tiff(jpg_path):
+    """Converts .jpg to .tiff using pathlib, removing original jpg afterward."""
     try:
-        img = Image.open(jpg_path)
-        img.save(tiff_path, "TIFF")
-        os.remove(jpg_path)  # Delete original JPG file after conversion
-        logging.info(f"Converted {jpg_path} to {tiff_path} and deleted the original JPG")
+        tiff_path = jpg_path.with_suffix('.tiff')
+        Image.open(jpg_path).save(tiff_path, "TIFF")
+        jpg_path.unlink()  # Remove original JPG file
+        logging.info(f"Converted {jpg_path} to {tiff_path}")
+        return tiff_path
     except Exception as e:
         logging.error(f"Error converting {jpg_path} to TIFF: {e}")
         raise e
 
 def update_manifest(manifest_path, collection_name):
-    """ Updates the parent_collection field in manifest.ini with the specified collection name. """
+    """Updates the 'parent_collection' field in manifest.ini with the collection name."""
     try:
-        with open(manifest_path, 'r') as file:
-            manifest_data = file.readlines()
-        
-        with open(manifest_path, 'w') as file:
-            for line in manifest_data:
-                if line.startswith('parent_collection'):
-                    file.write(f'parent_collection = fsu:{collection_name}\n')
-                else:
-                    file.write(line)
+        manifest_data = manifest_path.read_text()
+        updated_data = manifest_data.replace(
+            'parent_collection', f'parent_collection = fsu:{collection_name}'
+        )
+        manifest_path.write_text(updated_data)
         logging.info(f"Updated manifest at {manifest_path} with collection {collection_name}")
     except Exception as e:
         logging.error(f"Error updating manifest {manifest_path}: {e}")
         raise e
-#add date to signify tiime the zip was created, add time and date
-def rename_files(root, tiff_file, xml_file, trench_name, photo_number, date):
-    """ Renames TIFF and XML files based on specified naming conventions. """
-    try:
-        root = Path(root)
-        new_name = f"FSU_Cetamura_photos_{date}_{trench_name}_{photo_number}"
-        new_tiff_path = root / f"{new_name}.tiff"
-        new_xml_path = root / f"{new_name}.xml"
 
-        # Rename TIFF file
-        old_tiff_path = root / tiff_file
-        if old_tiff_path.exists():
-            old_tiff_path.rename(new_tiff_path)
-        else:
-            logging.error(f"TIFF file not found: {old_tiff_path}")
-            raise FileNotFoundError(f"TIFF file not found: {old_tiff_path}")
+def rename_files(path, tiff_file, xml_file, trench_name, photo_number, date):
+    """Renames TIFF and XML files based on specified naming conventions."""
+    new_name = f"FSU_Cetamura_photos_{date}_{trench_name}_{photo_number:03}"
+    new_tiff_path = path / f"{new_name}.tiff"
+    new_xml_path = path / f"{new_name}.xml"
 
-        # Rename XML file
-        old_xml_path = root / xml_file
-        if old_xml_path.exists():
-            old_xml_path.rename(new_xml_path)
-        else:
-            logging.error(f"XML file not found: {old_xml_path}")
-            raise FileNotFoundError(f"XML file not found: {old_xml_path}")
-
-        logging.info(f"Renamed files to {new_name}.tiff and {new_name}.xml")
-        return new_tiff_path, new_xml_path
-    except Exception as e:
-        logging.error(f"Error renaming files in {root}: {e}")
-        raise e
+    # Rename TIFF and XML files directly
+    tiff_file.rename(new_tiff_path)
+    xml_file.rename(new_xml_path)
+    logging.info(f"Renamed files to {new_name}.tiff and {new_name}.xml")
+    return new_tiff_path, new_xml_path
 
 def package_to_zip(tiff_path, xml_path, manifest_path, output_folder):
-    """ Creates a zip file containing the .tiff, .xml, and manifest.ini files for each photo set. """
+    """Creates a zip file containing .tiff, .xml, and manifest.ini files."""
     try:
-        zip_name = tiff_path.with_suffix('.zip').name
-        zip_path = output_folder / zip_name
+        output_folder.mkdir(parents=True, exist_ok=True)
+        zip_path = output_folder / f"{tiff_path.stem}.zip"
         with zipfile.ZipFile(zip_path, 'w') as zipf:
-            zipf.write(tiff_path, tiff_path.name)
-            zipf.write(xml_path, xml_path.name)
-            zipf.write(manifest_path, manifest_path.name)
+            for file in [tiff_path, xml_path, manifest_path]:
+                zipf.write(file, file.name)
         logging.info(f"Created zip archive: {zip_path}")
     except Exception as e:
-        logging.error(f"Error creating zip archive {zip_name}: {e}")
+        logging.error(f"Error creating zip archive {zip_path}: {e}")
         raise e
 
 def batch_process(root, jpg_files, xml_files, ini_files):
-    """ Oversees the workflow for each photo set, from updating the manifest to conversion, renaming, and zipping. """
+    """Main batch process workflow for each photo set."""
     try:
         path = Path(root)
-        manifest_path = path / 'manifest.ini'
-        collection_name = 'cetamuraphotos' + path.parts[-4]  # Extract year or parent folder name for collection name
+        manifest_path = ini_files[0]
+        collection_name = path.parts[-4]  # Extract the parent folder as collection name
+
+        # Update manifest
         update_manifest(manifest_path, collection_name)
 
+        # Iterate over jpg and xml files, perform conversions and renaming
         for jpg_file, xml_file in zip(jpg_files, xml_files):
-            jpg_path = path / jpg_file
-            tiff_path = jpg_path.with_suffix('.tiff')
-            convert_jpg_to_tiff(jpg_path, tiff_path)
-
-            photo_number = path.parts[-1]
-            trench_name = path.parts[-2]
+            tiff_path = convert_jpg_to_tiff(jpg_file)
+            trench_name = path.parts[-2].replace('_', '').replace(' ', '')
+            photo_number = path.parts[-1].zfill(3)
             date = path.parts[-3]
 
-            trench_name = trench_name.replace('_', '').replace(' ', '')
-            photo_number = photo_number.zfill(3)
+            # Rename files and prepare them for zipping
+            new_tiff_path, new_xml_path = rename_files(path, tiff_path, xml_file, trench_name, photo_number, date)
 
-            tiff_file = tiff_path.name
-            new_tiff_path, new_xml_path = rename_files(path, tiff_file, xml_file, trench_name, photo_number, date)
-
+            # Prepare output folder for zipping
             output_folder = path.parents[2] / f'{date}_CetamuraUploadBatch'
-            if not output_folder.exists():
-                output_folder.mkdir(parents=True, exist_ok=True)
             package_to_zip(new_tiff_path, new_xml_path, manifest_path, output_folder)
 
     except Exception as e:
