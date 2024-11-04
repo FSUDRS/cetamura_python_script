@@ -57,15 +57,22 @@ def update_manifest(manifest_path, collection_name):
         raise e
 
 def rename_files(path, tiff_file, xml_file, trench_name, photo_number, date):
-    """Renames TIFF and XML files based on specified naming conventions."""
-    new_name = f"FSU_Cetamura_photos_{date}_{trench_name}_{photo_number:03}"
-    new_tiff_path = path / f"{new_name}.tiff"
-    new_xml_path = path / f"{new_name}.xml"
+    """Renames TIFF and XML files based on specified naming conventions, handling duplicates."""
+    base_name = f"FSU_Cetamura_photos_{date}_{trench_name}_{photo_number:03}"
+    new_tiff_path = path / f"{base_name}.tiff"
+    new_xml_path = path / f"{base_name}.xml"
 
-    # Rename TIFF and XML files directly
+    # Handle existing file conflict by adding suffixes
+    suffix = 1
+    while new_tiff_path.exists() or new_xml_path.exists():
+        new_tiff_path = path / f"{base_name}_{suffix}.tiff"
+        new_xml_path = path / f"{base_name}_{suffix}.xml"
+        suffix += 1
+
+    # Rename the files after confirming unique paths
     tiff_file.rename(new_tiff_path)
     xml_file.rename(new_xml_path)
-    logging.info(f"Renamed files to {new_name}.tiff and {new_name}.xml")
+    logging.info(f"Renamed files to {new_tiff_path.name} and {new_xml_path.name}")
     return new_tiff_path, new_xml_path
 
 def package_to_zip(tiff_path, xml_path, manifest_path, output_folder):
@@ -77,6 +84,7 @@ def package_to_zip(tiff_path, xml_path, manifest_path, output_folder):
             for file in [tiff_path, xml_path, manifest_path]:
                 zipf.write(file, file.name)
         logging.info(f"Created zip archive: {zip_path}")
+        return zip_path  # Make sure we return the zip path
     except Exception as e:
         logging.error(f"Error creating zip archive {zip_path}: {e}")
         raise e
