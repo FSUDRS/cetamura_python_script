@@ -43,18 +43,39 @@ def convert_jpg_to_tiff(jpg_path):
         logging.error(f"Error converting {jpg_path} to TIFF: {e}")
         raise e
 
-def update_manifest(manifest_path, collection_name):
-    """Updates the 'parent_collection' field in manifest.ini with the collection name."""
+def update_manifest(manifest_path, year, trench_name):
+    """
+    Updates the 'parent_collection' field in manifest.ini with the correct format.
+    Ensures no extra spaces or lines, and formats the parent_collection correctly.
+    Example: parent_collection=fsu:cetamuraExcavations_trenchPhotos_2006_46N-3W
+    """
     try:
+        # Read the manifest file
         manifest_data = manifest_path.read_text()
-        updated_data = manifest_data.replace(
-            'parent_collection', f'parent_collection = fsu:{collection_name}'
-        )
-        manifest_path.write_text(updated_data)
-        logging.info(f"Updated manifest at {manifest_path} with collection {collection_name}")
+        lines = manifest_data.splitlines()
+        updated_lines = []
+
+        # Construct the formatted `parent_collection` value
+        formatted_parent_collection = f"fsu:cetamuraExcavations_trenchPhotos_{year}_{trench_name}"
+
+        for line in lines:
+            line = line.strip()  # Remove leading and trailing whitespace
+            if line.startswith("submitter_email"):
+                updated_lines.append("submitter_email=mhunter2@fsu.edu")
+            elif line.startswith("content_model"):
+                updated_lines.append("content_model=islandora:sp_large_image_cmodel")
+            elif line.startswith("parent_collection"):
+                updated_lines.append(f"parent_collection={formatted_parent_collection}")
+            elif line:  # Ensure empty lines are not included
+                updated_lines.append(line)
+
+        # Write the updated manifest
+        manifest_path.write_text("\n".join(updated_lines) + "\n")
+        logging.info(f"Updated manifest at {manifest_path} with year {year} and trench_name {trench_name}")
     except Exception as e:
         logging.error(f"Error updating manifest {manifest_path}: {e}")
         raise e
+
 
 def rename_files(path, tiff_file, xml_file, trench_name, photo_number, date):
     """Renames TIFF and XML files based on specified naming conventions, handling duplicates."""
@@ -76,15 +97,35 @@ def rename_files(path, tiff_file, xml_file, trench_name, photo_number, date):
     return new_tiff_path, new_xml_path
 
 def package_to_zip(tiff_path, xml_path, manifest_path, output_folder):
-    """Creates a zip file containing .tiff, .xml, and manifest.ini files."""
+    """
+    Creates a zip file containing .tiff, .xml, and a properly formatted manifest.ini.
+    The zip file name matches the TIFF and XML file name (without extensions).
+    """
     try:
         output_folder.mkdir(parents=True, exist_ok=True)
-        zip_path = output_folder / f"{tiff_path.stem}.zip"
+
+        # Get the base name for the zip file
+        base_name = tiff_path.stem
+        zip_path = output_folder / f"{base_name}.zip"
+
+        # Correct the manifest file formatting before zipping
+        manifest_data = manifest_path.read_text().strip().splitlines()
+        corrected_lines = []
+        for line in manifest_data:
+            if line.startswith("parent_collection"):
+                key, value = line.split("=", 1)
+                corrected_lines.append(f"{key.strip()}={value.split('=')[-1].strip()}")
+            else:
+                corrected_lines.append(line.strip())
+        manifest_path.write_text("\n".join(corrected_lines))
+
+        # Create the zip file
         with zipfile.ZipFile(zip_path, 'w') as zipf:
             for file in [tiff_path, xml_path, manifest_path]:
-                zipf.write(file, file.name)
+                zipf.write(file, arcname=file.name)
         logging.info(f"Created zip archive: {zip_path}")
-        return zip_path  # Make sure we return the zip path
+
+        return zip_path
     except Exception as e:
         logging.error(f"Error creating zip archive {zip_path}: {e}")
         raise e
@@ -94,17 +135,19 @@ def batch_process(root, jpg_files, xml_files, ini_files):
     try:
         path = Path(root)
         manifest_path = ini_files[0]
-        collection_name = path.parts[-4]  # Extract the parent folder as collection name
 
-        # Update manifest
-        update_manifest(manifest_path, collection_name)
+        # Extract year and trench name from the directory structure
+        year = path.parts[-4]  # Assuming year is the 4th last folder in the path
+        trench_name = path.parts[-2]  # Assuming trench name is the 2nd last folder in the path
+
+        # Update manifest with the correct year and trench name
+        update_manifest(manifest_path, year, trench_name)
 
         # Iterate over jpg and xml files, perform conversions and renaming
         for jpg_file, xml_file in zip(jpg_files, xml_files):
             tiff_path = convert_jpg_to_tiff(jpg_file)
-            trench_name = path.parts[-2].replace('_', '').replace(' ', '')
-            photo_number = path.parts[-1].zfill(3)
-            date = path.parts[-3]
+            photo_number = path.parts[-1].zfill(3)  # Assuming photo number is the last folder in the path
+            date = path.parts[-3]  # Assuming date is the 3rd last folder in the path
 
             # Rename files and prepare them for zipping
             new_tiff_path, new_xml_path = rename_files(path, tiff_path, xml_file, trench_name, photo_number, date)
