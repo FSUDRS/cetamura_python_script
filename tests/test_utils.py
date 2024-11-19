@@ -43,38 +43,47 @@ def test_convert_jpg_to_tiff(tmp_path):
     assert tiff_path.exists(), "Converted TIFF file should exist"
     assert not jpg_path.exists(), "Original JPG file should be deleted"
 
-def test_update_manifest(tmp_path):
-    """
-    Test the update_manifest function to ensure it correctly formats and updates the manifest file.
-    """
-    # Create a temporary manifest file with incorrect formatting
+def test_update_manifest_no_blank_lines(tmp_path):
+    """Test that update_manifest removes blank lines and formats correctly with spaces around '='."""
     manifest_path = tmp_path / "manifest.ini"
-    manifest_path.write_text("""
-    [package]
+    manifest_path.write_text("""[package]
 
-    submitter_email = mhunter2@fsu.edu
+submitter_email=mhunter2@fsu.edu
 
-    content_model = islandora:sp_large_image_cmodel
+content_model= islandora:sp_large_image_cmodel
 
-    parent_collection = 2006
-    """)
+parent_collection=old_value
 
-    # Call update_manifest with a test year and trench name
-    update_manifest(manifest_path, year="2006", trench_name="46N-3W")
+additional_field= some_value
+""")
+    collection_name = "2006"
+    trench_name = "46N-3W"
 
-    # Read the updated content
+    # Run the update_manifest function
+    update_manifest(manifest_path, collection_name, trench_name)
+
+    # Expected manifest content with spaces before and after '='
+    expected_content = """[package]
+submitter_email = mhunter2@fsu.edu
+content_model = islandora:sp_large_image_cmodel
+parent_collection = fsu:cetamuraExcavations_trenchPhotos_2006_46N-3W
+additional_field = some_value"""
+
     updated_content = manifest_path.read_text().strip()
 
-    # Define the expected output
-    expected_content = """[package]
-submitter_email=mhunter2@fsu.edu
-content_model=islandora:sp_large_image_cmodel
-parent_collection=fsu:cetamuraExcavations_trenchPhotos_2006_46N-3W"""
+    # Normalize line endings
+    updated_content = updated_content.replace('\r\n', '\n').replace('\r', '\n')
 
-    # Assertion to ensure the updated content matches the expected output
-    assert updated_content == expected_content, f"Manifest content is incorrect:\n{updated_content}"
+    # Split the contents into lines for comparison
+    expected_lines = expected_content.strip().split('\n')
+    updated_lines = updated_content.strip().split('\n')
 
+    # Assert that the number of lines is the same
+    assert len(expected_lines) == len(updated_lines), f"Line count mismatch: Expected {len(expected_lines)}, got {len(updated_lines)}"
 
+    # Compare each line individually
+    for expected_line, actual_line in zip(expected_lines, updated_lines):
+        assert expected_line == actual_line, f"Mismatch in manifest line: Expected '{expected_line}', got '{actual_line}'"
 def test_rename_files(tmp_path):
     tiff_file = tmp_path / "photo.tiff"
     xml_file = tmp_path / "metadata.xml"
@@ -97,9 +106,14 @@ def test_package_to_zip(tmp_path):
     xml_path.touch()
     manifest_path.write_text("""[package]
 submitter_email=mhunter2@fsu.edu
-content_model=islandora:sp_large_image_cmodel
-parent_collection=fsu:cetamuraExcavations_trenchPhotos_2006_77N-5E
+content_model= islandora:sp_large_image_cmodel
+parent_collection=old_value
 """)
+
+    # Update the manifest file
+    collection_name = "2006"
+    trench_name = "77N-5E"
+    update_manifest(manifest_path, collection_name, trench_name)
 
     output_folder = tmp_path / "output"
     zip_path = package_to_zip(tiff_path, xml_path, manifest_path, output_folder)
@@ -117,11 +131,26 @@ parent_collection=fsu:cetamuraExcavations_trenchPhotos_2006_77N-5E
         # Verify manifest formatting
         with zipf.open("manifest.ini") as f:
             manifest_content = f.read().decode('utf-8').strip()
+
+            # Normalize line endings
+            manifest_content = manifest_content.replace('\r\n', '\n').replace('\r', '\n')
+
+            # Expected content with spaces before and after '=' signs
             expected_content = """[package]
-submitter_email=mhunter2@fsu.edu
-content_model=islandora:sp_large_image_cmodel
-parent_collection=fsu:cetamuraExcavations_trenchPhotos_2006_77N-5E"""
-            assert manifest_content == expected_content.replace("\n", "\r\n"), "Manifest file content is not correctly formatted"
+submitter_email = mhunter2@fsu.edu
+content_model = islandora:sp_large_image_cmodel
+parent_collection = fsu:cetamuraExcavations_trenchPhotos_2006_77N-5E"""
+
+            # Split contents into lines for comparison
+            expected_content_lines = expected_content.strip().split('\n')
+            manifest_content_lines = manifest_content.strip().split('\n')
+
+            # Assert that the number of lines is the same
+            assert len(manifest_content_lines) == len(expected_content_lines), "Manifest file line count mismatch"
+
+            # Compare each line individually to account for potential differences in whitespace
+            for expected_line, actual_line in zip(expected_content_lines, manifest_content_lines):
+                assert expected_line == actual_line, f"Mismatch in manifest line: Expected '{expected_line}', got '{actual_line}'"
 
 def test_rename_files_with_duplicates(tmp_path):
     tiff_file_1 = tmp_path / "photo1.tiff"

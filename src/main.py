@@ -7,11 +7,7 @@ from pathlib import Path
 from PIL import Image, ImageTk
 
 # Set up logging
-logging.basicConfig(
-    filename="batch_process.log",
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Function to display instructions in a new window
 def show_instructions():
