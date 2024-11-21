@@ -2,12 +2,58 @@ from pathlib import Path
 import logging
 import zipfile
 from PIL import Image
-from datetime import datetime
+import xml.etree.ElementTree as ET
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# ------------------------- Utility Functions -------------------------
+
+def extract_iid_from_xml(xml_file):
+    """
+    Extracts the content of the <identifier type="IID"> tag from an XML file,
+    handling both namespaced and non-namespaced XML.
+    """
+    try:
+        tree = ET.parse(xml_file)
+        root = tree.getroot()
+
+        # Define the namespaces used in the XML
+        namespaces = {
+            'mods': "http://www.loc.gov/mods/v3"
+        }
+
+        # Check for <identifier> tag with namespace
+        for identifier in root.findall(".//mods:identifier", namespaces):
+            if identifier.attrib.get("type") == "IID":
+                iid = identifier.text.strip()
+                if iid:
+                    logging.info(f"Extracted IID '{iid}' from {xml_file}")
+                    return iid
+
+        # Check for <identifier> tag without namespace
+        for identifier in root.findall(".//identifier"):
+            if identifier.attrib.get("type") == "IID":
+                iid = identifier.text.strip()
+                if iid:
+                    logging.info(f"Extracted IID '{iid}' from {xml_file}")
+                    return iid
+
+        logging.error(f"Missing or invalid <identifier type='IID'> in {xml_file}")
+        raise ValueError(f"Missing or invalid <identifier type='IID'> in {xml_file}")
+    except Exception as e:
+        logging.error(f"Error parsing XML file {xml_file}: {e}")
+        raise e
+# ------------------------- File Processing Functions -------------------------
+
 def find_photo_sets(parent_folder):
+    """
+    Finds valid photo sets (JPG, XML, and manifest.ini) in a directory structure.
+    """
     photo_sets = []
     parent_path = Path(parent_folder)
 
-    # Directly use rglob to find directories with required files
+    # Use rglob to find directories with required files
     for candidate_dir in parent_path.rglob('*'):
         if candidate_dir.is_dir():
             jpg_files = list(candidate_dir.glob('*.jpg'))
@@ -32,7 +78,9 @@ def find_photo_sets(parent_folder):
     return photo_sets
 
 def convert_jpg_to_tiff(jpg_path):
-    """Converts .jpg to .tiff using pathlib, removing original jpg afterward."""
+    """
+    Converts a .jpg file to .tiff and removes the original JPG.
+    """
     try:
         tiff_path = jpg_path.with_suffix('.tiff')
         Image.open(jpg_path).save(tiff_path, "TIFF")
@@ -43,14 +91,44 @@ def convert_jpg_to_tiff(jpg_path):
         logging.error(f"Error converting {jpg_path} to TIFF: {e}")
         raise e
 
+def rename_files(path, tiff_file, xml_file, iid):
+    """
+    Renames TIFF and XML files based on the extracted IID, adding a letter suffix for duplicates.
+    """
+    base_name = f"{iid}"  # Use IID as the base name
+    new_tiff_path = path / f"{base_name}.tiff"
+    new_xml_path = path / f"{base_name}.xml"
+
+    # Handle existing file conflicts by adding letter suffixes
+    suffix = 0
+    while new_tiff_path.exists() or new_xml_path.exists():
+        letter_suffix = chr(97 + suffix)  # Convert to 'a', 'b', 'c', ..., 'z'
+        new_tiff_path = path / f"{base_name}_{letter_suffix}.tiff"
+        new_xml_path = path / f"{base_name}_{letter_suffix}.xml"
+        suffix += 1
+
+        # Wrap around to prevent overflow (optional safeguard for very large conflicts)
+        if suffix > 25:  # For 'a' to 'z'
+            raise FileExistsError(f"Too many duplicate files for base name: {iid}")
+
+    # Rename the files
+    tiff_file.rename(new_tiff_path)
+    xml_file.rename(new_xml_path)
+    logging.info(f"Renamed files to {new_tiff_path.name} and {new_xml_path.name}")
+    return new_tiff_path, new_xml_path
+
+
+# ------------------------- Manifest Processing Functions -------------------------
+
 def update_manifest(manifest_path, collection_name, trench_name):
-    """Updates the manifest.ini file with spaces before and after '=' and removes blank lines."""
+    """
+    Updates the manifest.ini file with specified fields.
+    """
     try:
-        # Read the manifest file
         manifest_data = manifest_path.read_text()
         lines = manifest_data.splitlines()
 
-        # Remove blank lines and standardize formatting
+        # Prepare the updated lines
         updated_lines = []
         parent_collection_value = f"fsu:cetamuraExcavations_trenchPhotos_{collection_name}_{trench_name}"
 
@@ -69,54 +147,28 @@ def update_manifest(manifest_path, collection_name, trench_name):
                     value = parent_collection_value
                 else:
                     value = value.strip()
-                # Add spaces before and after '='
                 updated_lines.append(f"{key} = {value}")
             else:
-                # For lines without '=', append them
                 updated_lines.append(line)
 
-        # Write the updated lines back to the manifest file
+        # Write the updated manifest
         manifest_path.write_text('\n'.join(updated_lines) + '\n')
         logging.info(f"Updated manifest at {manifest_path} with collection {parent_collection_value}")
     except Exception as e:
         logging.error(f"Error updating manifest {manifest_path}: {e}")
         raise e
-def rename_files(path, tiff_file, xml_file, trench_name, photo_number, collection_date, date_mmddyy):
-    """Renames TIFF and XML files based on specified naming conventions, handling duplicates."""
-    # Clean and format the variables
-    collection_date = collection_date.strip().replace(' ', '_')
-    date_mmddyy = date_mmddyy.strip().replace(' ', '_')
-    trench_name = trench_name.strip().replace(' ', '_')
-    photo_number = photo_number.strip().zfill(3)
 
-    # Construct the base name without spaces
-    base_name = f"FSU_Cetamura_photos_{collection_date}_{trench_name}_{date_mmddyy}_{photo_number}"
-    new_tiff_path = path / f"{base_name}.tiff"
-    new_xml_path = path / f"{base_name}.xml"
-
-    # Handle existing file conflicts by adding suffixes
-    suffix = 1
-    while new_tiff_path.exists() or new_xml_path.exists():
-        new_tiff_path = path / f"{base_name}_{suffix}.tiff"
-        new_xml_path = path / f"{base_name}_{suffix}.xml"
-        suffix += 1
-
-    # Rename the files
-    tiff_file.rename(new_tiff_path)
-    xml_file.rename(new_xml_path)
-    logging.info(f"Renamed files to {new_tiff_path.name} and {new_xml_path.name}")
-    return new_tiff_path, new_xml_path
+# ------------------------- Packaging Functions -------------------------
 
 def package_to_zip(tiff_path, xml_path, manifest_path, output_folder):
     """
     Creates a zip file containing .tiff, .xml, and a properly formatted manifest.ini.
-    The zip file name matches the TIFF and XML file name (without extensions).
     """
     try:
         output_folder.mkdir(parents=True, exist_ok=True)
 
         # Get the base name for the zip file
-        base_name = tiff_path.stem  # This will be the sanitized base name without spaces
+        base_name = tiff_path.stem  # This will be the sanitized base name
         zip_path = output_folder / f"{base_name}.zip"
 
         # Create the zip file
@@ -129,65 +181,37 @@ def package_to_zip(tiff_path, xml_path, manifest_path, output_folder):
     except Exception as e:
         logging.error(f"Error creating zip archive {zip_path}: {e}")
         raise e
-def reformat_date(date_str):
-    """Converts date from 'YYYY-MM-DD' format to 'M-D-YY' format."""
-    try:
-        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
-        # Use '%m-%d-%y' and remove leading zeros manually
-        date_mmddyy = date_obj.strftime('%m-%d-%y')
-        # Remove leading zeros from month and day
-        month, day, year = date_mmddyy.split('-')
-        month = month.lstrip('0')
-        day = day.lstrip('0')
-        date_mmddyy = f"{month}-{day}-{year}"
-        return date_mmddyy
-    except ValueError as e:
-        logging.error(f"Error parsing date '{date_str}': {e}")
-        raise
-def extract_photo_number(folder_name):
-    """Extracts the photo number from the folder name."""
-    import re
-    # Find all numbers in the folder name
-    numbers = re.findall(r'\d+', folder_name)
-    if numbers:
-        photo_number = numbers[-1]  # Assuming the last number is the photo number
-        return photo_number.zfill(3)
-    else:
-        logging.error(f"No photo number found in folder name '{folder_name}'")
-        raise ValueError(f"No photo number found in folder name '{folder_name}'")
-    
+
+# ------------------------- Batch Processing Workflow -------------------------
+
 def batch_process(root, jpg_files, xml_files, ini_files):
-    """Main batch process workflow for each photo set."""
+    """
+    Main batch process workflow for each photo set.
+    """
     try:
         path = Path(root)
         manifest_path = ini_files[0]
 
         # Extract variables from the directory structure
         collection_year = path.parts[-4]       # '2006'
-        collection_date = path.parts[-3]       # '2006-06-01'
         trench_name = path.parts[-2]           # '77N-5E'
-        photo_folder_name = path.parts[-1]     # 'Cetamura 6-1-06 1'
-
-        # Reformat collection_date to get date_mmddyy
-        date_mmddyy = reformat_date(collection_date)  # Converts '2006-06-01' to '6-1-06'
-
-        # Extract photo_number from photo_folder_name
-        photo_number = extract_photo_number(photo_folder_name)
 
         # Update manifest with the correct collection_year and trench_name
         update_manifest(manifest_path, collection_year, trench_name)
 
-        # Iterate over jpg and xml files, perform conversions and renaming
+        # Iterate over JPG and XML files, perform conversions and renaming
         for jpg_file, xml_file in zip(jpg_files, xml_files):
+            # Extract IID from the XML file
+            iid = extract_iid_from_xml(xml_file)
+
+            # Convert JPG to TIFF
             tiff_path = convert_jpg_to_tiff(jpg_file)
 
-            # Rename files and prepare them for zipping
-            new_tiff_path, new_xml_path = rename_files(
-                path, tiff_path, xml_file, trench_name, photo_number, collection_date, date_mmddyy
-            )
+            # Rename files using IID
+            new_tiff_path, new_xml_path = rename_files(path, tiff_path, xml_file, iid)
 
             # Prepare output folder for zipping
-            output_folder = path.parents[2] / f'{collection_date}_CetamuraUploadBatch'
+            output_folder = path.parents[2] / f'{collection_year}_CetamuraUploadBatch'
             package_to_zip(new_tiff_path, new_xml_path, manifest_path, output_folder)
 
     except Exception as e:

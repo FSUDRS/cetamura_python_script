@@ -6,48 +6,32 @@ import logging
 from pathlib import Path
 from PIL import Image, ImageTk
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+# Set up logging with a file handler
+log_file = Path("batch_tool.log")
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file, mode='w', encoding='utf-8'),
+        logging.StreamHandler()
+    ]
+)
 
 # Function to display instructions in a new window
 def show_instructions():
+    try:
+        instruction_file = Path("instructions.txt")
+        if instruction_file.exists():
+            instruction_text = instruction_file.read_text(encoding='utf-8')
+        else:
+            instruction_text = "Instruction file not found. Please ensure 'instructions.txt' is in the application directory."
+    except Exception as e:
+        instruction_text = f"An error occurred while loading instructions: {e}"
+
     instruction_window = Toplevel(root_window)
     instruction_window.title("How to Use Cetamura Batch Ingest Tool")
     instruction_window.geometry("500x400")
 
-    instruction_text = """
-    Cetamura Batch Ingest Tool Instructions:
-
-    1. Requirements:
-       - Python 3.x, Pillow, and Tkinter libraries installed.
-       - Folder structure with the following layout:
-         Parent Folder/
-         ├── Year/
-         │   ├── Date/
-         │   │   ├── TrenchName/
-         │   │   │   ├── manifest.ini
-         │   │   │   ├── photo_001.jpg
-         │   │   │   ├── metadata_001.xml
-
-    2. Running the Application:
-       - Click 'Select Folder' to choose the main folder (e.g., Parent Folder).
-       - Ensure it follows the structure above for processing to succeed.
-       - Click 'Start Batch Process' to process files.
-
-    3. Process Overview:
-       - The tool will:
-         - Copy manifest.ini into each Trench>Photo folder.
-         - Convert .jpg files to .tiff.
-         - Rename files based on metadata and structure.
-         - Create .zip archives named after the metadata file.
-         - Log the process in 'batch_process.log' for tracking.
-    
-    4. Tips:
-       - Avoid special characters in file names.
-       - Ensure manifest.ini is correctly placed in each Trench folder.
-       - View progress and status updates in the main window.
-    """
-    # Instructions in a scrollable text widget
     text_widget = Text(instruction_window, wrap="word", font=('Helvetica', 10), state="normal")
     text_widget.insert("1.0", instruction_text)
     text_widget.config(state="disabled")
@@ -60,8 +44,15 @@ def show_instructions():
 # Function to select Root Folder
 def select_folder():
     folder_selected = filedialog.askdirectory()
-    label.config(text=f"Selected parent folder: {folder_selected}" if folder_selected else "No folder selected!")
-    btn_process.config(state="normal" if folder_selected else "disabled")
+    if folder_selected:
+        if not Path(folder_selected).exists():
+            messagebox.showerror("Error", "Selected folder does not exist.")
+            return
+        label.config(text=f"Selected parent folder: {folder_selected}")
+        btn_process.config(state="normal")
+    else:
+        label.config(text="No folder selected!")
+        btn_process.config(state="disabled")
 
 # Function to start batch processing
 def start_batch_process():
@@ -80,7 +71,7 @@ def start_batch_process():
             photo_sets = find_photo_sets(folder)
             total_sets = len(photo_sets)
             if total_sets == 0:
-                messagebox.showinfo("Info", "No photo sets found in the selected folder.")
+                root_window.after(0, lambda: messagebox.showinfo("Info", "No photo sets found in the selected folder."))
                 status_label.config(text="No photo sets found.")
                 logging.info("No photo sets found in the folder.")
                 return
@@ -92,19 +83,18 @@ def start_batch_process():
                 logging.info(f"Processing set {index + 1}/{total_sets}: {root}")
                 batch_process(root, jpg_files, xml_files, ini_files)
                 progress["value"] = index + 1
-                progress_label.config(text=f"{int((index + 1) / total_sets * 100)}%")
-                root_window.update_idletasks()
+                root_window.after(0, lambda val=index+1: progress_label.config(text=f"{int((val) / total_sets * 100)}%"))
 
-            status_label.config(text="Batch processing completed successfully!")
+            root_window.after(0, lambda: status_label.config(text="Batch processing completed successfully!"))
             logging.info("Batch processing completed successfully!")
-            messagebox.showinfo("Success", "Batch processing completed successfully!")
+            root_window.after(0, lambda: messagebox.showinfo("Success", f"Batch processing completed successfully! Processed files saved in:\n{folder}"))
         except Exception as e:
-            messagebox.showerror("Error", f"An error occurred during processing:\n{e}")
-            status_label.config(text="Batch processing failed.")
+            root_window.after(0, lambda: messagebox.showerror("Error", f"An error occurred during processing:\n{e}"))
+            root_window.after(0, lambda: status_label.config(text="Batch processing failed."))
             logging.error(f"Error during batch processing: {e}")
         finally:
-            btn_select.config(state="normal")
-            btn_process.config(state="normal")
+            root_window.after(0, lambda: btn_select.config(state="normal"))
+            root_window.after(0, lambda: btn_process.config(state="normal"))
 
     threading.Thread(target=run_process).start()
 
@@ -119,15 +109,19 @@ try:
     if icon_path.exists():
         icon_image = Image.open(icon_path).resize((32, 32), Image.LANCZOS)
         root_window.iconphoto(False, ImageTk.PhotoImage(icon_image))
+    else:
+        logging.warning("Icon file not found. Using default window icon.")
 except Exception as e:
     logging.error(f"Error loading window icon: {e}")
 
-# Load the logo image using PIL
 try:
     logo_path = Path("C:/Users/saa24b/Downloads/FSU_Lockup_W_V_solid_rgb.png")
     if logo_path.exists():
         logo_image = Image.open(logo_path).resize((400, 100), Image.LANCZOS)
         logo_photo = ImageTk.PhotoImage(logo_image)
+    else:
+        logging.warning("Logo file not found. Skipping logo display.")
+        logo_photo = None
 except Exception as e:
     logging.error(f"Error loading logo image: {e}")
     logo_photo = None
@@ -172,7 +166,7 @@ btn_process.grid(row=0, column=1, padx=10)
 
 # Progress bar and status indicators
 progress = Progressbar(main_frame, orient="horizontal", mode="determinate", style='red.Horizontal.TProgressbar')
-progress.pack(pady=20, fill='x', padx=40)
+progress.pack(pady=20, fill='x', padx=40, expand=True)
 
 progress_label = Label(main_frame, text="0%", fg="#FFFFFF", bg="#333333", font=('Helvetica', 12))
 progress_label.pack()
