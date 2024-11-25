@@ -5,11 +5,19 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 import zipfile
 import re
+from typing import Optional
+import configparser
+
+NAMESPACES = {
+    'mods': 'http://www.loc.gov/mods/v3'
+}
+DEFAULT_EMAIL = 'mhunter2@fsu.edu'
+CONTENT_MODEL = 'islandora:sp_large_image_cmodel'
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def find_photo_sets(parent_folder):
+def find_photo_sets(parent_folder: str) -> list:
     """
     Finds valid photo sets (JPG, XML, and manifest.ini) in a directory structure.
     """
@@ -38,7 +46,7 @@ def find_photo_sets(parent_folder):
     logging.info(f"Total photo sets found: {len(photo_sets)} in {parent_folder}")
     return photo_sets
 
-def convert_jpg_to_tiff(jpg_path):
+def convert_jpg_to_tiff(jpg_path: Path) -> Path:
     """
     Converts a .jpg file to .tiff and removes the original JPG.
     """
@@ -52,7 +60,7 @@ def convert_jpg_to_tiff(jpg_path):
         logging.error(f"Error converting {jpg_path} to TIFF: {e}")
         raise e
 
-def extract_iid_from_xml(xml_file):
+def extract_iid_from_xml(xml_file: Path) -> str:
     """
     Extracts the content of the <identifier type="IID"> tag from an XML file.
     Handles both namespaced and non-namespaced XML files.
@@ -84,43 +92,75 @@ def extract_iid_from_xml(xml_file):
     except Exception as e:
         logging.error(f"Error parsing XML file {xml_file}: {e}")
         raise e
-def update_manifest(manifest_path, collection_name, trench_name):
+
+def extract_iid(xml_file: Path) -> str:
     """
-    Updates the manifest.ini file with specified fields.
+    Extract IID from XML file.
+    
+    Args:
+        xml_file: Path to XML file
+        
+    Returns:
+        str: Extracted IID value
+        
+    Raises:
+        ValueError: If IID not found
+        Exception: For XML parsing errors
     """
     try:
-        manifest_data = manifest_path.read_text()
-        lines = manifest_data.splitlines()
+        tree = ET.parse(xml_file)
+        root = tree.getroot()
 
-        updated_lines = []
-        parent_collection_value = f"fsu:cetamuraExcavations_trenchPhotos_{collection_name}_{trench_name}"
+        # Define namespaces if applicable
+        namespaces = {'mods': "http://www.loc.gov/mods/v3"}
 
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-            if '=' in line:
-                key, value = line.split('=', 1)
-                key = key.strip()
-                if key == "submitter_email":
-                    value = "mhunter2@fsu.edu"
-                elif key == "content_model":
-                    value = "islandora:sp_large_image_cmodel"
-                elif key == "parent_collection":
-                    value = parent_collection_value
-                else:
-                    value = value.strip()
-                updated_lines.append(f"{key} = {value}")
-            else:
-                updated_lines.append(line)
+        # Try to find the IID in a namespaced environment
+        identifier = root.find(".//mods:identifier[@type='IID']", namespaces)
+        if identifier is not None and identifier.text:
+            iid = identifier.text.strip()
+            logging.info(f"Extracted IID '{iid}' from {xml_file}")
+            return iid
 
-        manifest_path.write_text('\n'.join(updated_lines) + '\n')
-        logging.info(f"Updated manifest at {manifest_path} with collection {parent_collection_value}")
+        # Fallback to non-namespaced lookup
+        identifier = root.find(".//identifier[@type='IID']")
+        if identifier is not None and identifier.text:
+            iid = identifier.text.strip()
+            logging.info(f"Extracted IID '{iid}' from {xml_file}")
+            return iid
+
+        # If not found, raise an error
+        raise ValueError(f"Missing or invalid <identifier type='IID'> in {xml_file}")
+
     except Exception as e:
-        logging.error(f"Error updating manifest {manifest_path}: {e}")
+        logging.error(f"Error parsing XML file {xml_file}: {e}")
         raise e
 
-def rename_files(path, tiff_file, xml_file, iid):
+def update_manifest(manifest_path: Path, collection_name: str, trench_name: str) -> None:
+    """
+    Updates manifest.ini with specified fields.
+    
+    Args:
+        manifest_path: Path to manifest file
+        collection_name: Collection identifier
+        trench_name: Trench identifier
+    """
+    config = configparser.ConfigParser()
+    config.optionxform = str  # Preserve case
+    config.read(manifest_path)
+    
+    if not config.has_section('package'):
+        config.add_section('package')
+        
+    config['package'].update({
+        'submitter_email': 'mhunter2@fsu.edu',
+        'content_model': 'islandora:sp_large_image_cmodel',
+        'parent_collection': f"fsu:cetamuraExcavations_trenchPhotos_{collection_name}_{trench_name}"
+    })
+    
+    with open(manifest_path, 'w') as f:
+        config.write(f)
+
+def rename_files(path: Path, tiff_file: Path, xml_file: Path, iid: str) -> tuple:
     """
     Renames TIFF and XML files based on the extracted IID, ensuring no unnecessary suffixes are added.
     """
@@ -164,7 +204,7 @@ def rename_files(path, tiff_file, xml_file, iid):
     logging.info(f"Renamed files to {new_tiff_path.name} and {new_xml_path.name}")
     return new_tiff_path, new_xml_path
 
-def sanitize_filename(filename):
+def sanitize_filename(filename: str) -> str:
     """
     Removes or replaces invalid characters in a filename.
     """
@@ -173,7 +213,8 @@ def sanitize_filename(filename):
     # Remove invalid characters for filenames
     sanitized = re.sub(r'[<>:"/\\|?*\']', '', sanitized)
     return sanitized
-def package_to_zip(tiff_path, xml_path, manifest_path, output_folder):
+
+def package_to_zip(tiff_path: Path, xml_path: Path, manifest_path: Path, output_folder: Path) -> Path:
     """
     Creates a zip file containing .tiff, .xml, and a properly formatted manifest.ini,
     handling conflicts in zip file names by adding suffixes only when necessary.
@@ -210,7 +251,7 @@ def package_to_zip(tiff_path, xml_path, manifest_path, output_folder):
         logging.error(f"Error creating zip archive {zip_path}: {e}")
         raise e
     
-def batch_process(root, jpg_files, xml_files, ini_files):
+def batch_process(root: str, jpg_files: list, xml_files: list, ini_files: list) -> None:
     """
     Processes each photo set by:
     - Converting JPG to TIFF.
@@ -247,3 +288,9 @@ def batch_process(root, jpg_files, xml_files, ini_files):
     except Exception as e:
         logging.error(f"Error during batch processing for {root}: {e}")
         raise e
+
+def validate_inputs(collection_name: str, trench_name: str) -> None:
+    if not collection_name or not trench_name:
+        raise ValueError("Collection and trench names cannot be empty")
+    if not collection_name.isalnum() or not trench_name.replace('-', '').isalnum():
+        raise ValueError("Invalid characters in collection or trench name")

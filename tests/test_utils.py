@@ -76,7 +76,19 @@ def test_extract_iid_from_xml_non_namespaced(tmp_path):
 
 
 def test_update_manifest(tmp_path):
-    """Test updating the manifest with correct fields."""
+    """
+    Test manifest file updating functionality
+    
+    Tests:
+    - Creation of package section
+    - Correct email update
+    - Content model setting
+    - Parent collection naming format
+    - File path handling
+    
+    Args:
+        tmp_path: pytest fixture providing temporary directory
+    """
     manifest_path = tmp_path / "manifest.ini"
     manifest_path.write_text(
         """[package]
@@ -101,12 +113,31 @@ parent_collection=old_value
     assert config.get('package', 'parent_collection') == expected_parent_collection, "parent_collection should be updated"
 
 
+def test_update_manifest_invalid_path(tmp_path):
+    """Test handling of invalid manifest path"""
+    with pytest.raises(FileNotFoundError) as exc_info:
+        update_manifest(tmp_path / "nonexistent.ini", "2006", "46N-3W")
+    assert "manifest file not found" in str(exc_info.value).lower()
+
+
 def test_sanitize_filename():
     """Test sanitizing invalid characters from filenames."""
     invalid_name = "unique:<>*id|?123/\\\""
     expected_name = "uniqueid123"
     sanitized = sanitize_filename(invalid_name)
     assert sanitized == expected_name, f"Sanitized name should be '{expected_name}', got '{sanitized}'"
+
+
+@pytest.mark.parametrize("input_name,expected_name", [
+    ("file:name*", "filename"),
+    ("test/\\file", "testfile"),
+    ("", ""),  # Edge case: empty string
+    ("   spaces   ", "spaces"),  # Edge case: whitespace
+    ("file.name.ext", "filenameext"),  # Edge case: dots
+    ("αβγδε", ""),  # Edge case: non-ASCII
+])
+def test_sanitize_filename_cases(input_name, expected_name):
+    assert sanitize_filename(input_name) == expected_name
 
 
 def test_rename_files(tmp_path):
@@ -171,3 +202,31 @@ def test_package_to_zip(tmp_path):
         assert tiff_path.name in names, "TIFF file should be in the zip"
         assert xml_path.name in names, "XML file should be in the zip"
         assert manifest_path.name in names, "Manifest file should be in the zip"
+
+
+def test_full_workflow(tmp_path):
+    """Integration test for complete workflow"""
+    # Setup files
+    tiff_file = tmp_path / "original.tiff"
+    xml_file = tmp_path / "original.xml"
+    manifest_path = tmp_path / "MANIFEST.ini"
+    tiff_file.touch()
+    xml_file.touch()
+    
+    # Create manifest
+    config = configparser.ConfigParser()
+    config.write(manifest_path.open('w'))
+    
+    # Execute workflow
+    collection = "2006"
+    trench = "46N-3W"
+    base_name = "FSU_Cetamura_photos_20060523_46N3W_001"
+    
+    update_manifest(manifest_path, collection, trench)
+    new_tiff, new_xml = rename_files(tmp_path, tiff_file, xml_file, base_name)
+    
+    # Verify complete state
+    assert new_tiff.exists()
+    assert new_xml.exists()
+    assert manifest_path.exists()
+    # Add more assertions for complete workflow verification

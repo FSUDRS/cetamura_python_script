@@ -20,26 +20,62 @@ logging.basicConfig(
 # Function to display instructions in a new window
 def show_instructions():
     try:
-        instruction_file = Path("instructions.txt")
-        if instruction_file.exists():
-            instruction_text = instruction_file.read_text(encoding='utf-8')
-        else:
-            instruction_text = "Instruction file not found. Please ensure 'instructions.txt' is in the application directory."
+        instruction_text = """CETAMURA BATCH INGEST TOOL
+==========================
+
+This tool automates the process for creating ingest files for the Cetamura Digital Collections.
+
+REQUIREMENTS
+-----------
+- TIFF image files
+- Corresponding XML metadata files
+- MANIFEST.ini file in each folder
+- Files must be organized in year/trench structure
+
+USAGE INSTRUCTIONS
+----------------
+1. Click "Select Folder" to choose the parent directory containing your year folders
+   Example structure:
+   Parent_Folder/
+   ├── 2006/
+   │   ├── 46N-3W/
+   │   │   ├── image.tiff
+   │   │   ├── metadata.xml
+   │   │   └── MANIFEST.ini
+   │   └── ...
+   └── ...
+
+2. The tool will:
+   - Update MANIFEST.ini files with correct:
+     * submitter email
+     * content model
+     * parent collection information
+   - Extract IID from XML files
+    - rename image files to match the IID
+    - rename zip files to match the IID
+    -create a new folder containing the renamed files
+"""
+
+        # Create a new top-level window
+        instructions_window = Toplevel(root_window)
+        instructions_window.title("Instructions")
+        instructions_window.geometry("600x500")
+
+        # Add a scrollbar
+        scrollbar = Scrollbar(instructions_window)
+        scrollbar.pack(side='right', fill='y')
+
+        # Create a Text widget
+        text_area = Text(instructions_window, wrap='word', yscrollcommand=scrollbar.set)
+        text_area.pack(expand=True, fill='both')
+        text_area.insert('1.0', instruction_text)
+        text_area.config(state='disabled')  # Make the text read-only
+
+        # Configure scrollbar
+        scrollbar.config(command=text_area.yview)
+
     except Exception as e:
-        instruction_text = f"An error occurred while loading instructions: {e}"
-
-    instruction_window = Toplevel(root_window)
-    instruction_window.title("How to Use Cetamura Batch Ingest Tool")
-    instruction_window.geometry("500x400")
-
-    text_widget = Text(instruction_window, wrap="word", font=('Helvetica', 10), state="normal")
-    text_widget.insert("1.0", instruction_text)
-    text_widget.config(state="disabled")
-    text_widget.pack(expand=True, fill="both")
-
-    scrollbar = Scrollbar(instruction_window, command=text_widget.yview)
-    text_widget.config(yscrollcommand=scrollbar.set)
-    scrollbar.pack(side="right", fill="y")
+        logging.error(f"Error displaying instructions: {e}")
 
 # Function to select Root Folder
 def select_folder():
@@ -70,7 +106,7 @@ def start_batch_process():
         try:
             photo_sets = find_photo_sets(folder)
             total_sets = len(photo_sets)
-            if total_sets == 0:
+            if (total_sets == 0):
                 root_window.after(0, lambda: messagebox.showinfo("Info", "No photo sets found in the selected folder."))
                 status_label.config(text="No photo sets found.")
                 logging.info("No photo sets found in the folder.")
