@@ -51,25 +51,15 @@ This tool automates the process for creating ingest files for the Cetamura Digit
 
 ## IMPORTANT NOTES
 
-- **Backup Files:** Always backup your files before processing to prevent accidental data loss.
-- **File Pairing:** Ensure that each trench folder contains matching TIFF and XML files.
+- **Backup Files:** Always back up your files before processing them to prevent accidental data loss.
+- **File Pairing:** Ensure each trench folder contains matching TIFF and XML files.
 - **Valid IID Identifiers:** XML files must contain valid IID identifiers for successful processing.
 - **Logging:** Refer to the `batch_tool.log` file for detailed processing logs and error messages.
-- **Irreversible Actions:** Processing actions such as renaming cannot be undone. Ensure accuracy before proceeding.
+- **Irreversible Actions:** Processing actions such as renaming cannot be undone. Please make sure it's accurate before proceeding.
 
 ## TROUBLESHOOTING
 
 - **Missing Files:** If the tool reports missing or invalid files, verify that all required files are present and correctly named.
 - **Log Review:** Check the `batch_tool.log` for detailed error messages and processing steps.
-- **Permissions:** Ensure you have the necessary permissions to read and write files in the selected directories.
+- **Permissions:** Ensure you have permission to read and write files in the selected directories.
 
-## CONTACT & SUPPORT
-
-For technical support or questions, please contact:
-
-**Digital Library Center**  
-Florida State University Libraries  
-[contact@fsu.edu](mailto:contact@fsu.edu)
-
----
-*This document provides instructions for using the Cetamura Batch Ingest Tool effectively. For further assistance, refer to the project's README or contact the support team.*
