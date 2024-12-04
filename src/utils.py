@@ -19,24 +19,47 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 def find_photo_sets(parent_folder: str) -> list:
     """
-    Finds valid photo sets (JPG, XML, and manifest.ini) in a directory structure.
+    Finds valid photo sets (JPG/JPEG, XML, and manifest.ini) in a directory structure.
+
+    Args:
+        parent_folder (str): Path to the parent folder to search.
+
+    Returns:
+        list: A list of tuples containing valid photo sets. Each tuple contains:
+              (directory, list of JPG/JPEG files, list of XML files, list of manifest files)
     """
     photo_sets = []
-    parent_path = Path(parent_folder)
+    parent_path = Path(parent_folder).resolve()
+    logging.info(f"Searching for photo sets in: {parent_path}")
 
     for candidate_dir in parent_path.rglob('*'):
         if candidate_dir.is_dir():
-            jpg_files = list(candidate_dir.glob('*.jpg'))
-            xml_files = list(candidate_dir.glob('*.xml'))
-            ini_file = next(candidate_dir.glob('manifest.ini'), None)
+            logging.debug(f"Inspecting directory: {candidate_dir}")
+            
+            # Gather files
+            jpg_files = [
+                f for f in candidate_dir.glob('*')
+                if f.suffix.lower() in ['.jpg', '.jpeg']
+            ]
+            xml_files = [f for f in candidate_dir.glob('*') if f.suffix.lower() == '.xml']
+            ini_file = next(
+                (f for f in candidate_dir.glob('*') if f.name.lower() == 'manifest.ini'), 
+                None
+            )
 
+            # Debugging output for found files
+            logging.debug(f"Found JPG/JPEG files: {jpg_files}")
+            logging.debug(f"Found XML files: {xml_files}")
+            logging.debug(f"Found manifest.ini: {ini_file}")
+
+            # Validate and collect photo sets
             if jpg_files and xml_files and ini_file:
                 photo_sets.append((candidate_dir, jpg_files, xml_files, [ini_file]))
                 logging.info(f"Valid photo set found in {candidate_dir}")
             else:
                 missing = []
                 if not jpg_files:
-                    missing.append("JPG files")
+                    missing.append("JPG/JPEG files")
                 if not xml_files:
                     missing.append("XML files")
                 if not ini_file:
