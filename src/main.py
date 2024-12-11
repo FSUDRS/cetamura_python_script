@@ -46,14 +46,10 @@ USAGE INSTRUCTIONS
    └── ...
 
 2. The tool will:
-   - Update MANIFEST.ini files with correct:
-     * submitter email
-     * content model
-     * parent collection information
-   - Extract IID from XML files
-    - rename image files to match the IID
-    - rename zip files to match the IID
-    -create a new folder containing the renamed files
+   - Extract IID from XML files.
+   - Rename image and XML files to match the IID.
+   - Copy the MANIFEST.ini file as-is.
+   - Package the files into a ZIP archive.
 """
 
         # Create a new top-level window

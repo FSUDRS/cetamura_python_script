@@ -1,21 +1,45 @@
 from pathlib import Path
 import logging
-from PIL import Image
+from PIL import Image,UnidentifiedImageError
 import xml.etree.ElementTree as ET
-from datetime import datetime
 import zipfile
 import re
 from typing import Optional
-import configparser
 
 NAMESPACES = {
     'mods': 'http://www.loc.gov/mods/v3'
 }
-DEFAULT_EMAIL = 'mhunter2@fsu.edu'
-CONTENT_MODEL = 'islandora:sp_large_image_cmodel'
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+debug_handler = logging.FileHandler("batch_tool_debug.log", mode="w", encoding="utf-8")
+debug_handler.setLevel(logging.DEBUG)
+
+info_handler = logging.FileHandler("batch_tool.log", mode="w", encoding="utf-8")
+info_handler.setLevel(logging.INFO)
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[info_handler, debug_handler, logging.StreamHandler()]
+)
+
+def sanitize_name(name: str) -> str:
+    """
+    Removes or replaces invalid characters and normalizes whitespace.
+    """
+    sanitized = re.sub(r'[<>:"/\\|?*\']', '', name.strip().replace(' ', '_'))
+    return sanitized
+
+
+def validate_directory_structure(path: Path) -> None:
+    """
+    Validates that the directory structure has the required components.
+    Raises an error if the structure is invalid.
+    """
+    parts = path.parts
+    if len(parts) < 4:
+        raise ValueError(f"Invalid directory structure: {path}. Expected at least 4 levels of directories.")
+
 
 def find_photo_sets(parent_folder: str) -> list:
     """
@@ -35,24 +59,17 @@ def find_photo_sets(parent_folder: str) -> list:
     for candidate_dir in parent_path.rglob('*'):
         if candidate_dir.is_dir():
             logging.debug(f"Inspecting directory: {candidate_dir}")
-            
-            # Gather files
+
             jpg_files = [
                 f for f in candidate_dir.glob('*')
                 if f.suffix.lower() in ['.jpg', '.jpeg']
             ]
             xml_files = [f for f in candidate_dir.glob('*') if f.suffix.lower() == '.xml']
             ini_file = next(
-                (f for f in candidate_dir.glob('*') if f.name.lower() == 'manifest.ini'), 
+                (f for f in candidate_dir.glob('*') if f.name.lower() == 'manifest.ini'),
                 None
             )
 
-            # Debugging output for found files
-            logging.debug(f"Found JPG/JPEG files: {jpg_files}")
-            logging.debug(f"Found XML files: {xml_files}")
-            logging.debug(f"Found manifest.ini: {ini_file}")
-
-            # Validate and collect photo sets
             if jpg_files and xml_files and ini_file:
                 photo_sets.append((candidate_dir, jpg_files, xml_files, [ini_file]))
                 logging.info(f"Valid photo set found in {candidate_dir}")
@@ -69,19 +86,44 @@ def find_photo_sets(parent_folder: str) -> list:
     logging.info(f"Total photo sets found: {len(photo_sets)} in {parent_folder}")
     return photo_sets
 
-def convert_jpg_to_tiff(jpg_path: Path) -> Path:
+def fix_corrupted_jpg(jpg_path: Path) -> Optional[Path]:
     """
-    Converts a .jpg file to .tiff and removes the original JPG.
+    Attempts to fix a corrupted JPG by re-encoding it. If successful, returns the fixed file path.
+    """
+    try:
+        fixed_path = jpg_path.with_name(f"{jpg_path.stem}_fixed{jpg_path.suffix}")
+        with Image.open(jpg_path) as img:
+            img = img.convert("RGB")  # Ensure standard RGB encoding
+            img.save(fixed_path, "JPEG")
+        logging.info(f"Fixed corrupted image: {jpg_path} -> {fixed_path}")
+        return fixed_path
+    except Exception as e:
+        logging.error(f"Failed to fix corrupted image {jpg_path}: {e}")
+        return None
+
+
+def convert_jpg_to_tiff(jpg_path: Path) -> Optional[Path]:
+    """
+    Converts a .jpg file to .tiff. Detects and attempts to fix corrupted files before skipping them.
     """
     try:
         tiff_path = jpg_path.with_suffix('.tiff')
-        Image.open(jpg_path).save(tiff_path, "TIFF")
-        jpg_path.unlink()
+        with Image.open(jpg_path) as img:
+            img.verify()  # Verify if the image is corrupted
+            img = Image.open(jpg_path)  # Re-open the image to save as TIFF
+            img.save(tiff_path, "TIFF")
         logging.info(f"Converted {jpg_path} to {tiff_path}")
         return tiff_path
+    except UnidentifiedImageError as e:
+        logging.warning(f"Corrupted file detected: {jpg_path}. Attempting to fix...")
+        fixed_path = fix_corrupted_jpg(jpg_path)
+        if fixed_path:
+            return convert_jpg_to_tiff(fixed_path)  # Retry with the fixed file
+        logging.error(f"Unable to process {jpg_path}: {e}")
+        return None
     except Exception as e:
         logging.error(f"Error converting {jpg_path} to TIFF: {e}")
-        raise e
+        return None
 
 def extract_iid_from_xml(xml_file: Path) -> str:
     """
@@ -92,228 +134,136 @@ def extract_iid_from_xml(xml_file: Path) -> str:
         tree = ET.parse(xml_file)
         root = tree.getroot()
 
-        # Define namespaces if applicable
-        namespaces = {'mods': "http://www.loc.gov/mods/v3"}
-
-        # Try to find the IID in a namespaced environment
-        identifier = root.find(".//mods:identifier[@type='IID']", namespaces)
+        identifier = root.find(".//mods:identifier[@type='IID']", NAMESPACES)
         if identifier is not None and identifier.text:
             iid = identifier.text.strip()
             logging.info(f"Extracted IID '{iid}' from {xml_file}")
             return iid
 
-        # Fallback to non-namespaced lookup
         identifier = root.find(".//identifier[@type='IID']")
         if identifier is not None and identifier.text:
             iid = identifier.text.strip()
             logging.info(f"Extracted IID '{iid}' from {xml_file}")
             return iid
 
-        # If not found, raise an error
         raise ValueError(f"Missing or invalid <identifier type='IID'> in {xml_file}")
-
     except Exception as e:
         logging.error(f"Error parsing XML file {xml_file}: {e}")
         raise e
 
-def extract_iid(xml_file: Path) -> str:
-    """
-    Extract IID from XML file.
-    
-    Args:
-        xml_file: Path to XML file
-        
-    Returns:
-        str: Extracted IID value
-        
-    Raises:
-        ValueError: If IID not found
-        Exception: For XML parsing errors
-    """
-    try:
-        tree = ET.parse(xml_file)
-        root = tree.getroot()
-
-        # Define namespaces if applicable
-        namespaces = {'mods': "http://www.loc.gov/mods/v3"}
-
-        # Try to find the IID in a namespaced environment
-        identifier = root.find(".//mods:identifier[@type='IID']", namespaces)
-        if identifier is not None and identifier.text:
-            iid = identifier.text.strip()
-            logging.info(f"Extracted IID '{iid}' from {xml_file}")
-            return iid
-
-        # Fallback to non-namespaced lookup
-        identifier = root.find(".//identifier[@type='IID']")
-        if identifier is not None and identifier.text:
-            iid = identifier.text.strip()
-            logging.info(f"Extracted IID '{iid}' from {xml_file}")
-            return iid
-
-        # If not found, raise an error
-        raise ValueError(f"Missing or invalid <identifier type='IID'> in {xml_file}")
-
-    except Exception as e:
-        logging.error(f"Error parsing XML file {xml_file}: {e}")
-        raise e
-
-def update_manifest(manifest_path: Path, collection_name: str, trench_name: str) -> None:
-    """
-    Updates manifest.ini with specified fields.
-    
-    Args:
-        manifest_path: Path to manifest file
-        collection_name: Collection identifier
-        trench_name: Trench identifier
-    """
-    config = configparser.ConfigParser()
-    config.optionxform = str  # Preserve case
-    config.read(manifest_path)
-    
-    if not config.has_section('package'):
-        config.add_section('package')
-        
-    config['package'].update({
-        'submitter_email': 'mhunter2@fsu.edu',
-        'content_model': 'islandora:sp_large_image_cmodel',
-        'parent_collection': f"fsu:cetamuraExcavations_trenchPhotos_{collection_name}_{trench_name}"
-    })
-    
-    with open(manifest_path, 'w') as f:
-        config.write(f)
 
 def rename_files(path: Path, tiff_file: Path, xml_file: Path, iid: str) -> tuple:
     """
     Renames TIFF and XML files based on the extracted IID, ensuring no unnecessary suffixes are added.
     """
-    base_name = sanitize_filename(iid)
+    base_name = sanitize_name(iid)
     new_tiff_path = path / f"{base_name}.tiff"
     new_xml_path = path / f"{base_name}.xml"
 
-    # Check if the new paths are different from the current file paths
-    need_to_rename_tiff = new_tiff_path != tiff_file
-    need_to_rename_xml = new_xml_path != xml_file
-
     conflict = False
-    if need_to_rename_tiff and new_tiff_path.exists():
+    if new_tiff_path.exists() and new_tiff_path != tiff_file:
         conflict = True
-    if need_to_rename_xml and new_xml_path.exists():
+    if new_xml_path.exists() and new_xml_path != xml_file:
         conflict = True
 
     if conflict:
-        logging.warning(f"File conflict detected for base name {base_name}. Adding suffix.")
         suffix = 0
         while True:
-            suffix_letter = chr(97 + suffix)  # 'a', 'b', 'c', etc.
-            new_tiff_path_candidate = path / f"{base_name}_{suffix_letter}.tiff"
-            new_xml_path_candidate = path / f"{base_name}_{suffix_letter}.xml"
-            suffix += 1
-            if suffix > 25:  # Safety limit
-                raise FileExistsError(f"Too many duplicate files for base name: {iid}")
-            if (not new_tiff_path_candidate.exists() or new_tiff_path_candidate == tiff_file) and \
-               (not new_xml_path_candidate.exists() or new_xml_path_candidate == xml_file):
-                new_tiff_path = new_tiff_path_candidate
-                new_xml_path = new_xml_path_candidate
+            suffix_letter = chr(97 + suffix)
+            new_tiff_candidate = path / f"{base_name}_{suffix_letter}.tiff"
+            new_xml_candidate = path / f"{base_name}_{suffix_letter}.xml"
+            if not new_tiff_candidate.exists() and not new_xml_candidate.exists():
+                new_tiff_path = new_tiff_candidate
+                new_xml_path = new_xml_candidate
                 break
-    else:
-        logging.info(f"No conflicts detected for base name {base_name}.")
+            suffix += 1
 
-    # Rename files if needed
-    if need_to_rename_tiff:
-        tiff_file.rename(new_tiff_path)
-    if need_to_rename_xml:
-        xml_file.rename(new_xml_path)
-    logging.info(f"Renamed files to {new_tiff_path.name} and {new_xml_path.name}")
+    tiff_file.rename(new_tiff_path)
+    xml_file.rename(new_xml_path)
+    logging.info(f"Renamed files to {new_tiff_path} and {new_xml_path}")
     return new_tiff_path, new_xml_path
 
-def sanitize_filename(filename: str) -> str:
-    """
-    Removes or replaces invalid characters in a filename.
-    """
-    # Replace spaces with underscores
-    sanitized = filename.replace(" ", "_")
-    # Remove invalid characters for filenames
-    sanitized = re.sub(r'[<>:"/\\|?*\']', '', sanitized)
-    return sanitized
 
 def package_to_zip(tiff_path: Path, xml_path: Path, manifest_path: Path, output_folder: Path) -> Path:
     """
-    Creates a zip file containing .tiff, .xml, and a properly formatted manifest.ini,
-    handling conflicts in zip file names by adding suffixes only when necessary.
+    Creates a zip file containing .tiff, .xml, and a properly formatted manifest.ini.
     """
     try:
         output_folder.mkdir(parents=True, exist_ok=True)
-        base_name = tiff_path.stem  # Use the base name from the TIFF file
-        sanitized_base_name = sanitize_filename(base_name)
-        zip_path = output_folder / f"{sanitized_base_name}.zip"
+        base_name = tiff_path.stem
+        zip_path = output_folder / f"{sanitize_name(base_name)}.zip"
 
-        # Check if zip file already exists (excluding the one we're about to create)
         if zip_path.exists():
-            logging.warning(f"Zip file conflict detected for base name {sanitized_base_name}. Adding suffix.")
             suffix = 0
             while True:
-                suffix_letter = chr(97 + suffix)  # 'a', 'b', 'c', etc.
-                zip_path_candidate = output_folder / f"{sanitized_base_name}_{suffix_letter}.zip"
-                suffix += 1
-                if suffix > 25:  # Safety limit
-                    raise FileExistsError(f"Too many duplicate zip files for base name: {sanitized_base_name}")
-                if not zip_path_candidate.exists():
-                    zip_path = zip_path_candidate
+                suffix_letter = chr(97 + suffix)
+                zip_candidate = output_folder / f"{sanitize_name(base_name)}_{suffix_letter}.zip"
+                if not zip_candidate.exists():
+                    zip_path = zip_candidate
                     break
-        else:
-            logging.info(f"No conflicts detected for zip file name {zip_path.name}.")
+                suffix += 1
 
-        # Ensure no additional modifications to file names inside the zip
         with zipfile.ZipFile(zip_path, 'w') as zipf:
-            for file in [tiff_path, xml_path, manifest_path]:
-                zipf.write(file, arcname=file.name)  # Preserve original file name
+            zipf.write(tiff_path, arcname=tiff_path.name)
+            zipf.write(xml_path, arcname=xml_path.name)
+            zipf.write(manifest_path, arcname=manifest_path.name)
         logging.info(f"Created zip archive: {zip_path}")
         return zip_path
     except Exception as e:
-        logging.error(f"Error creating zip archive {zip_path}: {e}")
+        logging.error(f"Error creating zip archive: {e}")
         raise e
-    
+
+
 def batch_process(root: str, jpg_files: list, xml_files: list, ini_files: list) -> None:
     """
-    Processes each photo set by:
-    - Converting JPG to TIFF.
-    - Extracting the IID from the XML file.
-    - Updating and copying the manifest file.
-    - Renaming the TIFF and XML files based on the IID.
-    - Packaging the files into a ZIP archive.
+    Processes photo sets by converting, renaming, and packaging them into ZIP archives.
+    Logs a summary at the end instead of detailed per-file logs.
     """
     try:
         path = Path(root)
         manifest_path = ini_files[0]
 
-        # Extract collection details from directory structure
-        collection_year = path.parts[-4]
-        collection_date = path.parts[-3]
-        trench_name = path.parts[-2]
+        # Initialize counters and error tracking
+        processed = 0
+        skipped = 0
+        error_details = []
 
-        # Update the manifest
-        update_manifest(manifest_path, collection_year, trench_name)
-
-        # Process each pair of JPG and XML files
         for jpg_file, xml_file in zip(jpg_files, xml_files):
-            iid = extract_iid_from_xml(xml_file)  # Extract IID
-            logging.debug(f"Processing IID: {iid}")
+            try:
+                # Process files
+                iid = extract_iid_from_xml(xml_file)
+                tiff_path = convert_jpg_to_tiff(jpg_file)
+                if tiff_path is None:
+                    skipped += 1
+                    continue
 
-            tiff_path = convert_jpg_to_tiff(jpg_file)  # Convert JPG to TIFF
-            new_tiff_path, new_xml_path = rename_files(path, tiff_path, xml_file, iid)  # Rename files
+                new_tiff, new_xml = rename_files(path, tiff_path, xml_file, iid)
+                output_folder = path.parents[2] / f"CetamuraUploadBatch_{path.parts[-3]}"
+                package_to_zip(new_tiff, new_xml, manifest_path, output_folder)
 
-            output_folder = path.parents[2] / f"{collection_date}_CetamuraUploadBatch"
-            package_to_zip(new_tiff_path, new_xml_path, manifest_path, output_folder)  # Package files
+                processed += 1
 
-        logging.info(f"Batch processing completed for {root}")
+            except Exception as e:
+                error_details.append(f"File: {jpg_file.name} - Error: {e}")
+                skipped += 1
+
+        # Generate summary after processing
+        logging.info(f"Batch processing completed for {root}.")
+        summary_message = f"""
+        Summary for {root}:
+        -------------------
+        Files Processed: {processed}
+        Files Skipped: {skipped}
+        Errors: {len(error_details)}
+        """
+        logging.info(summary_message.strip())
+        
+        # Optionally log error details
+        if error_details:
+            logging.info("Error Details:")
+            for error in error_details:
+                logging.info(error)
 
     except Exception as e:
-        logging.error(f"Error during batch processing for {root}: {e}")
+        logging.error(f"Batch processing error for {root}: {e}")
         raise e
-
-def validate_inputs(collection_name: str, trench_name: str) -> None:
-    if not collection_name or not trench_name:
-        raise ValueError("Collection and trench names cannot be empty")
-    if not collection_name.isalnum() or not trench_name.replace('-', '').isalnum():
-        raise ValueError("Invalid characters in collection or trench name")
