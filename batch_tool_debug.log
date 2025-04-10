@@ -1,51 +1,51 @@
-2024-12-11 12:04:41,274 - DEBUG - Importing BlpImagePlugin
-2024-12-11 12:04:41,277 - DEBUG - Importing BmpImagePlugin
-2024-12-11 12:04:41,279 - DEBUG - Importing BufrStubImagePlugin
-2024-12-11 12:04:41,281 - DEBUG - Importing CurImagePlugin
-2024-12-11 12:04:41,284 - DEBUG - Importing DcxImagePlugin
-2024-12-11 12:04:41,289 - DEBUG - Importing DdsImagePlugin
-2024-12-11 12:04:41,297 - DEBUG - Importing EpsImagePlugin
-2024-12-11 12:04:41,301 - DEBUG - Importing FitsImagePlugin
-2024-12-11 12:04:41,309 - DEBUG - Importing FliImagePlugin
-2024-12-11 12:04:41,311 - DEBUG - Importing FpxImagePlugin
-2024-12-11 12:04:41,314 - DEBUG - Image: failed to import FpxImagePlugin: No module named 'olefile'
-2024-12-11 12:04:41,315 - DEBUG - Importing FtexImagePlugin
-2024-12-11 12:04:41,318 - DEBUG - Importing GbrImagePlugin
-2024-12-11 12:04:41,321 - DEBUG - Importing GifImagePlugin
-2024-12-11 12:04:41,323 - DEBUG - Importing GribStubImagePlugin
-2024-12-11 12:04:41,325 - DEBUG - Importing Hdf5StubImagePlugin
-2024-12-11 12:04:41,327 - DEBUG - Importing IcnsImagePlugin
-2024-12-11 12:04:41,334 - DEBUG - Importing IcoImagePlugin
-2024-12-11 12:04:41,339 - DEBUG - Importing ImImagePlugin
-2024-12-11 12:04:41,342 - DEBUG - Importing ImtImagePlugin
-2024-12-11 12:04:41,344 - DEBUG - Importing IptcImagePlugin
-2024-12-11 12:04:41,346 - DEBUG - Importing JpegImagePlugin
-2024-12-11 12:04:41,346 - DEBUG - Importing Jpeg2KImagePlugin
-2024-12-11 12:04:41,346 - DEBUG - Importing McIdasImagePlugin
-2024-12-11 12:04:41,348 - DEBUG - Importing MicImagePlugin
-2024-12-11 12:04:41,351 - DEBUG - Image: failed to import MicImagePlugin: No module named 'olefile'
-2024-12-11 12:04:41,352 - DEBUG - Importing MpegImagePlugin
-2024-12-11 12:04:41,355 - DEBUG - Importing MpoImagePlugin
-2024-12-11 12:04:41,372 - DEBUG - Importing MspImagePlugin
-2024-12-11 12:04:41,374 - DEBUG - Importing PalmImagePlugin
-2024-12-11 12:04:41,376 - DEBUG - Importing PcdImagePlugin
-2024-12-11 12:04:41,377 - DEBUG - Importing PcxImagePlugin
-2024-12-11 12:04:41,379 - DEBUG - Importing PdfImagePlugin
-2024-12-11 12:04:41,390 - DEBUG - Importing PixarImagePlugin
-2024-12-11 12:04:41,394 - DEBUG - Importing PngImagePlugin
-2024-12-11 12:04:41,395 - DEBUG - Importing PpmImagePlugin
-2024-12-11 12:04:41,395 - DEBUG - Importing PsdImagePlugin
-2024-12-11 12:04:41,397 - DEBUG - Importing QoiImagePlugin
-2024-12-11 12:04:41,400 - DEBUG - Importing SgiImagePlugin
-2024-12-11 12:04:41,404 - DEBUG - Importing SpiderImagePlugin
-2024-12-11 12:04:41,407 - DEBUG - Importing SunImagePlugin
-2024-12-11 12:04:41,409 - DEBUG - Importing TgaImagePlugin
-2024-12-11 12:04:41,409 - DEBUG - Importing TiffImagePlugin
-2024-12-11 12:04:41,409 - DEBUG - Importing WebPImagePlugin
-2024-12-11 12:04:41,418 - DEBUG - Importing WmfImagePlugin
-2024-12-11 12:04:41,422 - DEBUG - Importing XbmImagePlugin
-2024-12-11 12:04:41,424 - DEBUG - Importing XpmImagePlugin
-2024-12-11 12:04:41,427 - DEBUG - Importing XVThumbImagePlugin
-2024-12-11 12:04:41,529 - DEBUG - STREAM b'IHDR' 16 13
-2024-12-11 12:04:41,530 - DEBUG - STREAM b'pHYs' 41 9
-2024-12-11 12:04:41,532 - DEBUG - STREAM b'IDAT' 62 8192
+2025-04-10 12:53:41,259 - DEBUG - Importing BlpImagePlugin
+2025-04-10 12:53:41,264 - DEBUG - Importing BmpImagePlugin
+2025-04-10 12:53:41,264 - DEBUG - Importing BufrStubImagePlugin
+2025-04-10 12:53:41,269 - DEBUG - Importing CurImagePlugin
+2025-04-10 12:53:41,272 - DEBUG - Importing DcxImagePlugin
+2025-04-10 12:53:41,276 - DEBUG - Importing DdsImagePlugin
+2025-04-10 12:53:41,285 - DEBUG - Importing EpsImagePlugin
+2025-04-10 12:53:41,289 - DEBUG - Importing FitsImagePlugin
+2025-04-10 12:53:41,300 - DEBUG - Importing FliImagePlugin
+2025-04-10 12:53:41,303 - DEBUG - Importing FpxImagePlugin
+2025-04-10 12:53:41,305 - DEBUG - Image: failed to import FpxImagePlugin: No module named 'olefile'
+2025-04-10 12:53:41,306 - DEBUG - Importing FtexImagePlugin
+2025-04-10 12:53:41,311 - DEBUG - Importing GbrImagePlugin
+2025-04-10 12:53:41,323 - DEBUG - Importing GifImagePlugin
+2025-04-10 12:53:41,323 - DEBUG - Importing GribStubImagePlugin
+2025-04-10 12:53:41,330 - DEBUG - Importing Hdf5StubImagePlugin
+2025-04-10 12:53:41,334 - DEBUG - Importing IcnsImagePlugin
+2025-04-10 12:53:41,343 - DEBUG - Importing IcoImagePlugin
+2025-04-10 12:53:41,346 - DEBUG - Importing ImImagePlugin
+2025-04-10 12:53:41,359 - DEBUG - Importing ImtImagePlugin
+2025-04-10 12:53:41,391 - DEBUG - Importing IptcImagePlugin
+2025-04-10 12:53:41,412 - DEBUG - Importing JpegImagePlugin
+2025-04-10 12:53:41,413 - DEBUG - Importing Jpeg2KImagePlugin
+2025-04-10 12:53:41,416 - DEBUG - Importing McIdasImagePlugin
+2025-04-10 12:53:41,428 - DEBUG - Importing MicImagePlugin
+2025-04-10 12:53:41,446 - DEBUG - Image: failed to import MicImagePlugin: No module named 'olefile'
+2025-04-10 12:53:41,448 - DEBUG - Importing MpegImagePlugin
+2025-04-10 12:53:41,463 - DEBUG - Importing MpoImagePlugin
+2025-04-10 12:53:41,558 - DEBUG - Importing MspImagePlugin
+2025-04-10 12:53:41,569 - DEBUG - Importing PalmImagePlugin
+2025-04-10 12:53:41,600 - DEBUG - Importing PcdImagePlugin
+2025-04-10 12:53:41,606 - DEBUG - Importing PcxImagePlugin
+2025-04-10 12:53:41,606 - DEBUG - Importing PdfImagePlugin
+2025-04-10 12:53:41,669 - DEBUG - Importing PixarImagePlugin
+2025-04-10 12:53:41,674 - DEBUG - Importing PngImagePlugin
+2025-04-10 12:53:41,674 - DEBUG - Importing PpmImagePlugin
+2025-04-10 12:53:41,675 - DEBUG - Importing PsdImagePlugin
+2025-04-10 12:53:41,685 - DEBUG - Importing QoiImagePlugin
+2025-04-10 12:53:41,699 - DEBUG - Importing SgiImagePlugin
+2025-04-10 12:53:41,711 - DEBUG - Importing SpiderImagePlugin
+2025-04-10 12:53:41,724 - DEBUG - Importing SunImagePlugin
+2025-04-10 12:53:41,735 - DEBUG - Importing TgaImagePlugin
+2025-04-10 12:53:41,747 - DEBUG - Importing TiffImagePlugin
+2025-04-10 12:53:41,749 - DEBUG - Importing WebPImagePlugin
+2025-04-10 12:53:41,798 - DEBUG - Importing WmfImagePlugin
+2025-04-10 12:53:41,817 - DEBUG - Importing XbmImagePlugin
+2025-04-10 12:53:41,830 - DEBUG - Importing XpmImagePlugin
+2025-04-10 12:53:41,839 - DEBUG - Importing XVThumbImagePlugin
+2025-04-10 12:53:42,116 - DEBUG - STREAM b'IHDR' 16 13
+2025-04-10 12:53:42,118 - DEBUG - STREAM b'pHYs' 41 9
+2025-04-10 12:53:42,120 - DEBUG - STREAM b'IDAT' 62 8192
