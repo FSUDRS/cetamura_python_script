@@ -1,0 +1,12 @@
+# Development requirements
+# Install with: pip install -r requirements-dev.txt
+
+# Testing
+pytest>=6.0.0
+
+# Code quality
+black
+flake8
+
+# Include main requirements
+-r requirements.txt
