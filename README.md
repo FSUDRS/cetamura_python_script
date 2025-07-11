@@ -4,79 +4,113 @@
 
 This tool automates the process for creating ingest files for the Cetamura Digital Collections.
 
-## REQUIREMENTS
+## Quick Start
 
-- **TIFF image files**
-- **Corresponding XML metadata files**
+### Windows Users
+1. Download the project
+2. Navigate to `dist_package/`
+3. Double-click `executables/Cetamura_Batch_Tool_Windows.exe`
+
+### macOS Users
+1. Download the project
+2. Navigate to `dist_package/`
+3. Run: `chmod +x install_macos.sh && ./install_macos.sh`
+
+### Linux Users
+1. Download the project
+2. Install dependencies: `pip3 install -r dist_package/requirements.txt`
+3. Run: `python3 dist_package/source/main.py`
+
+## Complete Documentation
+
+For detailed instructions, build guides, and troubleshooting:
+- **Distribution Guide**: `dist_package/README_DISTRIBUTION.md`
+- **Build Instructions**: `dist_package/docs/README_BUILD.md`
+- **Quick Reference**: `dist_package/docs/BUILD_SUMMARY.md`
+
+## Project Structure
+
+```
+cetamura_python_script/
+├── src/                        # Source code
+│   └── main.py                 # Main application
+├── tests/                      # Unit tests
+├── assets/                     # Optional icons/logos
+├── dist_package/               # Complete distribution package
+│   ├── executables/            # Pre-built executables
+│   ├── source/                 # Source code copy
+│   ├── build_scripts/          # Build scripts for all platforms
+│   ├── docs/                   # Documentation
+│   └── install_*.sh|.ps1       # Installation scripts
+├── .venv/                      # Virtual environment
+└── requirements.txt            # Python dependencies
+```
+
+## Requirements
+
+### File Structure
+The tool expects this folder structure:
+```
+Parent_Folder/
+├── 2006/
+│   ├── 46N-3W/
+│   │   ├── image.jpg
+│   │   ├── metadata.xml
+│   │   └── MANIFEST.ini
+│   └── ...
+└── ...
+```
+
+### System Requirements
+- **TIFF/JPG image files**
+- **Corresponding XML metadata files** 
 - **MANIFEST.ini file** in each folder
-- **Organized Folder Structure:** Files must be organized in a `year/trench` structure.
+- **Python 3.6+** (for source execution)
 
-## USAGE INSTRUCTIONS
+## Processing Steps
 
-1. **Select Parent Folder:**
-   
-   - Click the **"Select Folder"** button to choose the parent directory containing your year folders.
-   
-   - **Example Folder Structure:**
-   
-     ```
-     Parent_Folder/
-     ├── 2006/
-     │   ├── 46N-3W/
-     │   │   ├── image.tiff
-     │   │   ├── metadata.xml
-     │   │   └── MANIFEST.ini
-     │   └── ...
-     └── ...
-     ```
+1. **Extract IID** from XML metadata files
+2. **Convert JPG to TIFF** format
+3. **Rename files** to match extracted IID
+4. **Package into ZIP** archives with MANIFEST.ini
+5. **Organize output** in structured folders
 
-2. **Processing Steps:**
-   
-   The tool will perform the following actions:
-   
-   - **Update `MANIFEST.ini` Files:**
-     - Correct **submitter email**
-     - Update **content model**
-     - Set **parent collection** information
-     
-   - **Extract IID:**
-     - Retrieve IID values from XML metadata files.
-     
-   - **Rename Files:**
-     - Rename TIFF and XML files to match the extracted IID.
-     - Rename ZIP files to match the IID.
-     
-   - **Organize Renamed Files:**
-     - Create a new folder containing the renamed files to maintain organization and prevent clutter.
+## Development
 
-## IMPORTANT NOTES
+### Running from Source
+```bash
+# Install dependencies
+pip install -r requirements.txt
 
-- **Backup Files:** Always back up your files before processing them to prevent accidental data loss.
-- **File Pairing:** Ensure each trench folder contains matching TIFF and XML files.
-- **Valid IID Identifiers:** XML files must contain valid IID identifiers for successful processing.
-- **Logging:** Refer to the `batch_tool.log` file for detailed processing logs and error messages.
-- **Irreversible Actions:** Processing actions such as renaming cannot be undone. Please make sure it's accurate before proceeding.
+# Run the application
+python src/main.py
+```
 
-## TROUBLESHOOTING
+### Building Executables
+See `dist_package/docs/BUILD_SUMMARY.md` for platform-specific build instructions.
 
-- **Missing Files:** If the tool reports missing or invalid files, verify that all required files are present and correctly named.
-- **Log Review:** Check the `batch_tool.log` for detailed error messages and processing steps.
-- **Permissions:** Ensure you have permission to read and write files in the selected directories.
+### Testing
+```bash
+pytest tests/
+```
 
+## Important Notes
 
-## Building a Standalone Executable
+- **Backup files** before processing
+- **File pairing**: Ensure matching TIFF and XML files
+- **Valid IID identifiers**: XML files must contain valid IID identifiers
+- **Logging**: Check `batch_tool.log` for detailed processing logs
+- **Irreversible actions**: Processing cannot be undone
 
-The application can be bundled into a single executable using [PyInstaller](https://pyinstaller.org/).
+## Support
 
-1. Install the required packages:
-   ```bash
-   pip install pyinstaller Pillow
-   ```
-2. From the repository root, run the build script or PyInstaller directly:
-   ```bash
-   ./build_exe.sh
-   # or
-   pyinstaller --onefile --noconsole src/main.py
-   ```
+1. Check the logs: `batch_tool.log`
+2. Review documentation in `dist_package/docs/`
+3. Verify file structure requirements
+4. Ensure all dependencies are installed
 
-The resulting binary will be placed in the `dist/` directory. Optional icon and logo files can be added to the `assets/` folder so they are included in the executable.
+---
+
+**Version:** 1.0.0  
+**Platform Support:** Windows, macOS, Linux  
+**Project:** Cetamura Digital Collections

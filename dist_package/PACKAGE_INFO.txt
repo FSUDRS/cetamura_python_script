@@ -1,0 +1,43 @@
+CETAMURA BATCH INGEST TOOL - DISTRIBUTION PACKAGE
+================================================
+
+PACKAGE CONTENTS:
+  executables/         - Pre-built executables
+    Windows .exe (17.9 MB) - Ready to run
+  
+  source/              - Python source code  
+    main.py - Complete self-contained application
+  
+  build_scripts/       - Build scripts for all platforms
+    build_exe.ps1      - Windows build
+    build_exe_macos.sh - macOS build  
+    build_cross_platform.sh - Auto-detect build
+    setup_macos.sh     - Complete macOS setup
+  
+  docs/                - Complete documentation
+    README.md          - Main user guide
+    README_BUILD.md    - Build instructions
+    BUILD_SUMMARY.md   - Quick reference
+  
+  README_DISTRIBUTION.md - This package guide
+  requirements.txt      - Python dependencies
+  VERSION_INFO.md       - Version and technical details
+  install_windows.ps1   - Windows installer
+  install_macos.sh      - macOS installer
+
+QUICK START:
+  Windows: Run install_windows.ps1 OR use executables/Cetamura_Batch_Tool_Windows.exe
+  macOS:   Run install_macos.sh OR chmod +x install_macos.sh && ./install_macos.sh
+  Linux:   pip3 install -r requirements.txt && python3 source/main.py
+
+PLATFORM SUPPORT:
+  Windows 10+ (executable included)
+  macOS 10.14+ (build scripts included)  
+  Linux (Python source compatible)
+
+REQUIREMENTS:
+  - Python 3.6+ (for source/building)
+  - 50MB disk space
+  - Internet connection (for dependency installation)
+
+Version: 1.0.0 | Date: July 11, 2025 | Size: ~18MB
