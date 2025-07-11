@@ -137,7 +137,8 @@ root_window.geometry("600x500")
 
 # Set the window icon (favicon)
 try:
-    icon_path = Path("C:/Users/saa24b/Downloads/FSU_Lockup_W_V_solid_rgb.ico")
+    # Look for an optional icon in the local assets directory
+    icon_path = Path(__file__).resolve().parent / "../assets/app.ico"
     if icon_path.exists():
         icon_image = Image.open(icon_path).resize((32, 32), Image.LANCZOS)
         root_window.iconphoto(False, ImageTk.PhotoImage(icon_image))
@@ -147,7 +148,8 @@ except Exception as e:
     logging.error(f"Error loading window icon: {e}")
 
 try:
-    logo_path = Path("C:/Users/saa24b/Downloads/FSU_Lockup_W_V_solid_rgb.png")
+    # Optional logo displayed at the top of the window
+    logo_path = Path(__file__).resolve().parent / "../assets/app.png"
     if logo_path.exists():
         logo_image = Image.open(logo_path).resize((400, 100), Image.LANCZOS)
         logo_photo = ImageTk.PhotoImage(logo_image)
