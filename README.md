@@ -63,3 +63,20 @@ This tool automates the process for creating ingest files for the Cetamura Digit
 - **Log Review:** Check the `batch_tool.log` for detailed error messages and processing steps.
 - **Permissions:** Ensure you have permission to read and write files in the selected directories.
 
+
+## Building a Standalone Executable
+
+The application can be bundled into a single executable using [PyInstaller](https://pyinstaller.org/).
+
+1. Install the required packages:
+   ```bash
+   pip install pyinstaller Pillow
+   ```
+2. From the repository root, run the build script or PyInstaller directly:
+   ```bash
+   ./build_exe.sh
+   # or
+   pyinstaller --onefile --noconsole src/main.py
+   ```
+
+The resulting binary will be placed in the `dist/` directory. Optional icon and logo files can be added to the `assets/` folder so they are included in the executable.
