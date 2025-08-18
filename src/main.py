@@ -7,23 +7,22 @@ from PIL import Image, ImageTk, UnidentifiedImageError
 import xml.etree.ElementTree as ET
 import zipfile
 import re
-from typing import Optional
-
-from tkinter import Tk, filedialog, messagebox, Menu, Toplevel, Text, Scrollbar, Label
-from tkinter.ttk import Button, Progressbar, Style, Frame
-import threading
-import logging
-from pathlib import Path
-from PIL import Image, ImageTk, UnidentifiedImageError
-import xml.etree.ElementTree as ET
-import zipfile
-import re
-from typing import Optional
+from typing import Optional, List, Dict, NamedTuple
+from collections import defaultdict
 
 # Constants
 NAMESPACES = {
     'mods': 'http://www.loc.gov/mods/v3'
 }
+
+# Enhanced Photo Set Finder Classes
+class PhotoSet(NamedTuple):
+    """Data structure for a complete photo set"""
+    base_directory: Path
+    jpg_files: List[Path]
+    xml_files: List[Path]
+    manifest_file: Path
+    structure_type: str  # 'standard', 'hierarchical'
 
 # Set up logging with a file handler
 log_file = Path("batch_tool.log")
@@ -55,10 +54,286 @@ def validate_directory_structure(path: Path) -> None:
         raise ValueError(f"Invalid directory structure: {path}. Expected at least 4 levels of directories.")
 
 
+# Enhanced Photo Set Finder Functions
+def find_all_files_recursive(parent_folder: Path, max_depth: int = 5) -> Dict[str, List[Path]]:
+    """
+    Recursively find all relevant files within the specified depth.
+    
+    Args:
+        parent_folder: Root directory to search
+        max_depth: Maximum depth to search (prevents infinite recursion)
+                   Default 5 is sufficient for most photo archive structures:
+                   - Typical photo sets at depth 2-3
+                   - Hierarchical structures at depth 3-4  
+                   - Safety margin for complex organizations
+        
+    Returns:
+        Dictionary containing lists of files by type
+    """
+    files = {
+        'jpg': [],
+        'xml': [],
+        'manifest': []
+    }
+    
+    def search_directory(directory: Path, current_depth: int):
+        if current_depth > max_depth:
+            return
+            
+        try:
+            for item in directory.iterdir():
+                if item.is_file():
+                    if item.suffix.lower() in ['.jpg', '.jpeg']:
+                        files['jpg'].append(item)
+                    elif item.suffix.lower() == '.xml':
+                        files['xml'].append(item)
+                    elif item.name.lower() == 'manifest.ini':
+                        files['manifest'].append(item)
+                elif item.is_dir():
+                    search_directory(item, current_depth + 1)
+        except (PermissionError, OSError) as e:
+            logging.warning(f"Cannot access directory {directory}: {e}")
+    
+    search_directory(parent_folder, 0)
+    logging.debug(f"Enhanced finder discovered - JPG: {len(files['jpg'])}, XML: {len(files['xml'])}, Manifest: {len(files['manifest'])}")
+    return files
+
+
+def group_files_by_directory(files: Dict[str, List[Path]]) -> List[Dict]:
+    """
+    Group files by their containing directory.
+    
+    Args:
+        files: Dictionary of file lists by type
+        
+    Returns:
+        List of dictionaries containing grouped files
+    """
+    directory_groups = defaultdict(lambda: {'jpg': [], 'xml': [], 'manifest': []})
+    
+    # Group files by their parent directory
+    for file_type, file_list in files.items():
+        for file_path in file_list:
+            parent_dir = file_path.parent
+            directory_groups[parent_dir][file_type].append(file_path)
+    
+    # Convert to list of dictionaries
+    file_groups = []
+    for directory, grouped_files in directory_groups.items():
+        file_group = {
+            'directory': directory,
+            'jpg_files': grouped_files['jpg'],
+            'xml_files': grouped_files['xml'],
+            'manifest_files': grouped_files['manifest']
+        }
+        file_groups.append(file_group)
+    
+    logging.debug(f"Grouped files into {len(file_groups)} directory groups")
+    return file_groups
+
+
+def find_hierarchical_sets(files: Dict[str, List[Path]], base_path: Path) -> List[PhotoSet]:
+    """
+    Find photo sets where manifest.ini might be in a parent directory
+    and images/XML files are in subdirectories.
+    
+    Args:
+        files: All files found in the search
+        base_path: Base search path
+        
+    Returns:
+        List of hierarchical photo sets
+    """
+    hierarchical_sets = []
+    
+    # For each manifest file, look for associated images and XML in subdirectories
+    for manifest_file in files['manifest']:
+        manifest_dir = manifest_file.parent
+        
+        # Find all images and XML files that are descendants of this manifest's directory
+        associated_jpg = [f for f in files['jpg'] if manifest_dir in f.parents or f.parent == manifest_dir]
+        associated_xml = [f for f in files['xml'] if manifest_dir in f.parents or f.parent == manifest_dir]
+        
+        if associated_jpg and associated_xml:
+            # Group by immediate subdirectory if files are not in manifest directory
+            if any(f.parent != manifest_dir for f in associated_jpg + associated_xml):
+                # Group files by their immediate directory under manifest_dir
+                subdir_groups = defaultdict(lambda: {'jpg': [], 'xml': []})
+                
+                for jpg_file in associated_jpg:
+                    if jpg_file.parent == manifest_dir:
+                        subdir_groups[manifest_dir]['jpg'].append(jpg_file)
+                    else:
+                        # Find the immediate subdirectory under manifest_dir
+                        for parent in jpg_file.parents:
+                            if parent.parent == manifest_dir:
+                                subdir_groups[parent]['jpg'].append(jpg_file)
+                                break
+                
+                for xml_file in associated_xml:
+                    if xml_file.parent == manifest_dir:
+                        subdir_groups[manifest_dir]['xml'].append(xml_file)
+                    else:
+                        # Find the immediate subdirectory under manifest_dir
+                        for parent in xml_file.parents:
+                            if parent.parent == manifest_dir:
+                                subdir_groups[parent]['xml'].append(xml_file)
+                                break
+                
+                # Create photo sets for each subdirectory that has both types
+                for subdir, grouped in subdir_groups.items():
+                    if grouped['jpg'] and grouped['xml']:
+                        photo_set = PhotoSet(
+                            base_directory=subdir,
+                            jpg_files=grouped['jpg'],
+                            xml_files=grouped['xml'],
+                            manifest_file=manifest_file,
+                            structure_type='hierarchical'
+                        )
+                        hierarchical_sets.append(photo_set)
+                        logging.info(f"Hierarchical photo set found: {subdir.relative_to(base_path)} (manifest in {manifest_dir.relative_to(base_path)})")
+            else:
+                # Files are directly in manifest directory
+                photo_set = PhotoSet(
+                    base_directory=manifest_dir,
+                    jpg_files=associated_jpg,
+                    xml_files=associated_xml,
+                    manifest_file=manifest_file,
+                    structure_type='standard'
+                )
+                hierarchical_sets.append(photo_set)
+                logging.debug(f"Standard photo set found via hierarchical search: {manifest_dir.relative_to(base_path)}")
+    
+    return hierarchical_sets
+
+
+def validate_photo_set(photo_set: PhotoSet) -> bool:
+    """
+    Validate that a photo set has matching XML files for JPG files.
+    
+    Args:
+        photo_set: PhotoSet to validate
+        
+    Returns:
+        True if valid, False otherwise
+    """
+    if len(photo_set.jpg_files) == 0 or len(photo_set.xml_files) == 0:
+        logging.warning(f"Invalid photo set {photo_set.base_directory}: Missing JPG or XML files")
+        return False
+    
+    # Check if we can extract IIDs from XML files
+    valid_xml_count = 0
+    for xml_file in photo_set.xml_files:
+        try:
+            if extract_iid_from_xml_enhanced(xml_file):
+                valid_xml_count += 1
+        except Exception as e:
+            logging.warning(f"Invalid XML {xml_file}: {e}")
+    
+    if valid_xml_count == 0:
+        logging.warning(f"Invalid photo set {photo_set.base_directory}: No valid XML files with IID")
+        return False
+    
+    logging.debug(f"Valid photo set {photo_set.base_directory}: {len(photo_set.jpg_files)} JPG, {valid_xml_count} valid XML")
+    return True
+
+
+def extract_iid_from_xml_enhanced(xml_file: Path) -> Optional[str]:
+    """
+    Extract IID from XML file - enhanced version with better error handling.
+    
+    Args:
+        xml_file: Path to XML file
+        
+    Returns:
+        Extracted IID or None if not found
+    """
+    try:
+        tree = ET.parse(xml_file)
+        root = tree.getroot()
+        
+        # Try namespaced version first
+        namespaces = {'mods': 'http://www.loc.gov/mods/v3'}
+        identifier = root.find(".//mods:identifier[@type='IID']", namespaces)
+        if identifier is not None and identifier.text:
+            return identifier.text.strip()
+        
+        # Try non-namespaced version
+        identifier = root.find(".//identifier[@type='IID']")
+        if identifier is not None and identifier.text:
+            return identifier.text.strip()
+        
+        return None
+    except Exception:
+        return None
+
+
+def find_photo_sets_enhanced(parent_folder: str, flexible_structure: bool = True) -> List[PhotoSet]:
+    """
+    Enhanced photo set finder with flexible folder structure support.
+    
+    Args:
+        parent_folder: Root directory to search
+        flexible_structure: Enable flexible structure detection
+        
+    Returns:
+        List of PhotoSet objects found
+    """
+    parent_path = Path(parent_folder).resolve()
+    logging.info(f"Starting enhanced photo set search in: {parent_path}")
+    
+    # Find all relevant files recursively
+    all_files = find_all_files_recursive(parent_path)
+    
+    photo_sets = []
+    
+    if flexible_structure:
+        # Try hierarchical detection first
+        hierarchical_sets = find_hierarchical_sets(all_files, parent_path)
+        for photo_set in hierarchical_sets:
+            if validate_photo_set(photo_set):
+                photo_sets.append(photo_set)
+    
+    # Also try standard directory-based grouping for any missed sets
+    file_groups = group_files_by_directory(all_files)
+    
+    for group in file_groups:
+        # Skip if we already found this as a hierarchical set
+        if any(ps.base_directory == group['directory'] for ps in photo_sets):
+            continue
+        
+        if group['jpg_files'] and group['xml_files'] and group['manifest_files']:
+            photo_set = PhotoSet(
+                base_directory=group['directory'],
+                jpg_files=group['jpg_files'],
+                xml_files=group['xml_files'],
+                manifest_file=group['manifest_files'][0],  # Take first manifest if multiple
+                structure_type='standard'
+            )
+            if validate_photo_set(photo_set):
+                photo_sets.append(photo_set)
+    
+    # Log structure type breakdown for analytics
+    structure_counts = defaultdict(int)
+    for ps in photo_sets:
+        structure_counts[ps.structure_type] += 1
+    
+    if structure_counts:
+        structure_summary = ", ".join(f"{stype}: {count}" for stype, count in structure_counts.items())
+        logging.info(f"Enhanced photo set search completed: {len(photo_sets)} sets found ({structure_summary})")
+    else:
+        logging.info(f"Enhanced photo set search completed: {len(photo_sets)} sets found")
+    
+    return photo_sets
+
+
 def find_photo_sets(parent_folder: str) -> list:
     """
-    Finds valid photo sets (JPG/JPEG, XML, and manifest.ini) in a directory structure.
-
+    Enhanced photo set finder with backward compatibility.
+    
+    This function provides the same interface as the original find_photo_sets
+    function while using the enhanced detection capabilities under the hood.
+    
     Args:
         parent_folder (str): Path to the parent folder to search.
 
@@ -66,39 +341,22 @@ def find_photo_sets(parent_folder: str) -> list:
         list: A list of tuples containing valid photo sets. Each tuple contains:
               (directory, list of JPG/JPEG files, list of XML files, list of manifest files)
     """
-    photo_sets = []
-    parent_path = Path(parent_folder).resolve()
-    logging.info(f"Searching for photo sets in: {parent_path}")
-
-    for candidate_dir in parent_path.rglob('*'):
-        if candidate_dir.is_dir():
-            logging.debug(f"Inspecting directory: {candidate_dir}")
-
-            jpg_files = [
-                f for f in candidate_dir.glob('*')
-                if f.suffix.lower() in ['.jpg', '.jpeg']
-            ]
-            xml_files = [f for f in candidate_dir.glob('*') if f.suffix.lower() == '.xml']
-            ini_file = next(
-                (f for f in candidate_dir.glob('*') if f.name.lower() == 'manifest.ini'),
-                None
-            )
-
-            if jpg_files and xml_files and ini_file:
-                photo_sets.append((candidate_dir, jpg_files, xml_files, [ini_file]))
-                logging.info(f"Valid photo set found in {candidate_dir}")
-            else:
-                missing = []
-                if not jpg_files:
-                    missing.append("JPG/JPEG files")
-                if not xml_files:
-                    missing.append("XML files")
-                if not ini_file:
-                    missing.append("manifest.ini")
-                logging.warning(f"Directory {candidate_dir} missing: {', '.join(missing)}")
-
-    logging.info(f"Total photo sets found: {len(photo_sets)} in {parent_folder}")
-    return photo_sets
+    # Use enhanced finder
+    enhanced_results = find_photo_sets_enhanced(parent_folder, flexible_structure=True)
+    
+    # Convert to original format for backward compatibility
+    compatible_results = []
+    for photo_set in enhanced_results:
+        compatible_tuple = (
+            photo_set.base_directory,       # directory (Path object)
+            photo_set.jpg_files,           # list of JPG/JPEG files  
+            photo_set.xml_files,           # list of XML files
+            [photo_set.manifest_file]      # list of manifest files (original expects list)
+        )
+        compatible_results.append(compatible_tuple)
+    
+    logging.info(f"Total photo sets found: {len(compatible_results)} in {parent_folder}")
+    return compatible_results
 
 def fix_corrupted_jpg(jpg_path: Path) -> Optional[Path]:
     """

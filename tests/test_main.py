@@ -28,7 +28,7 @@ def setup_test_directory(tmp_path):
     xml_file = valid_dir / "test.xml"
     xml_file.write_text("""<?xml version="1.0" encoding="UTF-8"?>
     <mods:mods xmlns:mods="http://www.loc.gov/mods/v3">
-        <mods:identifier type="FSU">FSU_Cetamura_photos_20060523_46N3W_001</mods:identifier>
+        <mods:identifier type="IID">FSU_Cetamura_photos_20060523_46N3W_001</mods:identifier>
     </mods:mods>""")
     
     # Create INI file
@@ -41,7 +41,8 @@ def test_find_photo_sets(setup_test_directory):
     """Test that find_photo_sets identifies valid directory sets."""
     result = find_photo_sets(str(setup_test_directory))
     assert len(result) == 1
-    assert result[0]['folder'] == str(setup_test_directory / "valid_set")
+    directory, jpg_files, xml_files, ini_files = result[0]
+    assert str(directory) == str(setup_test_directory / "valid_set")
 
 def test_convert_jpg_to_tiff(tmp_path):
     """Test JPG to TIFF conversion."""
@@ -59,7 +60,7 @@ def test_extract_iid_from_xml_namespaced(tmp_path):
     """Test IID extraction from namespaced XML."""
     xml_content = """<?xml version="1.0" encoding="UTF-8"?>
     <mods:mods xmlns:mods="http://www.loc.gov/mods/v3">
-        <mods:identifier type="FSU">FSU_Cetamura_photos_20060523_46N3W_001</mods:identifier>
+        <mods:identifier type="IID">FSU_Cetamura_photos_20060523_46N3W_001</mods:identifier>
     </mods:mods>"""
     
     xml_file = tmp_path / "test.xml"
@@ -72,7 +73,7 @@ def test_extract_iid_from_xml_non_namespaced(tmp_path):
     """Test IID extraction from non-namespaced XML."""
     xml_content = """<?xml version="1.0" encoding="UTF-8"?>
     <mods>
-        <identifier type="FSU">FSU_Cetamura_photos_20060523_46N3W_002</identifier>
+        <identifier type="IID">FSU_Cetamura_photos_20060523_46N3W_002</identifier>
     </mods>"""
     
     xml_file = tmp_path / "test.xml"
