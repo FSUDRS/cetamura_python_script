@@ -1,4 +1,4 @@
-from tkinter import Tk, filedialog, messagebox, Menu, Toplevel, Text, Scrollbar, Label
+from tkinter import Tk, filedialog, messagebox, Menu, Toplevel, Text, Scrollbar, Label, BooleanVar, Checkbutton
 from tkinter.ttk import Button, Progressbar, Style, Frame
 import threading
 import logging
@@ -7,6 +7,8 @@ from PIL import Image, ImageTk, UnidentifiedImageError
 import xml.etree.ElementTree as ET
 import zipfile
 import re
+import csv
+from datetime import datetime
 from typing import Optional, List, Dict, NamedTuple
 from collections import defaultdict
 
@@ -14,6 +16,22 @@ from collections import defaultdict
 NAMESPACES = {
     'mods': 'http://www.loc.gov/mods/v3'
 }
+
+class FilePair(NamedTuple):
+    xml: Path
+    jpg: Optional[Path]
+    iid: str
+
+
+class BatchContext(NamedTuple):
+    """Context object to pass configuration flags and resources"""
+    output_dir: Path
+    dry_run: bool
+    staging: bool
+    csv_path: Path
+    csv_writer: Optional[csv.writer]
+    logger: logging.Logger
+
 
 # Enhanced Photo Set Finder Classes
 class PhotoSet(NamedTuple):
@@ -42,6 +60,95 @@ def sanitize_name(name: str) -> str:
     """
     sanitized = re.sub(r'[<>:"/\\|?*\']', '', name.strip().replace(' ', '_'))
     return sanitized
+
+
+def derive_jpg_candidates_from_iid(iid: str) -> List[str]:
+    """Generate possible JPG filenames from an IID"""
+    base = sanitize_name(iid)
+    return [
+        f"{base}.jpg", f"{base}.jpeg",
+        f"{base}_1.jpg", f"{base}_01.jpg", 
+        f"{base}-1.jpg", f"{base}_001.jpg"
+    ]
+
+
+def pick_matching_jpg(jpg_files: List[Path], iid: str, used: set) -> Optional[Path]:
+    """Find the best matching JPG file for a given IID"""
+    # 1) Exact filename matches first
+    candidates = set(derive_jpg_candidates_from_iid(iid))
+    for jpg in jpg_files:
+        if jpg.name.lower() in [c.lower() for c in candidates] and jpg not in used:
+            return jpg
+
+    # 2) Fuzzy: same stem matches iid or contains iid token
+    for jpg in jpg_files:
+        if jpg in used: 
+            continue
+        stem = jpg.stem.lower()
+        sanitized_iid = sanitize_name(iid).lower()
+        
+        if stem == sanitized_iid:
+            return jpg
+        if stem.startswith(sanitized_iid):
+            return jpg
+        if sanitized_iid in stem.split('_'):
+            return jpg
+
+    # 3) No match found
+    return None
+
+
+def build_pairs_by_iid(jpg_files: List[Path], xml_files: List[Path]) -> List[FilePair]:
+    """Build file pairs based on IID matching instead of position"""
+    xml_to_iid = {}
+    for xml in xml_files:
+        iid = extract_iid_from_xml_enhanced(xml)
+        if iid:
+            xml_to_iid[xml] = iid
+        else:
+            logging.warning(f"No IID in XML: {xml}")
+
+    used_jpgs: set = set()
+    pairs: List[FilePair] = []
+
+    for xml, iid in xml_to_iid.items():
+        jpg = pick_matching_jpg(jpg_files, iid, used_jpgs)
+        if jpg:
+            used_jpgs.add(jpg)
+            pairs.append(FilePair(xml=xml, jpg=jpg, iid=iid))
+        else:
+            # Pair without JPG - log and handle gracefully downstream
+            pairs.append(FilePair(xml=xml, jpg=None, iid=iid))
+            logging.warning(f"No matching JPG found for IID={iid} (XML={xml.name})")
+
+    # Log leftover JPGs
+    leftovers = [j for j in jpg_files if j not in used_jpgs]
+    if leftovers:
+        logging.info(f"Unpaired JPGs: {[j.name for j in leftovers]}")
+
+    return pairs
+
+
+def validate_single_manifest(manifest_files: List[Path]) -> Path:
+    """
+    Validate that exactly one manifest file exists for a photo set.
+    
+    Args:
+        manifest_files: List of manifest file paths
+        
+    Returns:
+        Path: The single valid manifest file
+        
+    Raises:
+        ValueError: If no manifest or multiple manifests found
+    """
+    if len(manifest_files) == 1:
+        return manifest_files[0]
+    if len(manifest_files) == 0:
+        raise ValueError("No MANIFEST.ini found for photo set")
+    # Multiple manifests found
+    manifest_names = [m.name for m in manifest_files]
+    raise ValueError(f"Multiple MANIFEST.ini files found: {manifest_names}")
 
 
 def validate_directory_structure(path: Path) -> None:
@@ -486,6 +593,163 @@ def package_to_zip(tiff_path: Path, xml_path: Path, manifest_path: Path, output_
         raise e
 
 
+def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, context: BatchContext) -> bool:
+    """Process a single file set with context for dry-run and staging support"""
+    try:
+        jpg_file = files.jpg
+        xml_file = files.xml
+        
+        context.logger.info(f"Processing IID {iid} from {subfolder}")
+        
+        if jpg_file is None:
+            context.csv_writer.writerow([iid, str(xml_file), 'N/A', 'WARNING', 'ORPHANED_XML', 'No matching JPG found'])
+            return False
+            
+        if context.dry_run:
+            # Simulate processing steps
+            context.logger.info(f"DRY RUN: Would convert {jpg_file.name} to TIFF")
+            context.logger.info(f"DRY RUN: Would extract IID {iid} from {xml_file.name}")
+            context.logger.info(f"DRY RUN: Would create ZIP package for {iid}")
+            context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'SUCCESS', 'DRY_RUN', 'Would process successfully'])
+            return True
+        
+        # Actual processing
+        tiff_path = convert_jpg_to_tiff(jpg_file)
+        if tiff_path is None:
+            context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'ERROR', 'CONVERT_FAILED', 'JPG to TIFF conversion failed'])
+            return False
+
+        new_tiff, new_xml = rename_files(subfolder, tiff_path, xml_file, iid)
+        
+        # Find manifest file
+        manifest_files = list(subfolder.glob("*.ini")) + list(subfolder.glob("MANIFEST.ini"))
+        manifest_path = manifest_files[0] if manifest_files else None
+        
+        if not manifest_path:
+            context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'ERROR', 'NO_MANIFEST', 'No manifest file found'])
+            return False
+            
+        package_to_zip(new_tiff, new_xml, manifest_path, context.output_dir)
+        context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'SUCCESS', 'PROCESSED', 'Successfully packaged'])
+        return True
+        
+    except Exception as e:
+        context.logger.error(f"Error processing {iid}: {str(e)}")
+        context.csv_writer.writerow([iid, str(xml_file) if xml_file else '', str(jpg_file) if jpg_file else '', 'ERROR', 'EXCEPTION', str(e)])
+        return False
+
+
+def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, staging: bool = False) -> tuple:
+    """Enhanced batch process with safety nets, dry-run, and CSV reporting"""
+    # Use module-level logger
+    logger = logging.getLogger(__name__)
+    
+    # Set up output directory
+    if staging:
+        output_dir = Path(folder_path) / "staging_output"
+    else:
+        output_dir = Path(folder_path) / "output"
+    
+    # Set up CSV reporting
+    csv_filename = f"batch_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    csv_path = output_dir / csv_filename if not dry_run else Path(folder_path) / csv_filename
+    
+    logger.info(f"Starting batch process - Dry run: {dry_run}, Staging: {staging}")
+    logger.info(f"Source folder: {folder_path}")
+    logger.info(f"Output folder: {output_dir}")
+    
+    if dry_run:
+        logger.info("DRY RUN MODE - No files will be modified")
+        csv_path.parent.mkdir(parents=True, exist_ok=True)
+    else:
+        output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Initialize CSV writer
+    try:
+        with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            csv_writer.writerow(['IID', 'XML_Path', 'JPG_Path', 'Status', 'Action', 'Notes'])
+            
+            # Create batch context
+            context = BatchContext(
+                output_dir=output_dir,
+                dry_run=dry_run,
+                staging=staging,
+                csv_path=csv_path,
+                csv_writer=csv_writer,
+                logger=logger
+            )
+            
+            success_count = 0
+            error_count = 0
+            
+            # Find all photo sets in the directory
+            for year_dir in Path(folder_path).iterdir():
+                if not year_dir.is_dir():
+                    continue
+                    
+                for subfolder in year_dir.iterdir():
+                    if not subfolder.is_dir():
+                        continue
+                    
+                    # Validate single manifest requirement
+                    try:
+                        manifest_files = list(subfolder.glob("*.ini"))
+                        validate_single_manifest(manifest_files)
+                        context.csv_writer.writerow(['', str(subfolder), '', 'MANIFEST_OK', 'VALIDATION', 'Single manifest found'])
+                    except ValueError as e:
+                        logger.error(f"Manifest validation failed for {subfolder}: {e}")
+                        context.csv_writer.writerow(['', str(subfolder), '', 'MANIFEST_ERROR', 'VALIDATION', str(e)])
+                        error_count += 1
+                        continue
+                    
+                    # Find photo sets using enhanced pairing
+                    xml_files = list(subfolder.glob("*.xml"))
+                    jpg_files = list(subfolder.glob("*.jpg"))
+                    
+                    # Create file pairs
+                    file_pairs = []
+                    for xml_file in xml_files:
+                        try:
+                            iid = extract_iid_from_xml(xml_file)
+                            matching_jpg = None
+                            
+                            # Look for matching JPG file
+                            for jpg_file in jpg_files:
+                                if iid.lower() in jpg_file.stem.lower() or jpg_file.stem.lower() in iid.lower():
+                                    matching_jpg = jpg_file
+                                    break
+                            
+                            file_pairs.append(FilePair(xml=xml_file, jpg=matching_jpg, iid=iid))
+                            
+                        except Exception as e:
+                            logger.warning(f"Could not process XML {xml_file}: {e}")
+                            context.csv_writer.writerow(['', str(xml_file), '', 'WARNING', 'XML_ERROR', str(e)])
+                    
+                    # Process each file pair
+                    for file_pair in file_pairs:
+                        try:
+                            result = process_file_set_with_context(file_pair, file_pair.iid, subfolder, context)
+                            if result:
+                                success_count += 1
+                            else:
+                                error_count += 1
+                        except Exception as e:
+                            logger.error(f"Error processing {file_pair.iid} in {subfolder}: {str(e)}")
+                            context.csv_writer.writerow([file_pair.iid, '', '', 'ERROR', 'PROCESSING', str(e)])
+                            error_count += 1
+            
+            # Log final results
+            logger.info(f"Batch process completed - Success: {success_count}, Errors: {error_count}")
+            context.csv_writer.writerow(['SUMMARY', '', '', f'Success: {success_count}', f'Errors: {error_count}', f'Dry run: {dry_run}'])
+            
+            return success_count, error_count, csv_path
+            
+    except Exception as e:
+        logger.error(f"Critical error in batch process: {str(e)}")
+        raise
+
+
 def batch_process(root: str, jpg_files: list, xml_files: list, ini_files: list) -> None:
     """
     Processes photo sets by converting, renaming, and packaging them into ZIP archives.
@@ -493,7 +757,14 @@ def batch_process(root: str, jpg_files: list, xml_files: list, ini_files: list) 
     """
     try:
         path = Path(root)
-        manifest_path = ini_files[0]
+        
+        # Manifest Validation: Ensure exactly one manifest file
+        try:
+            manifest_path = validate_single_manifest(ini_files)
+            logging.info(f"Using manifest: {manifest_path}")
+        except ValueError as e:
+            logging.error(f"Manifest validation failed for {root}: {e}")
+            raise e
 
         # Initialize counters and error tracking
         processed = 0
@@ -596,6 +867,30 @@ USAGE INSTRUCTIONS
     except Exception as e:
         logging.error(f"Error displaying instructions: {e}")
 
+
+def view_log_file():
+    """Open the log file in the default system application"""
+    import os
+    import platform
+    import subprocess
+    
+    try:
+        if log_file.exists():
+            system = platform.system().lower()
+            if system == "windows":
+                os.startfile(str(log_file))
+            elif system == "darwin":  # macOS
+                subprocess.call(["open", str(log_file)])
+            else:  # Linux and others
+                subprocess.call(["xdg-open", str(log_file)])
+            logging.info(f"Opened log file: {log_file}")
+        else:
+            messagebox.showwarning("Log File Not Found", f"Log file does not exist: {log_file}")
+            logging.warning("Attempted to open non-existent log file")
+    except Exception as e:
+        messagebox.showerror("Error Opening Log", f"Could not open log file: {e}")
+        logging.error(f"Error opening log file: {e}")
+
 # Function to select Root Folder
 def select_folder():
     folder_selected = filedialog.askdirectory()
@@ -603,49 +898,157 @@ def select_folder():
         if not Path(folder_selected).exists():
             messagebox.showerror("Error", "Selected folder does not exist.")
             return
-        label.config(text=f"Selected parent folder: {folder_selected}")
-        btn_process.config(state="normal")
+        
+        # UX Improvement: Check for photo sets and disable/enable Start button accordingly
+        try:
+            photo_sets = find_photo_sets(folder_selected)
+            if not photo_sets:
+                label.config(text=f"Selected: {folder_selected} - No photo sets found")
+                btn_process.config(state="disabled")
+                status_label.config(text="Status: No valid photo sets found in selected folder")
+                logging.warning(f"No photo sets found in selected folder: {folder_selected}")
+            else:
+                label.config(text=f"Selected: {folder_selected}")
+                btn_process.config(state="normal")
+                status_label.config(text=f"Status: Ready - Found {len(photo_sets)} photo set(s)")
+                logging.info(f"Found {len(photo_sets)} photo sets in selected folder")
+        except Exception as e:
+            label.config(text=f"Selected: {folder_selected} - Error scanning folder")
+            btn_process.config(state="disabled")
+            status_label.config(text="Status: Error scanning selected folder")
+            logging.error(f"Error scanning folder {folder_selected}: {e}")
     else:
         label.config(text="No folder selected!")
         btn_process.config(state="disabled")
+        status_label.config(text="Status: Waiting for folder selection")
+
+def show_processing_options_dialog():
+    """Show dialog for selecting processing options (dry-run, staging, etc.)"""
+    from tkinter import Toplevel, BooleanVar, Checkbutton, Frame, Button
+    
+    dialog = Toplevel(root_window)
+    dialog.title("Processing Options")
+    dialog.geometry("400x300")
+    dialog.transient(root_window)
+    dialog.grab_set()
+    
+    # Center the dialog
+    dialog.update_idletasks()
+    x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
+    y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
+    dialog.geometry(f"+{x}+{y}")
+    
+    # Variables to store options
+    dry_run_var = BooleanVar(value=False)
+    staging_var = BooleanVar(value=False)
+    result = {'cancelled': True}
+    
+    # Title
+    title_label = Label(dialog, text="Choose Processing Mode", font=('Helvetica', 14, 'bold'))
+    title_label.pack(pady=20)
+    
+    # Options frame
+    options_frame = Frame(dialog)
+    options_frame.pack(pady=20, padx=20)
+    
+    # Dry run option
+    dry_run_check = Checkbutton(options_frame, text="Dry Run Mode", variable=dry_run_var,
+                               font=('Helvetica', 12))
+    dry_run_check.pack(anchor='w', pady=5)
+    
+    dry_run_desc = Label(options_frame, 
+                        text="• Preview processing without modifying files\n• Generate CSV report only\n• Test your folder structure",
+                        font=('Helvetica', 9), fg='gray', justify='left')
+    dry_run_desc.pack(anchor='w', padx=20, pady=(0, 15))
+    
+    # Staging option
+    staging_check = Checkbutton(options_frame, text="Staging Mode", variable=staging_var,
+                               font=('Helvetica', 12))
+    staging_check.pack(anchor='w', pady=5)
+    
+    staging_desc = Label(options_frame,
+                        text="• Output to 'staging_output' folder\n• Keep original files unchanged\n• Review before final processing",
+                        font=('Helvetica', 9), fg='gray', justify='left')
+    staging_desc.pack(anchor='w', padx=20, pady=(0, 20))
+    
+    # Buttons frame
+    button_frame = Frame(dialog)
+    button_frame.pack(pady=20)
+    
+    def on_proceed():
+        result['cancelled'] = False
+        result['dry_run'] = dry_run_var.get()
+        result['staging'] = staging_var.get()
+        dialog.destroy()
+    
+    def on_cancel():
+        dialog.destroy()
+    
+    proceed_btn = Button(button_frame, text="Proceed", command=on_proceed, 
+                        bg='#8B2E2E', fg='white', font=('Helvetica', 12))
+    proceed_btn.pack(side='left', padx=10)
+    
+    cancel_btn = Button(button_frame, text="Cancel", command=on_cancel,
+                       font=('Helvetica', 12))
+    cancel_btn.pack(side='left', padx=10)
+    
+    # Wait for dialog to close
+    dialog.wait_window()
+    return result
+
 
 # Function to start batch processing
 def start_batch_process():
-    folder = label.cget("text").replace("Selected parent folder: ", "")
+    folder = label.cget("text").replace("Selected: ", "").split(" - ")[0]  # Extract clean folder path
     if not Path(folder).is_dir():
         messagebox.showerror("Error", "Please select a valid parent folder.")
         return
 
-    status_label.config(text="Processing...")
+    # Show processing options dialog
+    options = show_processing_options_dialog()
+    if options['cancelled']:
+        return
+        
+    dry_run = options.get('dry_run', False)
+    staging = options.get('staging', False)
+    
+    mode_text = "Dry Run" if dry_run else "Staging" if staging else "Processing"
+    status_label.config(text=f"{mode_text}...")
     btn_select.config(state="disabled")
     btn_process.config(state="disabled")
-    logging.info(f"Batch processing started for folder: {folder}")
+    logging.info(f"Batch processing started for folder: {folder} (dry_run={dry_run}, staging={staging})")
 
     def run_process():
         try:
-            photo_sets = find_photo_sets(folder)
-            total_sets = len(photo_sets)
-            if (total_sets == 0):
-                root_window.after(0, lambda: messagebox.showinfo("Info", "No photo sets found in the selected folder."))
-                status_label.config(text="No photo sets found.")
-                logging.info("No photo sets found in the folder.")
-                return
-
-            progress["maximum"] = total_sets
-            progress["value"] = 0
-
-            for index, (root, jpg_files, xml_files, ini_files) in enumerate(photo_sets):
-                logging.info(f"Processing set {index + 1}/{total_sets}: {root}")
-                batch_process(root, jpg_files, xml_files, ini_files)
-                progress["value"] = index + 1
-                root_window.after(0, lambda val=index+1: progress_label.config(text=f"{int((val) / total_sets * 100)}%"))
-
-            root_window.after(0, lambda: status_label.config(text="Batch processing completed successfully!"))
-            logging.info("Batch processing completed successfully!")
-            root_window.after(0, lambda: messagebox.showinfo("Success", f"Batch processing completed successfully! Processed files saved in:\n{folder}"))
+            # Use the new enhanced batch processing function
+            success_count, error_count, csv_path = batch_process_with_safety_nets(folder, dry_run, staging)
+            
+            # Prepare success message
+            total_count = success_count + error_count
+            mode_desc = "DRY RUN - " if dry_run else "STAGING - " if staging else ""
+            
+            if dry_run:
+                success_message = f"{mode_desc}Processing simulation completed!\n\n"
+                success_message += f"Would process: {success_count} items\n"
+                success_message += f"Issues found: {error_count} items\n\n"
+                success_message += f"Review the report: {csv_path}\n\n"
+                success_message += "No files were actually modified."
+            else:
+                success_message = f"{mode_desc}Processing completed!\n\n"
+                success_message += f"Successfully processed: {success_count} items\n"
+                success_message += f"Errors: {error_count} items\n\n"
+                if staging:
+                    success_message += f"Output saved to staging folder\n"
+                success_message += f"Detailed report: {csv_path}"
+            
+            root_window.after(0, lambda: status_label.config(text=f"{mode_desc}Completed successfully!"))
+            logging.info(f"Batch processing completed - Success: {success_count}, Errors: {error_count}")
+            root_window.after(0, lambda: messagebox.showinfo("Success", success_message))
+            
         except Exception as e:
-            root_window.after(0, lambda: messagebox.showerror("Error", f"An error occurred during processing:\n{e}"))
-            root_window.after(0, lambda: status_label.config(text="Batch processing failed."))
+            error_msg = f"An error occurred during processing:\n{str(e)}"
+            root_window.after(0, lambda: messagebox.showerror("Error", error_msg))
+            root_window.after(0, lambda: status_label.config(text="Processing failed."))
             logging.error(f"Error during batch processing: {e}")
         finally:
             root_window.after(0, lambda: btn_select.config(state="normal"))
@@ -743,6 +1146,8 @@ menu_bar.add_cascade(label="File", menu=file_menu)
 
 help_menu = Menu(menu_bar, tearoff=False)
 help_menu.add_command(label="How to Use", command=show_instructions)
+help_menu.add_separator()
+help_menu.add_command(label="View Log File", command=view_log_file)
 menu_bar.add_cascade(label="Help", menu=help_menu)
 
 # Run the main loop for the GUI

@@ -77,6 +77,17 @@ batch_tool.log
 batch_tool_debug.log
 processing.log
 
+# Development and test files
+validate_*.py
+test_core_safety.py
+test_safety_nets.py
+test_batch_report.csv
+production_deploy_*/
+deployment_package/
+staging_output/
+output/
+*.csv
+
 # Temporary files
 *.tmp
 *.bak

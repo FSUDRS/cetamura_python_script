@@ -1,8 +1,20 @@
 # Cetamura Batch Ingest Tool - Version Information
 
-**Version:** 1.0.0  
-**Release Date:** July 11, 2025  
+**Version:** Safety Net v2024.08.19  
+**Release Date:** August 19, 2025  
 **Platform Support:** Windows, macOS, Linux  
+**Status:** Production Ready with Safety Net Features ✅
+
+## New in This Release - Safety Net Features
+
+### 🎯 Major Improvements Completed
+- **Dry-Run Mode**: Preview processing without file changes
+- **Staging Mode**: Non-destructive output to staging directories
+- **CSV Reporting**: Detailed processing logs with timestamps  
+- **Enhanced Error Handling**: Graceful failures with clear messages
+- **Processing Options Dialog**: User-friendly interface for mode selection
+- **Manifest Validation**: Single manifest file enforcement
+- **UX Polish**: Enhanced folder selection and status feedback  
 
 ## Package Contents
 
