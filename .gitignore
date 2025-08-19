@@ -88,6 +88,16 @@ staging_output/
 output/
 *.csv
 
+# Testing infrastructure (keep local only)
+test_data/
+*TEST*.md
+TEST_*.md
+SAFETY_NET_TEST_RESULTS.md
+TEST_ENVIRONMENT.md
+TEST_SETUP_COMPLETE.md
+create_test_environment.py
+run_tests.py
+
 # Temporary files
 *.tmp
 *.bak
