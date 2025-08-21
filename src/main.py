@@ -6,8 +6,12 @@ from pathlib import Path
 from PIL import Image, ImageTk, UnidentifiedImageError
 import xml.etree.ElementTree as ET
 import zipfile
+import os
 import re
+import sys
 import csv
+import platform
+import subprocess
 from datetime import datetime
 from typing import Optional, List, Dict, NamedTuple
 from collections import defaultdict
@@ -44,6 +48,9 @@ class PhotoSet(NamedTuple):
 
 # Set up logging with a file handler
 log_file = Path("batch_tool.log")
+user_log_file = Path("batch_process_summary.log")
+
+# Configure basic logging
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -52,6 +59,43 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
+
+def configure_logging_level(advanced_logs: bool = False):
+    """Configure logging based on user preference for simple or advanced logs"""
+    # Create user-friendly logger
+    user_logger = logging.getLogger('user_friendly')
+    user_logger.handlers.clear()
+    
+    if advanced_logs:
+        # Advanced logs: show everything
+        level = logging.DEBUG
+        format_str = '%(asctime)s - %(levelname)s - %(message)s'
+    else:
+        # Simple logs: show only important user-facing information
+        level = logging.INFO
+        format_str = '%(asctime)s - %(message)s'
+    
+    # File handler for user-friendly logs
+    user_handler = logging.FileHandler(user_log_file, mode='w', encoding='utf-8')
+    user_handler.setLevel(level)
+    user_formatter = logging.Formatter(format_str)
+    user_handler.setFormatter(user_formatter)
+    user_logger.addHandler(user_handler)
+    user_logger.setLevel(level)
+    
+    return user_logger
+
+def log_user_friendly(message: str, level: str = 'INFO'):
+    """Log user-friendly messages"""
+    user_logger = logging.getLogger('user_friendly')
+    if level.upper() == 'INFO':
+        user_logger.info(message)
+    elif level.upper() == 'WARNING':
+        user_logger.warning(message)
+    elif level.upper() == 'ERROR':
+        user_logger.error(message)
+    elif level.upper() == 'DEBUG':
+        user_logger.debug(message)
 
 # Utility Functions
 def sanitize_name(name: str) -> str:
@@ -654,6 +698,19 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
     csv_filename = f"batch_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
     csv_path = output_dir / csv_filename if not dry_run else Path(folder_path) / csv_filename
     
+    # User-friendly logging
+    mode = "Dry Run Preview" if dry_run else "Staging" if staging else "Production"
+    log_user_friendly(f"🚀 Starting {mode} processing")
+    log_user_friendly(f"📁 Source folder: {folder_path}")
+    
+    if dry_run:
+        log_user_friendly("🔍 Dry Run Mode - Previewing processing, no files will be changed")
+    elif staging:
+        log_user_friendly(f"📋 Staging Mode - Output to: {output_dir}")
+    else:
+        log_user_friendly(f"⚡ Production Mode - Output to: {output_dir}")
+    
+    # Advanced logging (technical details)
     logger.info(f"Starting batch process - Dry run: {dry_run}, Staging: {staging}")
     logger.info(f"Source folder: {folder_path}")
     logger.info(f"Output folder: {output_dir}")
@@ -683,31 +740,26 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
             success_count = 0
             error_count = 0
             
-            # Find all photo sets in the directory
-            for year_dir in Path(folder_path).iterdir():
-                if not year_dir.is_dir():
-                    continue
-                    
-                for subfolder in year_dir.iterdir():
-                    if not subfolder.is_dir():
-                        continue
-                    
+            # Use enhanced photo set detection to handle complex directory structures
+            try:
+                photo_sets = find_photo_sets(folder_path)
+                log_user_friendly(f"🔍 Found {len(photo_sets)} photo sets to process")
+                logger.info(f"Enhanced detection found {len(photo_sets)} photo sets")
+                
+                for directory, jpg_files, xml_files, manifest_files in photo_sets:
                     # Validate single manifest requirement
                     try:
-                        manifest_files = list(subfolder.glob("*.ini"))
                         validate_single_manifest(manifest_files)
-                        context.csv_writer.writerow(['', str(subfolder), '', 'MANIFEST_OK', 'VALIDATION', 'Single manifest found'])
+                        context.csv_writer.writerow(['', str(directory), '', 'MANIFEST_OK', 'VALIDATION', 'Single manifest found'])
+                        log_user_friendly(f"✅ Validated photo set: {directory.name}")
                     except ValueError as e:
-                        logger.error(f"Manifest validation failed for {subfolder}: {e}")
-                        context.csv_writer.writerow(['', str(subfolder), '', 'MANIFEST_ERROR', 'VALIDATION', str(e)])
+                        logger.error(f"Manifest validation failed for {directory}: {e}")
+                        context.csv_writer.writerow(['', str(directory), '', 'MANIFEST_ERROR', 'VALIDATION', str(e)])
+                        log_user_friendly(f"❌ Manifest error in {directory.name}: {e}")
                         error_count += 1
                         continue
                     
-                    # Find photo sets using enhanced pairing
-                    xml_files = list(subfolder.glob("*.xml"))
-                    jpg_files = list(subfolder.glob("*.jpg"))
-                    
-                    # Create file pairs
+                    # Create file pairs from the enhanced detection results
                     file_pairs = []
                     for xml_file in xml_files:
                         try:
@@ -729,15 +781,22 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
                     # Process each file pair
                     for file_pair in file_pairs:
                         try:
-                            result = process_file_set_with_context(file_pair, file_pair.iid, subfolder, context)
+                            result = process_file_set_with_context(file_pair, file_pair.iid, directory, context)
                             if result:
                                 success_count += 1
                             else:
                                 error_count += 1
                         except Exception as e:
-                            logger.error(f"Error processing {file_pair.iid} in {subfolder}: {str(e)}")
+                            logger.error(f"Error processing {file_pair.iid} in {directory}: {str(e)}")
                             context.csv_writer.writerow([file_pair.iid, '', '', 'ERROR', 'PROCESSING', str(e)])
                             error_count += 1
+                            
+            except Exception as e:
+                logger.error(f"Error during enhanced photo set detection: {e}")
+                log_user_friendly(f"❌ Error finding photo sets: {e}")
+                # Fallback to basic error handling
+                context.csv_writer.writerow(['', folder_path, '', 'ERROR', 'DETECTION', str(e)])
+                error_count += 1
             
             # Log final results
             logger.info(f"Batch process completed - Success: {success_count}, Errors: {error_count}")
@@ -891,6 +950,25 @@ def view_log_file():
         messagebox.showerror("Error Opening Log", f"Could not open log file: {e}")
         logging.error(f"Error opening log file: {e}")
 
+# Function to view user-friendly log
+def view_user_friendly_log():
+    summary_log_file = "batch_process_summary.log"
+    try:
+        if os.path.exists(summary_log_file):
+            if platform.system() == 'Windows':
+                os.startfile(summary_log_file)
+            elif platform.system() == 'Darwin':
+                subprocess.call(['open', summary_log_file])
+            elif platform.system() == 'Linux':
+                subprocess.call(['xdg-open', summary_log_file])
+            logging.info("User opened user-friendly summary log file")
+        else:
+            messagebox.showwarning("Summary Log Not Found", f"Summary log file does not exist: {summary_log_file}")
+            logging.warning("Attempted to open non-existent summary log file")
+    except Exception as e:
+        messagebox.showerror("Error Opening Summary Log", f"Could not open summary log file: {e}")
+        logging.error(f"Error opening summary log file: {e}")
+
 # Function to select Root Folder
 def select_folder():
     folder_selected = filedialog.askdirectory()
@@ -928,7 +1006,7 @@ def show_processing_options_dialog():
     
     dialog = Toplevel(root_window)
     dialog.title("Processing Options")
-    dialog.geometry("400x300")
+    dialog.geometry("400x600")
     dialog.transient(root_window)
     dialog.grab_set()
     
@@ -941,7 +1019,12 @@ def show_processing_options_dialog():
     # Variables to store options
     dry_run_var = BooleanVar(value=False)
     staging_var = BooleanVar(value=False)
+    advanced_logs_var = BooleanVar(value=False)
     result = {'cancelled': True}
+    
+    # Warning label for mode conflicts
+    warning_label = Label(dialog, text="", font=('Helvetica', 10), fg='red', wraplength=350)
+    warning_label.pack(pady=5)
     
     # Title
     title_label = Label(dialog, text="Choose Processing Mode", font=('Helvetica', 14, 'bold'))
@@ -951,9 +1034,27 @@ def show_processing_options_dialog():
     options_frame = Frame(dialog)
     options_frame.pack(pady=20, padx=20)
     
+    def check_mode_conflict():
+        """Check for conflicting mode selections and provide guidance"""
+        dry_run = dry_run_var.get()
+        staging = staging_var.get()
+        
+        if dry_run and staging:
+            warning_label.config(text="⚠️ Both modes selected: Defaulting to Dry Run Mode\n(Dry Run takes precedence - no files will be modified)")
+            proceed_btn.config(text="Proceed with Dry Run")
+        elif dry_run:
+            warning_label.config(text="🔍 Dry Run Mode: Preview only, no files modified")
+            proceed_btn.config(text="Proceed with Dry Run")
+        elif staging:
+            warning_label.config(text="📁 Staging Mode: Output to staging_output folder")
+            proceed_btn.config(text="Proceed with Staging")
+        else:
+            warning_label.config(text="⚡ Production Mode: Direct processing to output folder")
+            proceed_btn.config(text="Proceed with Production")
+    
     # Dry run option
     dry_run_check = Checkbutton(options_frame, text="Dry Run Mode", variable=dry_run_var,
-                               font=('Helvetica', 12))
+                               font=('Helvetica', 12), command=check_mode_conflict)
     dry_run_check.pack(anchor='w', pady=5)
     
     dry_run_desc = Label(options_frame, 
@@ -963,22 +1064,52 @@ def show_processing_options_dialog():
     
     # Staging option
     staging_check = Checkbutton(options_frame, text="Staging Mode", variable=staging_var,
-                               font=('Helvetica', 12))
+                               font=('Helvetica', 12), command=check_mode_conflict)
     staging_check.pack(anchor='w', pady=5)
     
     staging_desc = Label(options_frame,
                         text="• Output to 'staging_output' folder\n• Keep original files unchanged\n• Review before final processing",
                         font=('Helvetica', 9), fg='gray', justify='left')
-    staging_desc.pack(anchor='w', padx=20, pady=(0, 20))
+    staging_desc.pack(anchor='w', padx=20, pady=(0, 15))
+    
+    # Advanced logs option
+    advanced_logs_check = Checkbutton(options_frame, text="Advanced Logs", variable=advanced_logs_var,
+                                     font=('Helvetica', 12))
+    advanced_logs_check.pack(anchor='w', pady=5)
+    
+    advanced_logs_desc = Label(options_frame,
+                              text="• Show detailed technical logs\n• Include debug information\n• For troubleshooting and developers",
+                              font=('Helvetica', 9), fg='gray', justify='left')
+    advanced_logs_desc.pack(anchor='w', padx=20, pady=(0, 20))
     
     # Buttons frame
     button_frame = Frame(dialog)
     button_frame.pack(pady=20)
     
     def on_proceed():
+        dry_run = dry_run_var.get()
+        staging = staging_var.get()
+        
+        # Implement guardrails: dry run takes precedence over staging
+        if dry_run and staging:
+            # Show confirmation dialog for dual mode
+            response = messagebox.askyesno(
+                "Mode Conflict Resolution",
+                "Both Dry Run and Staging modes are selected.\n\n"
+                "Dry Run Mode will take precedence:\n"
+                "• No files will be modified\n"
+                "• Only CSV report will be generated\n"
+                "• Staging mode will be ignored\n\n"
+                "Continue with Dry Run Mode?",
+                parent=dialog
+            )
+            if not response:
+                return
+        
         result['cancelled'] = False
-        result['dry_run'] = dry_run_var.get()
-        result['staging'] = staging_var.get()
+        result['dry_run'] = dry_run
+        result['staging'] = staging if not dry_run else False  # Staging disabled if dry_run
+        result['advanced_logs'] = advanced_logs_var.get()
         dialog.destroy()
     
     def on_cancel():
@@ -991,6 +1122,9 @@ def show_processing_options_dialog():
     cancel_btn = Button(button_frame, text="Cancel", command=on_cancel,
                        font=('Helvetica', 12))
     cancel_btn.pack(side='left', padx=10)
+    
+    # Initialize mode display
+    check_mode_conflict()
     
     # Wait for dialog to close
     dialog.wait_window()
@@ -1011,6 +1145,10 @@ def start_batch_process():
         
     dry_run = options.get('dry_run', False)
     staging = options.get('staging', False)
+    advanced_logs = options.get('advanced_logs', False)
+    
+    # Configure logging level based on user preference
+    configure_logging_level(advanced_logs)
     
     mode_text = "Dry Run" if dry_run else "Staging" if staging else "Processing"
     status_label.config(text=f"{mode_text}...")
@@ -1147,7 +1285,8 @@ menu_bar.add_cascade(label="File", menu=file_menu)
 help_menu = Menu(menu_bar, tearoff=False)
 help_menu.add_command(label="How to Use", command=show_instructions)
 help_menu.add_separator()
-help_menu.add_command(label="View Log File", command=view_log_file)
+help_menu.add_command(label="View Technical Log", command=view_log_file)
+help_menu.add_command(label="View Summary Log", command=view_user_friendly_log)
 menu_bar.add_cascade(label="Help", menu=help_menu)
 
 # Run the main loop for the GUI
