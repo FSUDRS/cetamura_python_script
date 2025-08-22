@@ -4,6 +4,8 @@
 
 This tool automates the process for creating ingest files for the Cetamura Digital Collections.
 
+> 📁 **Project Structure**: See [`docs/PROJECT_STRUCTURE.md`](docs/PROJECT_STRUCTURE.md) for detailed information about the organized project layout.
+
 ## Quick Start
 
 ### Windows Users
