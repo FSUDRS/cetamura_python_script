@@ -70,7 +70,8 @@ venv.bak/
 ehthumbs.db
 Thumbs.db
 
-# Application logs
+# Application logs (now organized in logs/ directory)
+logs/*.log
 *.log
 batch_process.log
 batch_tool.log
