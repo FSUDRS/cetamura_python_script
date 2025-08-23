@@ -4,7 +4,7 @@
 
 This tool automates the process for creating ingest files for the Cetamura Digital Collections.
 
-> 📁 **Project Structure**: See [`docs/PROJECT_STRUCTURE.md`](docs/PROJECT_STRUCTURE.md) for detailed information about the organized project layout.
+> **Project Structure**: See [`docs/PROJECT_STRUCTURE.md`](docs/PROJECT_STRUCTURE.md) for detailed information about the organized project layout.
 
 ## Quick Start
 
@@ -112,7 +112,3 @@ pytest tests/
 4. Ensure all dependencies are installed
 
 ---
-
-**Version:** 1.0.0  
-**Platform Support:** Windows, macOS, Linux  
-**Project:** Cetamura Digital Collections
