@@ -4,147 +4,145 @@
 ### 🚀 **READY FOR PRODUCTION DEPLOYMENT**
 
 This release includes comprehensive safety net improvements that make the Cetamura Batch Ingest Tool production-ready with enhanced safety, reliability, and user experience.
+## **Cetamura Batch Ingest Tool — v2025.08.25-c9fe170**
+**Safe Batch Processing — Dry‑Run, Staging & CSV Reporting**
+
+This release delivers production-focused safety and reliability improvements for the Cetamura Batch Ingest Tool. It introduces non-destructive processing modes, detailed CSV reporting, a user-friendly Processing Options dialog, and improvements to error handling and file-pairing/configuration management.
 
 ---
 
-## ✅ **COMPLETED IMPROVEMENTS**
+## **IMPROVEMENTS**
 
-### **#8 UX Polish - 100% Complete**
-- ✅ Enhanced folder selection with photo set validation
-- ✅ Status feedback for folder validation results  
-- ✅ "View Log File" menu option for easy log access
-- ✅ Cross-platform log file viewing
-- ✅ Enhanced success messages with output directory info
-- ✅ Professional user interface improvements
+### **UX and Usability**
+- Improved folder selection with photo-set validation
+- Status feedback for folder validation results
+- **"View Log File"** menu option for convenient log access
+- Cross-platform log viewing
+- Clear success messages showing output directory and results
 
-### **#3 Manifest Validation - 100% Complete**  
-- ✅ Single manifest file enforcement
-- ✅ `validate_single_manifest()` function with clear error messages
-- ✅ Graceful handling of missing/multiple manifest files
-- ✅ Integration with batch processing workflow
-- ✅ Detailed validation error reporting
+### **Manifest and Validation**
+- Single-manifest enforcement with **validate_single_manifest()** and clear error messages
+- Graceful handling and reporting for missing or multiple manifests
+- Tight integration with batch processing workflow to prevent invalid runs
 
-### **#6 Safety Nets - 100% Complete**
-- ✅ **Dry-Run Mode**: Preview processing without file modifications
-- ✅ **Staging Mode**: Non-destructive output to staging directories
-- ✅ **CSV Reporting**: Detailed processing logs with timestamps
-- ✅ **BatchContext System**: Centralized configuration management
-- ✅ **FilePair Structure**: Robust file pairing with IID tracking
-- ✅ **Processing Options Dialog**: User-friendly mode selection
-- ✅ **Enhanced Error Handling**: Graceful failures with clear messages
+### **Safety and Processing Features**
+- **Dry-Run Mode:** preview processing without making file changes
+- **Staging Mode:** write outputs to staging directories to preserve originals
+- **CSV Reporting:** detailed processing logs with timestamps and audit information
+- **Processing Options Dialog:** user-friendly mode selection and configuration interface
+- **Enhanced Error Handling:** graceful failures with clear error messages and logs
+- **FilePair & BatchContext:** robust file pairing and centralized processing configuration
 
 ---
 
-## 🎯 **KEY PRODUCTION BENEFITS**
+## **KEY PRODUCTION BENEFITS**
 
-### **Safety First**
-- **Risk-Free Testing**: Dry-run mode allows safe validation of new datasets
-- **Non-Destructive Processing**: Staging mode keeps originals untouched
-- **Comprehensive Validation**: Manifest and file structure validation before processing
-- **Graceful Failure Handling**: Clear error messages and recovery options
+### **Safety and Reliability**
+- Risk-free validation using **Dry‑Run mode** before any file modification
+- Non-destructive workflows via **Staging mode**
+- Pre-processing validation reduces failed runs and data risk
+- Clear failure reporting and recovery guidance
 
-### **Professional User Experience**
-- **Intuitive Interface**: Clear processing options with descriptions
-- **Detailed Reporting**: CSV logs for audit trails and troubleshooting
-- **Status Feedback**: Real-time processing updates and results
-- **Cross-Platform Support**: Windows, macOS, and Linux compatibility
+### **Operational & Auditing**
+- **CSV reports** provide an audit trail for processing steps and timestamps
+- Status feedback and logs improve troubleshooting and operator confidence
+- Cross-platform compatibility for Windows, macOS, and Linux
 
-### **Production Ready Features**
-- **Audit Trail**: Complete CSV reports for compliance and tracking
-- **Error Recovery**: Robust error handling with detailed logging
-- **Flexible Workflows**: Support for testing, staging, and production modes
-- **User Training**: Clear interface reduces training requirements
+### **User Experience**
+- Intuitive **Processing Options dialog** reduces setup errors
+- Clear UI messages and direct log access improve operator efficiency
+- Minimal training required for safe operation
 
 ---
 
-## 📦 **DEPLOYMENT OPTIONS**
+## **DEPLOYMENT OPTIONS**
 
-### **Option 1: Pre-Built Executable (Recommended)**
+**Option 1 — Pre-built Executable (recommended)**
+- Use: `dist_package/executables/Cetamura_Batch_Tool_Windows.exe`
+- Copy to target systems and run without Python installed
+
+**Option 2 — Python Source**
+- Use: `dist_package/source/main.py` or `src/main.py`
+- Install dependencies: `pip install -r requirements.txt`
+- Run: `python src/main.py`
+
+**Option 3 — Custom Build**
+- Run the provided build scripts:
+	- Windows: `scripts/build/build_exe.ps1`
+	- macOS: `scripts/build/build_exe_macos.sh`
+	- Cross-platform helper: `scripts/build/build_cross_platform.sh`
+- Produces a self-contained executable (example: `Cetamura_Batch_Tool_SafetyNet.exe`)
+
+---
+
+## **DEPLOYMENT INSTRUCTIONS**
+
+### **Windows (Quick Deployment)**
+- Copy `dist_package/executables/Cetamura_Batch_Tool_Windows.exe` to target system
+- Double-click to run
+- Use **Dry Run** mode to test with sample data
+- Deploy to production once validated
+
+### **macOS / Linux (Source Deployment)**
+1. Create and activate a virtual environment:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate   # macOS / Linux
 ```
-1. Use: dist_package/executables/Cetamura_Batch_Tool_Windows.exe
-2. Copy to target systems
-3. No Python installation required
-4. Ready to run immediately
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
 ```
+3. Run the application:
+```bash
+python src/main.py
+```
+Notes:
+- Building native executables for macOS or Linux generally requires running the packaging tools on the target OS or in a compatible CI runner.
+- Use `scripts/build/build_exe_macos.sh` on macOS or `scripts/build/build_cross_platform.sh` in CI to produce native artifacts.
 
-### **Option 2: Python Source Deployment**
-```
-1. Copy: dist_package/source/main.py
-2. Install: pip install -r requirements.txt  
-3. Run: python main.py
-4. Cross-platform compatible
-```
-
-### **Option 3: Custom Build**
-```
-1. Run: .\build_production.ps1
-2. Creates: Cetamura_Batch_Tool_SafetyNet.exe
-3. Includes all latest improvements
-4. Self-contained executable
-```
+### **Custom Build and Packaging Notes**
+- For macOS distributed binaries, codesigning and notarization may be required for wide distribution.
+- For Linux, package using the preferred format for your environment (AppImage, snap, deb, rpm) or distribute the source.
+- Continuous Integration (GitHub Actions) is recommended to build and publish platform-specific artifacts automatically.
 
 ---
 
-## 🚀 **DEPLOYMENT INSTRUCTIONS**
-
-### **Quick Deployment (Windows)**
-1. Copy `dist_package/executables/Cetamura_Batch_Tool_Windows.exe` to target system
-2. Double-click to run
-3. Use "Dry Run" mode to test with sample data
-4. Deploy to production once validated
-
-### **Network Deployment**
-1. Place executable on shared network location
-2. Create desktop shortcuts for users
-3. Provide quick training on new safety features
-4. Monitor CSV reports for usage analytics
-
-### **User Training Points**
-- **Always start with Dry Run mode** for new datasets
-- **Use Staging mode** for production workflows requiring review
-- **Check CSV reports** for detailed processing information
-- **Monitor log files** for system-level information
+## **DEPLOYMENT INSTRUCTIONS (Network / Admin)**
+- Place the executable or source on a shared location and create shortcuts for users.
+- Provide quick training on safety features (Dry-Run, Staging).
+- Monitor CSV reports centrally for analytics and audit.
 
 ---
 
-## 📋 **PRODUCTION VALIDATION CHECKLIST**
+## **PRODUCTION VALIDATION CHECKLIST**
 
-- ✅ **Safety Features Implemented**: Dry-run, staging, CSV reporting
-- ✅ **Error Handling Enhanced**: Graceful failures with clear messages
-- ✅ **User Interface Improved**: Professional options dialog and feedback
-- ✅ **Validation Added**: Manifest and file structure checking
-- ✅ **Documentation Complete**: User guides and deployment instructions
-- ✅ **Cross-Platform Tested**: Windows, macOS, Linux compatibility
-- ✅ **Backward Compatible**: Existing functionality preserved
-- ✅ **Production Ready**: No breaking changes, safe deployment
-
----
-
-## 📞 **SUPPORT & TROUBLESHOOTING**
-
-### **For Users:**
-- Use Dry Run mode to test problematic datasets
-- Check CSV reports for detailed processing information
-- Review `batch_tool.log` for system-level details
-- Contact IT support for technical issues
-
-### **For IT/Administrators:**
-- All logs are stored in application directory
-- CSV reports provide audit trail for compliance
-- Staging mode allows safe production workflows
-- No database or external dependencies required
+- Dry-Run mode implemented and tested
+- Staging mode implemented and tested
+- CSV reporting implemented for audit trails
+- Manifest and file structure validation added
+- Processing Options dialog implemented
+- Enhanced error handling and logging in place
+- Cross-platform behavior validated
+- Backward compatibility preserved
 
 ---
 
-## 🎉 **DEPLOYMENT READY**
+## **SUPPORT & TROUBLESHOOTING**
 
-This safety net version represents a major milestone in making the Cetamura Batch Ingest Tool production-ready. The comprehensive safety features, enhanced user experience, and robust error handling make it suitable for mission-critical archaeological data processing workflows.
+**For users:**
+- Start with **Dry-Run mode** to validate datasets
+- Check **CSV reports** for detailed process logs
+- Review `batch_tool.log` for system-level diagnostics
+- Contact IT support for file access or environment issues
 
-**Recommendation**: Deploy to production immediately to benefit from the enhanced safety and reliability features.
+**For administrators:**
+- CSV logs are stored in the application output directory
+- Staging mode provides a safe workflow for review prior to finalizing outputs
+- No external database required; the tool is self-contained
 
 ---
 
-**Version**: Safety Net v2024.08.19  
-**Build Date**: August 19, 2025  
-**Status**: Production Ready ✅  
-**Deployment**: Approved for immediate production use 🚀
+**Version**: v2025.08.25-c9fe170
+**Build Date**: August 25, 2025
+
