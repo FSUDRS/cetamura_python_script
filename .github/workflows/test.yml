@@ -27,7 +27,7 @@ jobs:
           
       - name: Run tests
         run: |
-          python run_tests.py
+          pytest -v
           
       - name: Show test results
         if: always()
