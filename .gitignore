@@ -25,6 +25,7 @@ MANIFEST
 # PyInstaller
 *.manifest
 *.spec
+Cetamura_*.spec
 
 # Installer logs
 pip-log.txt
@@ -47,7 +48,8 @@ cover/
 
 # Virtual environments
 .env
-.venv
+.venv*
+.venv_*/
 env/
 venv/
 ENV/
@@ -104,10 +106,18 @@ run_tests.py
 *.bak
 temp/
 tmp/
+temp_release_test/
+origin_src_main.py
 
 # Archive files
 *.zip
 *.7z
 *.tar.gz
 *.rar
+
+# Release artifacts (keep documentation, exclude binaries)
+/release/*.zip
+/release/*.exe
+!/release/installer/
+!/release/RUN_TESTS.md
 
