@@ -44,3 +44,8 @@ A cleanup script has been created at `cleanup_repo.ps1` that will:
 2. Maintain the `.gitignore` file as new patterns emerge
 3. Periodically clean up temporary files and directories
 4. Consider adding a pre-commit hook that prevents committing files that match gitignore patterns
+
+## Notes on recent cleanup
+
+- PR #4 ("chore(cleanup): untrack dist artifacts and duplicate source") was merged into `main` on 2025-09-03; distribution executables and the duplicate `dist_package/source/main.py` were removed from the repository HEAD and `.gitignore` was updated.
+- If you want to permanently purge these large files from the repository history, use a history-rewrite tool such as `git filter-repo` or BFG. Coordinate with collaborators and follow the GitHub guide for rewriting published history.
