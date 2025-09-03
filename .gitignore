@@ -121,3 +121,9 @@ origin_src_main.py
 !/release/installer/
 !/release/RUN_TESTS.md
 
+
+# Ignore dist_package artifacts and executables
+/dist_package/executables/
+/dist_package/source/
+/dist_package/requirements.txt
+

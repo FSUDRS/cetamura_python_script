@@ -1,8 +1,0 @@
-# Cetamura Batch Ingest Tool - Requirements
-# Cross-platform support: Windows, macOS, Linux
-
-# Core dependencies
-Pillow>=8.0.0
-
-# Build tool (for creating executables)
-pyinstaller>=5.0.0
