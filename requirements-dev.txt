@@ -3,10 +3,13 @@
 
 # Testing
 pytest>=6.0.0
+pytest-cov>=4.1.0
 
 # Code quality
 black
 flake8
+mypy>=1.0.0
+pre-commit>=3.0.0
 
 # Include main requirements
 -r requirements.txt

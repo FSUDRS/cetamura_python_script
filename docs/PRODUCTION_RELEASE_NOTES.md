@@ -1,8 +1,6 @@
 # PRODUCTION RELEASE - SAFETY NET VERSION
 ## Cetamura Batch Ingest Tool v2024.08.19
 
-### 🚀 **READY FOR PRODUCTION DEPLOYMENT**
-
 This release includes comprehensive safety net improvements that make the Cetamura Batch Ingest Tool production-ready with enhanced safety, reliability, and user experience.
 ## **Cetamura Batch Ingest Tool — v2025.08.25-c9fe170**
 **Safe Batch Processing — Dry‑Run, Staging & CSV Reporting**

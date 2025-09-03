@@ -1,0 +1,73 @@
+name: Cetamura Batch Tool CI
+
+on:
+  push:
+    branches: [ main, master, ci-cd-development ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+    # Manual trigger
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+        python-version: [3.9, 3.11]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        
+    - name: Run tests
+      run: |
+        python -m pytest tests/
+        
+  verify-script:
+    needs: test
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Verify main script imports correctly
+      run: |
+        python -c "import src.main; print('Main script imports successfully')"
+        
+    - name: Check script structure without running it
+      run: |
+        python -c "
+        from src.main import sanitize_name, convert_jpg_to_tiff, extract_iid_from_xml
+        print('Successfully validated main module functions')
+        "
+        
+    - name: List available functions in the module (diagnostic)
+      run: |
+        python -c "
+        import src.main
+        functions = [name for name in dir(src.main) if callable(getattr(src.main, name)) and not name.startswith('_')]
+        print('Available functions in src.main:')
+        for func in sorted(functions):
+            print(f'- {func}')
+        "

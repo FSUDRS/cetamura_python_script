@@ -93,8 +93,24 @@ See `dist_package/docs/BUILD_SUMMARY.md` for platform-specific build instruction
 
 ### Testing
 ```bash
+# Run all tests
 pytest tests/
+
+# Run with coverage report
+pytest --cov=cetamura tests/
 ```
+
+### CI/CD Pipeline
+
+This project uses GitHub Actions for CI/CD:
+
+- **Continuous Integration**: Automated testing on code push and pull requests
+- **Continuous Deployment**: Automatic release building when version tags are pushed
+
+For detailed information:
+
+- [CI/CD Guide](docs/CICD_GUIDE.md) - Complete guide to the CI/CD setup
+- [Phased Implementation](docs/PHASED_IMPLEMENTATION.md) - Step-by-step implementation plan
 
 ## Important Notes
 

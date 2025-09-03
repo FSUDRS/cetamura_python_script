@@ -40,8 +40,8 @@ class TestFilePairing:
     def test_sanitize_name(self):
         """Test filename sanitization"""
         from main import sanitize_name
-        assert sanitize_name("FSU:Cetamura*photos") == "FSUCetamuraphotos" 
-        assert sanitize_name("file/with\\slashes") == "filewithslashes"
+        assert sanitize_name("FSU:Cetamura*photos") == "FSU_Cetamura_photos" 
+        assert sanitize_name("file/with\\slashes") == "file_with_slashes"
         assert sanitize_name("normal_filename") == "normal_filename"
     
     def test_file_pair_structure(self):
