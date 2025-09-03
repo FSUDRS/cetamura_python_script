@@ -2,7 +2,7 @@ name: Cetamura Batch Tool CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, ci-cd-development ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
