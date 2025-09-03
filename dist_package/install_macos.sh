@@ -35,7 +35,7 @@ fi
 
 # Install required packages
 echo "Installing required packages..."
-if pip3 install -r requirements.txt; then
+if pip3 install -r requirements/requirements.txt; then
     echo "Dependencies installed successfully"
 else
     echo "Failed to install dependencies"

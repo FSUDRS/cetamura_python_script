@@ -23,7 +23,7 @@ try {
 # Install required packages
 Write-Host "Installing required packages..." -ForegroundColor Yellow
 try {
-    pip install -r requirements.txt
+    pip install -r requirements/requirements.txt
     Write-Host "Dependencies installed successfully" -ForegroundColor Green
 } catch {
     Write-Host "Failed to install dependencies" -ForegroundColor Red
