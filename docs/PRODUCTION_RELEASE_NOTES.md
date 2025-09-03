@@ -55,13 +55,13 @@ This release delivers production-focused safety and reliability improvements for
 
 ## **DEPLOYMENT OPTIONS**
 
-**Option 1 — Pre-built Executable (recommended)**
-- Use: `dist_package/executables/Cetamura_Batch_Tool_Windows.exe`
-- Copy to target systems and run without Python installed
+**Option 1  Pre-built Executable (recommended)**
+- Use a pre-built executable if you have created one via the build scripts or CI artifacts (example name: `Cetamura_Batch_Tool_Windows.exe`).
+- Copy to target systems and run without Python installed. Note: pre-built executables are not stored in the repository HEAD; build them locally or obtain them from CI release artifacts.
 
-**Option 2 — Python Source**
-- Use: `dist_package/source/main.py` or `src/main.py`
-- Install dependencies: `pip install -r requirements.txt`
+**Option 2  Python Source**
+- Use: `src/main.py`
+- Install dependencies: `pip install -r requirements/requirements.txt`
 - Run: `python src/main.py`
 
 **Option 3 — Custom Build**
@@ -76,8 +76,11 @@ This release delivers production-focused safety and reliability improvements for
 ## **DEPLOYMENT INSTRUCTIONS**
 
 ### **Windows (Quick Deployment)**
-- Copy `dist_package/executables/Cetamura_Batch_Tool_Windows.exe` to target system
-- Double-click to run
+- If you have a pre-built executable, copy it to the target system and run it. Otherwise run the tool from source:
+
+```powershell
+python -m venv .venv; .\.venv\Scripts\Activate.ps1; pip install -r requirements/requirements.txt; python src/main.py
+```
 - Use **Dry Run** mode to test with sample data
 - Deploy to production once validated
 

@@ -10,23 +10,21 @@ This tool automates the process for creating ingest files for the Cetamura Digit
 
 ### Windows Users
 1. Download the project
-2. Navigate to `dist_package/`
-3. Double-click `executables/Cetamura_Batch_Tool_Windows.exe`
+2. Run from source (`python src/main.py`) or use a pre-built executable if you have one available locally.
 
 ### macOS Users
 1. Download the project
-2. Navigate to `dist_package/`
-3. Run: `chmod +x install_macos.sh && ./install_macos.sh`
+2. Run the installer script from the repository root: `chmod +x install_macos.sh && ./install_macos.sh`
 
 ### Linux Users
 1. Download the project
-2. Install dependencies: `pip3 install -r dist_package/requirements.txt`
-3. Run: `python3 dist_package/source/main.py`
+2. Install dependencies: `pip3 install -r requirements/requirements.txt`
+3. Run: `python3 src/main.py`
 
 ## Complete Documentation
 
 For detailed instructions, build guides, and troubleshooting:
-- **Distribution Guide**: `dist_package/README_DISTRIBUTION.md`
+- **Distribution Guide**: `dist_package/README_DISTRIBUTION.md` (note: repository does not retain pre-built binaries in HEAD)
 - **Build Instructions**: `dist_package/docs/README_BUILD.md`
 - **Quick Reference**: `dist_package/docs/BUILD_SUMMARY.md`
 
