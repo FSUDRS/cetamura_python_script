@@ -45,7 +45,9 @@ cetamura_python_script/
 │   ├── docs/                   # Documentation
 │   └── install_*.sh|.ps1       # Installation scripts
 ├── .venv/                      # Virtual environment
-└── requirements.txt            # Python dependencies
+└── requirements/               # Python dependencies
+    ├── requirements.txt        # Production dependencies
+    └── requirements-dev.txt    # Development dependencies
 ```
 
 ## Requirements
@@ -82,7 +84,7 @@ Parent_Folder/
 ### Running from Source
 ```bash
 # Install dependencies
-pip install -r requirements.txt
+pip install -r requirements/requirements.txt
 
 # Run the application
 python src/main.py
