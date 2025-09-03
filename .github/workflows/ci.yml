@@ -55,6 +55,19 @@ jobs:
       run: |
         python -c "import src.main; print('Main script imports successfully')"
         
-    - name: Run script with --help flag (non-interactive test)
+    - name: Check script structure without running it
       run: |
-        python src/main.py --help || echo "Script executed - help option may not be implemented"
+        python -c "
+        from src.main import sanitize_name, convert_jpg_to_tiff, extract_iid_from_xml
+        print('Successfully validated main module functions')
+        "
+        
+    - name: List available functions in the module (diagnostic)
+      run: |
+        python -c "
+        import src.main
+        functions = [name for name in dir(src.main) if callable(getattr(src.main, name)) and not name.startswith('_')]
+        print('Available functions in src.main:')
+        for func in sorted(functions):
+            print(f'- {func}')
+        "
