@@ -2,6 +2,7 @@ from tkinter import Tk, filedialog, messagebox, Menu, Toplevel, Text, Scrollbar,
 from tkinter.ttk import Button, Progressbar, Style, Frame
 import threading
 import logging
+from typing import Optional, Any
 
 # Prefer vendored stdlib modules included in src/_vendored when freezing
 import sys
@@ -50,7 +51,7 @@ class BatchContext(NamedTuple):
     dry_run: bool
     staging: bool
     csv_path: Path
-    csv_writer: Optional[csv.writer]
+    csv_writer: Optional[Any]
     logger: logging.Logger
 
 
@@ -564,22 +565,206 @@ def fix_corrupted_jpg(jpg_path: Path) -> Optional[Path]:
         return None
 
 
+def apply_exif_orientation(img: Image.Image, image_path: Path) -> Image.Image:
+    """
+    Apply EXIF orientation correction to an image.
+    
+    Args:
+        img: PIL Image object
+        image_path: Path to the image file (for logging)
+        
+    Returns:
+        Image with correct orientation applied
+    """
+    try:
+        # Get EXIF data
+        exif = img.getexif()
+        
+        if exif is not None:
+            # Look for orientation tag (274 is the standard EXIF orientation tag)
+            orientation = exif.get(274, 1)  # Default to 1 (normal) if not found
+            
+            # Log original orientation for debugging
+            orientation_names = {
+                1: "Normal",
+                2: "Mirrored horizontally", 
+                3: "Rotated 180°",
+                4: "Mirrored vertically",
+                5: "Mirrored horizontally, rotated 90° CCW",
+                6: "Rotated 90° CW", 
+                7: "Mirrored horizontally, rotated 90° CW",
+                8: "Rotated 90° CCW"
+            }
+            
+            orientation_name = orientation_names.get(orientation, f"Unknown ({orientation})")
+            logging.debug(f"Image {image_path.name} has EXIF orientation: {orientation_name}")
+            
+            # Apply orientation corrections
+            if orientation == 2:
+                # Mirrored horizontally
+                img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+                logging.info(f"Applied horizontal flip to {image_path.name}")
+            elif orientation == 3:
+                # Rotated 180°
+                img = img.rotate(180, expand=True)
+                logging.info(f"Applied 180° rotation to {image_path.name}")
+            elif orientation == 4:
+                # Mirrored vertically
+                img = img.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                logging.info(f"Applied vertical flip to {image_path.name}")
+            elif orientation == 5:
+                # Mirrored horizontally, then rotated 90° CCW
+                img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT).rotate(270, expand=True)
+                logging.info(f"Applied horizontal flip + 270° rotation to {image_path.name}")
+            elif orientation == 6:
+                # Rotated 90° CW (270° CCW)
+                img = img.rotate(270, expand=True)
+                logging.info(f"Applied 270° rotation to {image_path.name}")
+            elif orientation == 7:
+                # Mirrored horizontally, then rotated 90° CW
+                img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT).rotate(90, expand=True)
+                logging.info(f"Applied horizontal flip + 90° rotation to {image_path.name}")
+            elif orientation == 8:
+                # Rotated 90° CCW
+                img = img.rotate(90, expand=True)
+                logging.info(f"Applied 90° rotation to {image_path.name}")
+            elif orientation == 1:
+                # Normal orientation - no change needed
+                logging.debug(f"Image {image_path.name} has normal orientation")
+            else:
+                logging.warning(f"Unknown orientation {orientation} for {image_path.name}")
+                
+        else:
+            logging.debug(f"No EXIF data found for {image_path.name}")
+            
+    except Exception as e:
+        logging.warning(f"Error reading EXIF orientation for {image_path.name}: {e}")
+        # Return original image if we can't read EXIF
+        
+    return img
+
+
+def validate_image_orientation(image_path: Path) -> dict:
+    """
+    Validate and report image orientation information for debugging.
+    
+    Args:
+        image_path: Path to the image file
+        
+    Returns:
+        Dictionary with orientation information
+    """
+    try:
+        with Image.open(image_path) as img:
+            exif = img.getexif()
+            orientation = exif.get(274, 1) if exif else 1
+            
+            orientation_info = {
+                'path': str(image_path),
+                'size': img.size,
+                'mode': img.mode,
+                'format': img.format,
+                'orientation_code': orientation,
+                'has_exif': exif is not None,
+                'needs_correction': orientation != 1
+            }
+            
+            # Add human-readable orientation
+            orientation_names = {
+                1: "Normal", 2: "Mirrored horizontally", 3: "Rotated 180°",
+                4: "Mirrored vertically", 5: "Mirrored horizontally, rotated 90° CCW",
+                6: "Rotated 90° CW", 7: "Mirrored horizontally, rotated 90° CW", 
+                8: "Rotated 90° CCW"
+            }
+            orientation_info['orientation_name'] = orientation_names.get(orientation, f"Unknown ({orientation})")
+            
+            return orientation_info
+            
+    except Exception as e:
+        return {
+            'path': str(image_path),
+            'error': str(e),
+            'validation_failed': True
+        }
+
+
+def debug_orientation_issues(folder_path: str, output_csv: str = "orientation_debug.csv"):
+    """
+    Debug orientation issues in a specific folder.
+    Creates a CSV report of all images and their orientation status.
+    """
+    import csv
+    
+    folder = Path(folder_path)
+    results = []
+    
+    logging.info(f"Starting orientation debug for folder: {folder}")
+    
+    # Find all JPG files recursively
+    jpg_files = []
+    for ext in ['.jpg', '.jpeg', '.JPG', '.JPEG']:
+        jpg_files.extend(folder.rglob(f"*{ext}"))
+    
+    logging.info(f"Found {len(jpg_files)} JPG files to analyze")
+    
+    for jpg_file in jpg_files:
+        orientation_info = validate_image_orientation(jpg_file)
+        orientation_info['relative_path'] = str(jpg_file.relative_to(folder))
+        results.append(orientation_info)
+        
+        if orientation_info.get('needs_correction', False):
+            logging.warning(f"Image needs orientation correction: {jpg_file.name} - {orientation_info['orientation_name']}")
+    
+    # Write CSV report
+    csv_path = folder / output_csv
+    with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
+        if results:
+            fieldnames = results[0].keys()
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(results)
+    
+    # Summary
+    total_images = len(results)
+    needs_correction = sum(1 for r in results if r.get('needs_correction', False))
+    
+    logging.info(f"Orientation debug complete:")
+    logging.info(f"  Total images: {total_images}")
+    logging.info(f"  Need correction: {needs_correction}")
+    logging.info(f"  Report saved to: {csv_path}")
+    
+    return csv_path
+
+
 def convert_jpg_to_tiff(jpg_path: Path) -> Optional[Path]:
     """
-    Converts a .jpg file to .tiff. Detects and attempts to fix corrupted files before skipping them.
+    Converts a .jpg file to .tiff with proper EXIF orientation handling.
+    Detects and attempts to fix corrupted files before skipping them.
     Deletes the original JPG file after successful conversion.
     """
     try:
         tiff_path = jpg_path.with_suffix('.tiff')
+        
         with Image.open(jpg_path) as img:
             img.verify()  # Verify if the image is corrupted
-            img = Image.open(jpg_path)  # Re-open the image to save as TIFF
-            img.save(tiff_path, "TIFF")
+        
+        # Re-open for processing
+        with Image.open(jpg_path) as img:
+            # Apply EXIF orientation correction
+            img = apply_exif_orientation(img, jpg_path)
+            
+            # Convert to RGB if not already (handles various formats)
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            # Save as TIFF with high quality, no compression to preserve quality
+            img.save(tiff_path, "TIFF", compression='none')
         
         # Delete the original JPG file after successful conversion
         jpg_path.unlink()
         logging.info(f"Converted {jpg_path} to {tiff_path} and deleted original JPG")
         return tiff_path
+        
     except UnidentifiedImageError as e:
         logging.warning(f"Corrupted file detected: {jpg_path}. Attempting to fix...")
         fixed_path = fix_corrupted_jpg(jpg_path)
@@ -691,17 +876,28 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
         if jpg_file is None:
             context.csv_writer.writerow([iid, str(xml_file), 'N/A', 'WARNING', 'ORPHANED_XML', 'No matching JPG found'])
             return False
+        
+        # NEW: Validate orientation before processing
+        orientation_info = validate_image_orientation(jpg_file)
+        if orientation_info.get('needs_correction', False):
+            context.logger.info(f"Image {jpg_file.name} has orientation {orientation_info['orientation_name']} - will be corrected")
+            context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'INFO', 'ORIENTATION', f"Detected: {orientation_info['orientation_name']}"])
             
         if context.dry_run:
             # Simulate processing steps
-            context.logger.info(f"DRY RUN: Would convert {jpg_file.name} to TIFF")
+            context.logger.info(f"DRY RUN: Would convert {jpg_file.name} to TIFF with orientation correction")
             context.logger.info(f"DRY RUN: Would extract IID {iid} from {xml_file.name}")
             context.logger.info(f"DRY RUN: Would create ZIP package for {iid}")
-            context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'SUCCESS', 'DRY_RUN', 'Would process successfully'])
+            
+            dry_run_notes = 'Would process successfully'
+            if orientation_info.get('needs_correction', False):
+                dry_run_notes += f" (would correct {orientation_info['orientation_name']})"
+                
+            context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'SUCCESS', 'DRY_RUN', dry_run_notes])
             return True
         
-        # Actual processing
-        tiff_path = convert_jpg_to_tiff(jpg_file)
+        # Actual processing with orientation correction
+        tiff_path = convert_jpg_to_tiff(jpg_file)  # Now includes orientation handling
         if tiff_path is None:
             context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'ERROR', 'CONVERT_FAILED', 'JPG to TIFF conversion failed'])
             return False
@@ -717,7 +913,12 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
             return False
             
         package_to_zip(new_tiff, new_xml, manifest_path, context.output_dir)
-        context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'SUCCESS', 'PROCESSED', 'Successfully packaged'])
+        
+        success_notes = 'Successfully packaged'
+        if orientation_info.get('needs_correction', False):
+            success_notes += f" (corrected {orientation_info['orientation_name']})"
+            
+        context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'SUCCESS', 'PROCESSED', success_notes])
         return True
         
     except Exception as e:
@@ -1251,7 +1452,7 @@ def main():
         # Look for an optional icon in the local assets directory
         icon_path = Path(__file__).resolve().parent / "../assets/app.ico"
         if icon_path.exists():
-            icon_image = Image.open(icon_path).resize((32, 32), Image.LANCZOS)
+            icon_image = Image.open(icon_path).resize((32, 32), Image.Resampling.LANCZOS)
             root_window.iconphoto(False, ImageTk.PhotoImage(icon_image))
         else:
             logging.warning("Icon file not found. Using default window icon.")
@@ -1262,7 +1463,7 @@ def main():
         # Optional logo displayed at the top of the window
         logo_path = Path(__file__).resolve().parent / "../assets/app.png"
         if logo_path.exists():
-            logo_image = Image.open(logo_path).resize((400, 100), Image.LANCZOS)
+            logo_image = Image.open(logo_path).resize((400, 100), Image.Resampling.LANCZOS)
             logo_photo = ImageTk.PhotoImage(logo_image)
         else:
             logging.warning("Logo file not found. Skipping logo display.")
