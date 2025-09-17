@@ -78,6 +78,15 @@ logging.basicConfig(
     ]
 )
 
+# Global widget variables - initialized in main()
+root_window = None
+btn_select = None
+btn_process = None
+progress = None
+progress_label = None
+status_label = None
+label = None
+
 def configure_logging_level(advanced_logs: bool = False):
     """Configure logging based on user preference for simple or advanced logs"""
     # Create user-friendly logger
@@ -874,14 +883,16 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
         context.logger.info(f"Processing IID {iid} from {subfolder}")
         
         if jpg_file is None:
-            context.csv_writer.writerow([iid, str(xml_file), 'N/A', 'WARNING', 'ORPHANED_XML', 'No matching JPG found'])
+            if context.csv_writer is not None:
+                context.csv_writer.writerow([iid, str(xml_file), 'N/A', 'WARNING', 'ORPHANED_XML', 'No matching JPG found'])
             return False
         
-        # NEW: Validate orientation before processing
+        # Validate orientation before processing
         orientation_info = validate_image_orientation(jpg_file)
         if orientation_info.get('needs_correction', False):
             context.logger.info(f"Image {jpg_file.name} has orientation {orientation_info['orientation_name']} - will be corrected")
-            context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'INFO', 'ORIENTATION', f"Detected: {orientation_info['orientation_name']}"])
+            if context.csv_writer is not None:
+                context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'INFO', 'ORIENTATION', f"Detected: {orientation_info['orientation_name']}"])
             
         if context.dry_run:
             # Simulate processing steps
@@ -892,14 +903,16 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
             dry_run_notes = 'Would process successfully'
             if orientation_info.get('needs_correction', False):
                 dry_run_notes += f" (would correct {orientation_info['orientation_name']})"
-                
-            context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'SUCCESS', 'DRY_RUN', dry_run_notes])
+            
+            if context.csv_writer is not None:
+                context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'SUCCESS', 'DRY_RUN', dry_run_notes])
             return True
         
         # Actual processing with orientation correction
         tiff_path = convert_jpg_to_tiff(jpg_file)  # Now includes orientation handling
         if tiff_path is None:
-            context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'ERROR', 'CONVERT_FAILED', 'JPG to TIFF conversion failed'])
+            if context.csv_writer is not None:
+                context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'ERROR', 'CONVERT_FAILED', 'JPG to TIFF conversion failed'])
             return False
 
         new_tiff, new_xml = rename_files(subfolder, tiff_path, xml_file, iid)
@@ -909,21 +922,24 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
         manifest_path = manifest_files[0] if manifest_files else None
         
         if not manifest_path:
-            context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'ERROR', 'NO_MANIFEST', 'No manifest file found'])
+            if context.csv_writer is not None:
+                context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'ERROR', 'NO_MANIFEST', 'No manifest file found'])
             return False
             
+        # Package the files
         package_to_zip(new_tiff, new_xml, manifest_path, context.output_dir)
         
         success_notes = 'Successfully packaged'
         if orientation_info.get('needs_correction', False):
             success_notes += f" (corrected {orientation_info['orientation_name']})"
-            
-        context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'SUCCESS', 'PROCESSED', success_notes])
+        if context.csv_writer is not None:
+            context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'SUCCESS', 'PROCESSED', success_notes])
         return True
-        
+            
     except Exception as e:
+        if context.csv_writer is not None:
+            context.csv_writer.writerow([iid, str(xml_file) if xml_file else '', str(jpg_file) if jpg_file else '', 'ERROR', 'EXCEPTION', str(e)])
         context.logger.error(f"Error processing {iid}: {str(e)}")
-        context.csv_writer.writerow([iid, str(xml_file) if xml_file else '', str(jpg_file) if jpg_file else '', 'ERROR', 'EXCEPTION', str(e)])
         return False
 
 
@@ -933,14 +949,15 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
     logger = logging.getLogger(__name__)
     
     # Set up output directory
+    folder_path_obj = Path(folder_path)
     if staging:
-        output_dir = Path(folder_path) / "staging_output"
+        output_dir = folder_path_obj / "staging_output"
     else:
-        output_dir = Path(folder_path) / "output"
+        output_dir = folder_path_obj / "output"
     
     # Set up CSV reporting
     csv_filename = f"batch_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-    csv_path = output_dir / csv_filename if not dry_run else Path(folder_path) / csv_filename
+    csv_path = output_dir / csv_filename if not dry_run else folder_path_obj / csv_filename
     
     # User-friendly logging
     mode = "Dry Run Preview" if dry_run else "Staging" if staging else "Production"
@@ -949,26 +966,26 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
     
     if dry_run:
         log_user_friendly("🔍 Dry Run Mode - Previewing processing, no files will be changed")
+        csv_path.parent.mkdir(parents=True, exist_ok=True)
     elif staging:
         log_user_friendly(f"📋 Staging Mode - Output to: {output_dir}")
+        output_dir.mkdir(parents=True, exist_ok=True)
     else:
         log_user_friendly(f"⚡ Production Mode - Output to: {output_dir}")
+        output_dir.mkdir(parents=True, exist_ok=True)
     
     # Advanced logging (technical details)
     logger.info(f"Starting batch process - Dry run: {dry_run}, Staging: {staging}")
     logger.info(f"Source folder: {folder_path}")
     logger.info(f"Output folder: {output_dir}")
     
-    if dry_run:
-        logger.info("DRY RUN MODE - No files will be modified")
-        csv_path.parent.mkdir(parents=True, exist_ok=True)
-    else:
-        output_dir.mkdir(parents=True, exist_ok=True)
+    success_count = 0
+    error_count = 0
     
-    # Initialize CSV writer
+    # Initialize CSV writer and process within the same block
     try:
-        with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
-            csv_writer = csv.writer(csvfile)
+        with open(csv_path, 'w', newline='', encoding='utf-8') as csv_file:
+            csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['IID', 'XML_Path', 'JPG_Path', 'Status', 'Action', 'Notes'])
             
             # Create batch context
@@ -981,72 +998,39 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
                 logger=logger
             )
             
-            success_count = 0
-            error_count = 0
-            
             # Use enhanced photo set detection to handle complex directory structures
             try:
                 photo_sets = find_photo_sets(folder_path)
                 log_user_friendly(f"🔍 Found {len(photo_sets)} photo sets to process")
                 logger.info(f"Enhanced detection found {len(photo_sets)} photo sets")
                 
-                for directory, jpg_files, xml_files, manifest_files in photo_sets:
-                    # Validate single manifest requirement
+                for photo_set in photo_sets:
                     try:
-                        validate_single_manifest(manifest_files)
-                        context.csv_writer.writerow(['', str(directory), '', 'MANIFEST_OK', 'VALIDATION', 'Single manifest found'])
-                        log_user_friendly(f"✅ Validated photo set: {directory.name}")
-                    except ValueError as e:
-                        logger.error(f"Manifest validation failed for {directory}: {e}")
-                        context.csv_writer.writerow(['', str(directory), '', 'MANIFEST_ERROR', 'VALIDATION', str(e)])
-                        log_user_friendly(f"❌ Manifest error in {directory.name}: {e}")
-                        error_count += 1
-                        continue
-                    
-                    # Create file pairs from the enhanced detection results
-                    file_pairs = []
-                    for xml_file in xml_files:
-                        try:
-                            iid = extract_iid_from_xml(xml_file)
-                            matching_jpg = None
-                            
-                            # Look for matching JPG file
-                            for jpg_file in jpg_files:
-                                if iid.lower() in jpg_file.stem.lower() or jpg_file.stem.lower() in iid.lower():
-                                    matching_jpg = jpg_file
-                                    break
-                            
-                            file_pairs.append(FilePair(xml=xml_file, jpg=matching_jpg, iid=iid))
-                            
-                        except Exception as e:
-                            logger.warning(f"Could not process XML {xml_file}: {e}")
-                            context.csv_writer.writerow(['', str(xml_file), '', 'WARNING', 'XML_ERROR', str(e)])
-                    
-                    # Process each file pair
-                    for file_pair in file_pairs:
-                        try:
-                            result = process_file_set_with_context(file_pair, file_pair.iid, directory, context)
-                            if result:
-                                success_count += 1
-                            else:
-                                error_count += 1
-                        except Exception as e:
-                            logger.error(f"Error processing {file_pair.iid} in {directory}: {str(e)}")
-                            context.csv_writer.writerow([file_pair.iid, '', '', 'ERROR', 'PROCESSING', str(e)])
+                        # Process each photo set
+                        success = process_file_set_with_context(photo_set.files, photo_set.iid, photo_set.directory, context)
+                        if success:
+                            success_count += 1
+                        else:
                             error_count += 1
-                            
+                    except Exception as e:
+                        logger.error(f"Error processing photo set {photo_set.iid}: {str(e)}")
+                        if context.csv_writer is not None:
+                            context.csv_writer.writerow([photo_set.iid, '', '', 'ERROR', 'PROCESSING', str(e)])
+                        error_count += 1
+                        
             except Exception as e:
-                logger.error(f"Error during enhanced photo set detection: {e}")
                 log_user_friendly(f"❌ Error finding photo sets: {e}")
                 # Fallback to basic error handling
-                context.csv_writer.writerow(['', folder_path, '', 'ERROR', 'DETECTION', str(e)])
+                if context.csv_writer is not None:
+                    context.csv_writer.writerow(['', folder_path, '', 'ERROR', 'DETECTION', str(e)])
                 error_count += 1
             
             # Log final results
             logger.info(f"Batch process completed - Success: {success_count}, Errors: {error_count}")
-            context.csv_writer.writerow(['SUMMARY', '', '', f'Success: {success_count}', f'Errors: {error_count}', f'Dry run: {dry_run}'])
+            if context.csv_writer is not None:
+                context.csv_writer.writerow(['SUMMARY', '', '', f'Success: {success_count}', f'Errors: {error_count}', f'Dry run: {dry_run}'])
             
-            return success_count, error_count, csv_path
+        return success_count, error_count, csv_path
             
     except Exception as e:
         logger.error(f"Critical error in batch process: {str(e)}")
@@ -1215,6 +1199,8 @@ def view_user_friendly_log():
 
 # Function to select Root Folder
 def select_folder():
+    global label, btn_process, status_label
+    
     folder_selected = filedialog.askdirectory()
     if folder_selected:
         if not Path(folder_selected).exists():
@@ -1225,24 +1211,36 @@ def select_folder():
         try:
             photo_sets = find_photo_sets(folder_selected)
             if not photo_sets:
-                label.config(text=f"Selected: {folder_selected} - No photo sets found")
-                btn_process.config(state="disabled")
-                status_label.config(text="Status: No valid photo sets found in selected folder")
+                if label:
+                    label.config(text=f"Selected: {folder_selected} - No photo sets found")
+                if btn_process:
+                    btn_process.config(state="disabled")
+                if status_label:
+                    status_label.config(text="Status: No valid photo sets found in selected folder")
                 logging.warning(f"No photo sets found in selected folder: {folder_selected}")
             else:
-                label.config(text=f"Selected: {folder_selected}")
-                btn_process.config(state="normal")
-                status_label.config(text=f"Status: Ready - Found {len(photo_sets)} photo set(s)")
+                if label:
+                    label.config(text=f"Selected: {folder_selected}")
+                if btn_process:
+                    btn_process.config(state="normal")
+                if status_label:
+                    status_label.config(text=f"Status: Ready - Found {len(photo_sets)} photo set(s)")
                 logging.info(f"Found {len(photo_sets)} photo sets in selected folder")
         except Exception as e:
-            label.config(text=f"Selected: {folder_selected} - Error scanning folder")
-            btn_process.config(state="disabled")
-            status_label.config(text="Status: Error scanning selected folder")
+            if label:
+                label.config(text=f"Selected: {folder_selected} - Error scanning folder")
+            if btn_process:
+                btn_process.config(state="disabled")
+            if status_label:
+                status_label.config(text="Status: Error scanning selected folder")
             logging.error(f"Error scanning folder {folder_selected}: {e}")
     else:
-        label.config(text="No folder selected!")
-        btn_process.config(state="disabled")
-        status_label.config(text="Status: Waiting for folder selection")
+        if label:
+            label.config(text="No folder selected!")
+        if btn_process:
+            btn_process.config(state="disabled")
+        if status_label:
+            status_label.config(text="Status: Waiting for folder selection")
 
 def show_processing_options_dialog():
     """Show dialog for selecting processing options (dry-run, staging, etc.)"""
@@ -1377,6 +1375,12 @@ def show_processing_options_dialog():
 
 # Function to start batch processing
 def start_batch_process():
+    global label, btn_select, btn_process, status_label, root_window
+    
+    if not label:
+        messagebox.showerror("Error", "GUI not properly initialized.")
+        return
+        
     folder = label.cget("text").replace("Selected: ", "").split(" - ")[0]  # Extract clean folder path
     if not Path(folder).is_dir():
         messagebox.showerror("Error", "Please select a valid parent folder.")
@@ -1395,9 +1399,12 @@ def start_batch_process():
     configure_logging_level(advanced_logs)
     
     mode_text = "Dry Run" if dry_run else "Staging" if staging else "Processing"
-    status_label.config(text=f"{mode_text}...")
-    btn_select.config(state="disabled")
-    btn_process.config(state="disabled")
+    if status_label:
+        status_label.config(text=f"{mode_text}...")
+    if btn_select:
+        btn_select.config(state="disabled")
+    if btn_process:
+        btn_process.config(state="disabled")
     logging.info(f"Batch processing started for folder: {folder} (dry_run={dry_run}, staging={staging})")
 
     def run_process():
@@ -1423,18 +1430,24 @@ def start_batch_process():
                     success_message += f"Output saved to staging folder\n"
                 success_message += f"Detailed report: {csv_path}"
             
-            root_window.after(0, lambda: status_label.config(text=f"{mode_desc}Completed successfully!"))
+            if root_window and status_label:
+                root_window.after(0, lambda sl=status_label: sl.config(text=f"{mode_desc}Completed successfully!"))
             logging.info(f"Batch processing completed - Success: {success_count}, Errors: {error_count}")
-            root_window.after(0, lambda: messagebox.showinfo("Success", success_message))
+            if root_window:
+                root_window.after(0, lambda: messagebox.showinfo("Success", success_message))
             
         except Exception as e:
             error_msg = f"An error occurred during processing:\n{str(e)}"
-            root_window.after(0, lambda: messagebox.showerror("Error", error_msg))
-            root_window.after(0, lambda: status_label.config(text="Processing failed."))
+            if root_window:
+                root_window.after(0, lambda: messagebox.showerror("Error", error_msg))
+            if root_window and status_label:
+                root_window.after(0, lambda sl=status_label: sl.config(text="Processing failed."))
             logging.error(f"Error during batch processing: {e}")
         finally:
-            root_window.after(0, lambda: btn_select.config(state="normal"))
-            root_window.after(0, lambda: btn_process.config(state="normal"))
+            if root_window and btn_select:
+                root_window.after(0, lambda bs=btn_select: bs.config(state="normal"))
+            if root_window and btn_process:
+                root_window.after(0, lambda bp=btn_process: bp.config(state="normal"))
 
     threading.Thread(target=run_process).start()
 
@@ -1453,7 +1466,10 @@ def main():
         icon_path = Path(__file__).resolve().parent / "../assets/app.ico"
         if icon_path.exists():
             icon_image = Image.open(icon_path).resize((32, 32), Image.Resampling.LANCZOS)
-            root_window.iconphoto(False, ImageTk.PhotoImage(icon_image))
+            # Convert PIL image to PhotoImage for tkinter
+            icon_photo = ImageTk.PhotoImage(icon_image)
+            # Use wm_iconphoto with the PhotoImage (ignore type warning)
+            root_window.wm_iconphoto(False, icon_photo)  # type: ignore
         else:
             logging.warning("Icon file not found. Using default window icon.")
     except Exception as e:
@@ -1485,7 +1501,8 @@ def main():
     # Display the logo or fallback title
     if logo_photo:
         logo_label = Label(main_frame, image=logo_photo)
-        logo_label.image = logo_photo
+        # Keep a reference to the image to prevent garbage collection
+        setattr(logo_label, '_image_ref', logo_photo)
     else:
         logo_label = Label(main_frame, text="Cetamura Batch Ingest Tool", font=('Helvetica', 16, 'bold'))
     logo_label.pack(pady=(20, 10))
