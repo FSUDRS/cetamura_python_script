@@ -4,127 +4,157 @@
 
 This tool automates the process for creating ingest files for the Cetamura Digital Collections.
 
-> **Project Structure**: See [`docs/PROJECT_STRUCTURE.md`](docs/PROJECT_STRUCTURE.md) for detailed information about the organized project layout.
-
+> 
 ## Quick Start
 
-### Windows Users
-1. Download the project
-2. Run from source (`python src/main.py`) or use a pre-built executable if you have one available locally.
+### Option 1: Run the Executable
+1. Download `Cetamura_Batch_Tool.exe` from GitHub releases
+2. Double-click to run
+3. Select your photo folder
+4. Click "Start Batch Process"
 
-### macOS Users
-1. Download the project
-2. Run the installer script from the repository root: `chmod +x install_macos.sh && ./install_macos.sh`
-
-### Linux Users
-1. Download the project
-2. Install dependencies: `pip3 install -r requirements/requirements.txt`
-3. Run: `python3 src/main.py`
-
-## Complete Documentation
-
-For detailed instructions, build guides, and troubleshooting:
-- **Distribution Guide**: `dist_package/README_DISTRIBUTION.md` (note: repository does not retain pre-built binaries in HEAD)
-- **Build Instructions**: `dist_package/docs/README_BUILD.md`
-- **Quick Reference**: `dist_package/docs/BUILD_SUMMARY.md`
-
-## Project Structure
-
-```
-cetamura_python_script/
-├── src/                        # Source code
-│   └── main.py                 # Main application
-├── tests/                      # Unit tests
-├── assets/                     # Optional icons/logos
-├── dist_package/               # Complete distribution package
-│   ├── executables/            # Pre-built executables
-│   ├── source/                 # Source code copy
-│   ├── build_scripts/          # Build scripts for all platforms
-│   ├── docs/                   # Documentation
-│   └── install_*.sh|.ps1       # Installation scripts
-├── .venv/                      # Virtual environment
-└── requirements/               # Python dependencies
-    ├── requirements.txt        # Production dependencies
-    └── requirements-dev.txt    # Development dependencies
-```
-
-## Requirements
-
-### File Structure
-The tool expects this folder structure:
-```
-Parent_Folder/
-├── 2006/
-│   ├── 46N-3W/
-│   │   ├── image.jpg
-│   │   ├── metadata.xml
-│   │   └── MANIFEST.ini
-│   └── ...
-└── ...
-```
-
-### System Requirements
-- **TIFF/JPG image files**
-- **Corresponding XML metadata files** 
-- **MANIFEST.ini file** in each folder
-- **Python 3.6+** (for source execution)
-
-## Processing Steps
-
-1. **Extract IID** from XML metadata files
-2. **Convert JPG to TIFF** format
-3. **Rename files** to match extracted IID
-4. **Package into ZIP** archives with MANIFEST.ini
-5. **Organize output** in structured folders
-
-## Development
-
-### Running from Source
+### Option 2: Run from Source
 ```bash
-# Install dependencies
-pip install -r requirements/requirements.txt
-
-# Run the application
+git clone [repo-url]
+cd cetamura_python_script
+pip install -r requirements.txt
 python src/main.py
 ```
 
-### Building Executables
-See `dist_package/docs/BUILD_SUMMARY.md` for platform-specific build instructions.
+## How to Use
 
-### Testing
-```bash
-# Run all tests
-pytest tests/
+1. **Select Folder**: Choose the parent folder containing your photo sets
+2. **Processing Options**: 
+   - **Dry Run**: Preview what will happen without changing files
+   - **Staging**: Process to staging folder for review
+   - **Production**: Final processing
+3. **Start Processing**: Click the button and wait for completion
+4. **Check Results**: Review the CSV report and output folder
 
-# Run with coverage report
-pytest --cov=cetamura tests/
+## What Gets Processed
+The tool looks for photo sets with:
+- JPG image file
+- XML metadata file
+- INI manifest file
+
+## Output
+- Converted TIFF files (with orientation correction)
+- ZIP packages (one per photo set)
+- CSV report of all processing results
+- Detailed logs
+
+## File Locations
+- **Output**: `output/` folder in your selected directory
+- **Staging**: `staging_output/` folder (for staging mode)
+- **Reports**: CSV files with timestamp in filename
+- **Logs**: `batch_tool.log` in application folder
+
+## Troubleshooting
+- **No photo sets found**: Check folder structure and file naming
+- **Processing fails**: Check the CSV report for specific errors
+- **Application won't start**: Ensure Python 3.11+ or download fresh executable
+## Current Structure
+```
+cetamura_python_script/
+├── src/
+│   ├── main.py              # Complete application (1500+ lines)
+│   └── __init__.py
+├── tests/
+│   ├── test_main.py         # Core functionality tests
+│   ├── test_utils.py        # Utility function tests
+│   ├── test_pairing_improvements.py
+│   └── run_tests.py         # Test runner
+├── dist_package/
+│   ├── build_scripts/       # Cross-platform build scripts
+│   ├── docs/               # Build documentation
+│   ├── install_windows.ps1 # Windows installer
+│   └── install_macos.sh    # macOS installer
+├── docs/
+│   ├── cicd.md             # Build automation guide
+│   ├── project_structure.md # This file
+│   ├── readme.md           # User guide
+│   └── bugs.md             # Known issues
+├── scripts/
+│   ├── build/              # Legacy build scripts
+│   ├── setup/              # Environment setup
+│   └── utilities/          # Development utilities
+├── requirements/
+│   └── requirements.txt    # Production dependencies
+├── .github/workflows/      # GitHub Actions CI/CD
+├── requirements-dev.txt    # Development dependencies
+├── pytest.ini            # Test configuration
+└── README.md             # Main project readme
 ```
 
-### CI/CD Pipeline
+## What Each Part Does
 
-This project uses GitHub Actions for CI/CD:
+**src/main.py**
+- Complete GUI application
+- Batch processing logic
+- Image orientation correction
+- File validation and conversion
+- CSV reporting
+- Everything runs from this one file
 
-- **Continuous Integration**: Automated testing on code push and pull requests
-- **Continuous Deployment**: Automatic release building when version tags are pushed
+**tests/**
+- Unit tests for all main functions
+- Test runner and configuration
+- Validates core functionality
 
-For detailed information:
+**dist_package/**
+- Cross-platform build scripts
+- Windows and macOS installers
+- Distribution documentation
 
-- [CI/CD Guide](docs/CICD_GUIDE.md) - Complete guide to the CI/CD setup
-- [Phased Implementation](docs/PHASED_IMPLEMENTATION.md) - Step-by-step implementation plan
+**docs/**
+- User and developer documentation
+- Straightforward, no-jargon guides
+- Build and troubleshooting info
 
-## Important Notes
+## How It Works
+1. User runs `python src/main.py` or the built executable
+2. GUI opens for folder selection
+3. App finds photo sets (JPG + XML + manifest files)
+4. Processes images with orientation correction
+5. Creates ZIP packages for each photo set
+6. Generates CSV report of results
 
-- **Backup files** before processing
-- **File pairing**: Ensure matching TIFF and XML files
-- **Valid IID identifiers**: XML files must contain valid IID identifiers
-- **Logging**: Check `batch_tool.log` for detailed processing logs
-- **Irreversible actions**: Processing cannot be undone
+## Dependencies
+- PIL/Pillow - Image processing and orientation correction
+- tkinter - GUI (built into Python)
+- pathlib - File handling
+- csv - Report generation
+- logging - Error tracking and debugging
 
-## Support
+## Recent Changes
+- Consolidated all functionality into `src/main.py`
+- Added a function to automatically adjust wrongly positioned images using EXIF metadata
 
-1. Check the logs: `batch_tool.log`
-2. Review documentation in `dist_package/docs/`
-3. Verify file structure requirements
-4. Ensure all dependencies are installed
+### Building Executables
+```bash
+# Windows
+scripts/build/build_exe.ps1
+
+# macOS
+scripts/build/build_exe_macos.sh
+
+# Cross-platform
+scripts/build/build_cross_platform.sh
+```
+
+### Development Setup
+```bash
+# Windows
+scripts/setup/setup_dev.ps1
+
+# macOS
+scripts/setup/setup_macos.sh
+```
+
+## Notes
+- The main working application is in `src/main.py`
+- The `cetamura/` directory contains modular components for future development
+- All build and utility scripts are now organized under `scripts/`
+- Logs are automatically stored in the `logs/` directory
 
 ---
