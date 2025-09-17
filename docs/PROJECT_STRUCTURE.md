@@ -1,54 +1,83 @@
-# Cetamura Archaeological Photo Processing Tool - Project Structure
+# Project Structure
 
-## Overview
-This project is organized to provide a clean, maintainable structure for the Cetamura archaeological photo processing system.
-
-## Directory Structure
-
+## Current Structure
 ```
 cetamura_python_script/
-├── src/                    # Main application source code
-│   └── main.py            # Primary application entry point
-├── cetamura/              # Core application modules
-│   ├── config/            # Configuration and constants
-│   ├── core/              # Core processing logic
-│   ├── gui/               # User interface components
-│   └── utils/             # Utility functions and helpers
-├── scripts/               # Organized script collection
-│   ├── build/             # Build and packaging scripts
-│   ├── setup/             # Environment setup scripts
-│   └── utilities/         # Development and maintenance utilities
-├── tests/                 # Unit tests and test data
-├── test_data/             # Sample data for testing
-├── docs/                  # Documentation files
-├── logs/                  # Application log files
-├── dist_package/          # Distribution packages
-├── legacy_backup/         # Backup of legacy versions
-└── assets/                # Static assets (icons, images, etc.)
+├── src/
+│   ├── main.py              # Complete application (1500+ lines)
+│   └── __init__.py
+├── tests/
+│   ├── test_main.py         # Core functionality tests
+│   ├── test_utils.py        # Utility function tests
+│   ├── test_pairing_improvements.py
+│   └── run_tests.py         # Test runner
+├── dist_package/
+│   ├── build_scripts/       # Cross-platform build scripts
+│   ├── docs/               # Build documentation
+│   ├── install_windows.ps1 # Windows installer
+│   └── install_macos.sh    # macOS installer
+├── docs/
+│   ├── cicd.md             # Build automation guide
+│   ├── project_structure.md # This file
+│   ├── readme.md           # User guide
+│   └── bugs.md             # Known issues
+├── scripts/
+│   ├── build/              # Legacy build scripts
+│   ├── setup/              # Environment setup
+│   └── utilities/          # Development utilities
+├── requirements/
+│   └── requirements.txt    # Production dependencies
+├── .github/workflows/      # GitHub Actions CI/CD
+├── requirements-dev.txt    # Development dependencies
+├── pytest.ini            # Test configuration
+└── README.md             # Main project readme
 ```
 
-## Key Files
+## What Each Part Does
 
-### Main Application
-- `src/main.py` - Primary application entry point (proven working system)
+**src/main.py**
+- Complete GUI application
+- Batch processing logic
+- Image orientation correction
+- File validation and conversion
+- CSV reporting
+- Everything runs from this one file
 
-### Scripts Organization
-- `scripts/build/` - Build scripts for creating executables
-- `scripts/setup/` - Environment setup and dependency installation
-- `scripts/utilities/` - Development utilities and diagnostic tools
+**tests/**
+- Unit tests for all main functions
+- Test runner and configuration
+- Validates core functionality
 
-### Configuration
-- `requirements.txt` - Production dependencies
-- `requirements-dev.txt` - Development dependencies
-- `pytest.ini` - Test configuration
-- `.gitignore` - Git ignore patterns
+**dist_package/**
+- Cross-platform build scripts
+- Windows and macOS installers
+- Distribution documentation
 
-## Usage
+**docs/**
+- User and developer documentation
+- Straightforward, no-jargon guides
+- Build and troubleshooting info
 
-### Running the Application
-```bash
-python src/main.py
-```
+## How It Works
+1. User runs `python src/main.py` or the built executable
+2. GUI opens for folder selection
+3. App finds photo sets (JPG + XML + manifest files)
+4. Processes images with orientation correction
+5. Creates ZIP packages for each photo set
+6. Generates CSV report of results
+
+## Dependencies
+- PIL/Pillow - Image processing and orientation correction
+- tkinter - GUI (built into Python)
+- pathlib - File handling
+- csv - Report generation
+- logging - Error tracking and debugging
+
+## Recent Changes
+- Removed redundant `cetamura/` modular structure (Sept 2025)
+- Consolidated all functionality into `src/main.py`
+- Streamlined documentation to 4 essential files
+- Cleaned up generated files and build artifacts
 
 ### Building Executables
 ```bash
