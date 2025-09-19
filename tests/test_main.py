@@ -145,3 +145,31 @@ def test_package_to_zip(tmp_path):
         assert any(name.endswith('.tiff') for name in names)
         assert any(name.endswith('.xml') for name in names)
         assert any(name.endswith('.ini') for name in names)
+
+
+def test_full_workflow(tmp_path):
+    """Integration test for complete workflow without update_manifest"""
+    # Setup files
+    tiff_file = tmp_path / "original.tiff"
+    xml_file = tmp_path / "original.xml"
+    manifest_path = tmp_path / "MANIFEST.ini"
+    tiff_file.touch()
+    xml_file.touch()
+    
+    # Create manifest
+    import configparser
+    config = configparser.ConfigParser()
+    config.write(manifest_path.open('w'))
+    
+    # Execute workflow
+    base_name = "FSU_Cetamura_photos_20060523_46N3W_001"
+    
+    new_tiff, new_xml = rename_files(tmp_path, tiff_file, xml_file, base_name)
+    output_zip = package_to_zip(new_tiff, new_xml, manifest_path, tmp_path)
+    
+    # Verify complete state
+    assert new_tiff.exists()
+    assert new_xml.exists()
+    assert manifest_path.exists()
+    assert output_zip.exists()
+    assert output_zip.suffix == '.zip'

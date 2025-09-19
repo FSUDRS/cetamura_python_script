@@ -961,17 +961,17 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
     
     # User-friendly logging
     mode = "Dry Run Preview" if dry_run else "Staging" if staging else "Production"
-    log_user_friendly(f"🚀 Starting {mode} processing")
-    log_user_friendly(f"📁 Source folder: {folder_path}")
+    log_user_friendly(f"Starting {mode} processing")
+    log_user_friendly(f"Source folder: {folder_path}")
     
     if dry_run:
         log_user_friendly("🔍 Dry Run Mode - Previewing processing, no files will be changed")
         csv_path.parent.mkdir(parents=True, exist_ok=True)
     elif staging:
-        log_user_friendly(f"📋 Staging Mode - Output to: {output_dir}")
+        log_user_friendly(f"Staging Mode - Output to: {output_dir}")
         output_dir.mkdir(parents=True, exist_ok=True)
     else:
-        log_user_friendly(f"⚡ Production Mode - Output to: {output_dir}")
+        log_user_friendly(f"Production Mode - Output to: {output_dir}")
         output_dir.mkdir(parents=True, exist_ok=True)
     
     # Advanced logging (technical details)
@@ -1104,33 +1104,65 @@ def show_instructions():
         instruction_text = """CETAMURA BATCH INGEST TOOL
 ==========================
 
-This tool automates the process for creating ingest files for the Cetamura Digital Collections.
+This tool automates the creation of ingest-ready ZIP packages for the Cetamura Digital Collections.
 
 REQUIREMENTS
 -----------
-- TIFF image files
+- JPG/JPEG image files  
 - Corresponding XML metadata files
 - MANIFEST.ini file in each folder
-- Files must be organized in year/trench structure
+- Files organized in folder structure (flexible hierarchy supported)
 
 USAGE INSTRUCTIONS
 ----------------
-1. Click "Select Folder" to choose the parent directory containing your year folders
-   Example structure:
+1. Click "Select Folder" to choose the parent directory containing your photo sets
+   
+   Supported structures (flexible detection):
    Parent_Folder/
    ├── 2006/
    │   ├── 46N-3W/
-   │   │   ├── image.tiff
+   │   │   ├── image.jpg
    │   │   ├── metadata.xml
    │   │   └── MANIFEST.ini
    │   └── ...
    └── ...
+   
+   OR single-level folders with photo sets
 
-2. The tool will:
-   - Extract IID from XML files.
-   - Rename image and XML files to match the IID.
-   - Copy the MANIFEST.ini file as-is.
-   - Package the files into a ZIP archive.
+2. Choose processing mode:
+   • DRY RUN MODE: Preview processing without modifying files
+     - Generates CSV report showing what would be processed
+     - Tests folder structure and identifies issues
+     - No files are changed or created
+   
+   • STAGING MODE: Process to staging_output folder
+     - Creates ZIP packages in separate staging folder
+     - Original files remain unchanged
+     - Review results before final processing
+   
+   • PRODUCTION MODE: Direct processing to output folder
+     - Creates final ZIP packages ready for ingest
+     - Processes files directly
+
+3. The tool automatically:
+   - Detects photo sets using enhanced IID-based pairing
+   - Converts JPG images to TIFF format with orientation correction
+   - Extracts IID from XML metadata files
+   - Renames TIFF and XML files to match the IID
+   - Packages files with MANIFEST.ini into ZIP archives
+   - Generates detailed CSV processing reports
+   - Provides user-friendly progress updates
+
+4. Review the generated CSV report for detailed processing results
+   - Shows success/error status for each photo set
+   - Documents orientation corrections applied
+   - Lists any orphaned files or missing components
+
+OUTPUT
+------
+- ZIP files named after the IID from XML metadata
+- CSV processing report with detailed status
+- User-friendly and technical log files for troubleshooting
 """
 
         # Create a new top-level window

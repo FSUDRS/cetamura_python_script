@@ -30,9 +30,25 @@ jobs:
         pip install -r requirements/requirements.txt
         pip install -r requirements/requirements-dev.txt
         
-    - name: Run tests
+    - name: Run tests with pytest
       run: |
-        python -m pytest tests/
+        python -m pytest tests/ -v
+        
+    - name: Test custom test runner (all tests)
+      run: |
+        python tests/run_tests.py
+        
+    - name: Test custom test runner (imports only)
+      run: |
+        python tests/run_tests.py --imports
+        
+    - name: Test custom test runner (quick check only)
+      run: |
+        python tests/run_tests.py --quick
+        
+    - name: Test custom test runner (no pytest flag)
+      run: |
+        python tests/run_tests.py --no-pytest
         
   verify-script:
     needs: test
@@ -55,11 +71,12 @@ jobs:
       run: |
         python -c "import src.main; print('Main script imports successfully')"
         
-    - name: Check script structure without running it
+    - name: Check enhanced script functions
       run: |
         python -c "
         from src.main import sanitize_name, convert_jpg_to_tiff, extract_iid_from_xml
-        print('Successfully validated main module functions')
+        from src.main import find_photo_sets_enhanced, batch_process_with_safety_nets, extract_iid_from_xml_enhanced
+        print('Successfully validated all core and enhanced module functions')
         "
         
     - name: List available functions in the module (diagnostic)
@@ -71,3 +88,7 @@ jobs:
         for func in sorted(functions):
             print(f'- {func}')
         "
+        
+    - name: Test enhanced test runner functionality
+      run: |
+        python tests/run_tests.py --imports --no-pytest
