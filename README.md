@@ -7,13 +7,8 @@ This tool automates the process for creating ingest files for the Cetamura Digit
 > 
 ## Quick Start
 
-### Option 1: Run the Executable
-1. Download `Cetamura_Batch_Tool.exe` from GitHub releases
-2. Double-click to run
-3. Select your photo folder
-4. Click "Start Batch Process"
 
-### Option 2: Run from Source
+### Run from Source(Best way)
 ```bash
 git clone [repo-url]
 cd cetamura_python_script
@@ -153,7 +148,6 @@ scripts/setup/setup_macos.sh
 
 ## Notes
 - The main working application is in `src/main.py`
-- The `cetamura/` directory contains modular components for future development
 - All build and utility scripts are now organized under `scripts/`
 - Logs are automatically stored in the `logs/` directory
 
