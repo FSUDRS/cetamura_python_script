@@ -156,11 +156,7 @@ jobs:
         
     - name: Verify test passed and processed 3 files
       run: |
-        python -c "
-        print('REGRESSION TEST: Verifying multi-file processing fix')
-        print('This test prevents the \"only first file processed\" bug')
-        print('If this test fails, the system is only processing 1 file instead of ALL files')
-        "
+        python -c "print('REGRESSION TEST: Verifying multi-file processing fix'); print('This test prevents the only-first-file-processed bug'); print('If this test fails, the system is only processing 1 file instead of ALL files')"
         
     - name: Run PhotoSet structure validation
       run: |
@@ -174,13 +170,4 @@ jobs:
         
     - name: Summary
       run: |
-        python -c "
-        print('='*60)
-        print('REGRESSION TESTS PASSED')
-        print('='*60)
-        print('✓ Multi-file processing works correctly')
-        print('✓ PhotoSet and FilePair structures validated')
-        print('✓ Batch processing handles multiple files')
-        print('✓ No files are skipped in photo sets')
-        print('='*60)
-        "
+        python -c "print('='*60); print('REGRESSION TESTS PASSED'); print('='*60); print('✓ Multi-file processing works correctly'); print('✓ PhotoSet and FilePair structures validated'); print('✓ Batch processing handles multiple files'); print('✓ No files are skipped in photo sets'); print('='*60)"
