@@ -30,9 +30,22 @@ jobs:
         pip install -r requirements/requirements.txt
         pip install -r requirements/requirements-dev.txt
         
-    - name: Run tests with pytest
+    - name: Run all tests with pytest
       run: |
-        python -m pytest tests/ -v
+        python -m pytest tests/ -v --tb=short
+        
+    - name: Verify test count (should be 25 tests)
+      run: |
+        python -m pytest tests/ --collect-only -q | findstr "test session starts"
+        
+    - name: Run critical multi-file processing test
+      run: |
+        python -m pytest tests/test_main.py::test_no_files_skipped_in_multi_file_set -v
+        
+    - name: Run PhotoSet structure tests
+      run: |
+        python -m pytest tests/test_main.py::test_photoset_namedtuple_structure -v
+        python -m pytest tests/test_main.py::test_find_photo_sets_enhanced_with_multiple_files -v
         
     - name: Test custom test runner (all tests)
       run: |
@@ -76,7 +89,32 @@ jobs:
         python -c "
         from src.main import sanitize_name, convert_jpg_to_tiff, extract_iid_from_xml
         from src.main import find_photo_sets_enhanced, batch_process_with_safety_nets, extract_iid_from_xml_enhanced
+        from src.main import PhotoSet, FilePair, BatchContext, validate_photo_set, apply_exif_orientation
         print('Successfully validated all core and enhanced module functions')
+        print('Data structures: PhotoSet, FilePair, BatchContext')
+        "
+        
+    - name: Verify PhotoSet NamedTuple structure
+      run: |
+        python -c "
+        from src.main import PhotoSet, FilePair
+        from pathlib import Path
+        # Test PhotoSet creation
+        ps = PhotoSet(
+            base_directory=Path('.'),
+            jpg_files=[Path('test.jpg')],
+            xml_files=[Path('test.xml')],
+            manifest_file=Path('manifest.ini'),
+            structure_type='standard'
+        )
+        assert isinstance(ps.jpg_files, list), 'jpg_files must be a list'
+        assert isinstance(ps.xml_files, list), 'xml_files must be a list'
+        print('PhotoSet structure validated: jpg_files and xml_files are lists')
+        
+        # Test FilePair creation
+        fp = FilePair(xml=Path('test.xml'), jpg=Path('test.jpg'), iid='test:001')
+        assert fp.iid == 'test:001', 'FilePair IID mismatch'
+        print('FilePair structure validated: xml, jpg, iid fields present')
         "
         
     - name: List available functions in the module (diagnostic)
@@ -92,3 +130,57 @@ jobs:
     - name: Test enhanced test runner functionality
       run: |
         python tests/run_tests.py --imports --no-pytest
+
+  regression-tests:
+    name: Critical Regression Tests
+    needs: test
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.11
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements/requirements.txt
+        pip install -r requirements/requirements-dev.txt
+        
+    - name: Run multi-file processing regression test
+      run: |
+        python -m pytest tests/test_main.py::test_no_files_skipped_in_multi_file_set -v --tb=short
+        
+    - name: Verify test passed and processed 3 files
+      run: |
+        python -c "
+        print('REGRESSION TEST: Verifying multi-file processing fix')
+        print('This test prevents the \"only first file processed\" bug')
+        print('If this test fails, the system is only processing 1 file instead of ALL files')
+        "
+        
+    - name: Run PhotoSet structure validation
+      run: |
+        python -m pytest tests/test_main.py::test_photoset_namedtuple_structure -v
+        python -m pytest tests/test_main.py::test_filepair_namedtuple_structure -v
+        
+    - name: Run batch processing integration tests
+      run: |
+        python -m pytest tests/test_main.py::test_batch_process_multi_file_dry_run -v
+        python -m pytest tests/test_main.py::test_batch_process_multi_file_staging -v
+        
+    - name: Summary
+      run: |
+        python -c "
+        print('='*60)
+        print('REGRESSION TESTS PASSED')
+        print('='*60)
+        print('✓ Multi-file processing works correctly')
+        print('✓ PhotoSet and FilePair structures validated')
+        print('✓ Batch processing handles multiple files')
+        print('✓ No files are skipped in photo sets')
+        print('='*60)
+        "

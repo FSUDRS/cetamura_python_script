@@ -1020,33 +1020,53 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
                 
                 for photo_set in photo_sets:
                     print(f"DEBUG: Processing photo_set, type={type(photo_set)}", file=sys.stderr, flush=True)
-                    try:
-                        # Extract IID from first XML file
-                        iid = extract_iid_from_xml(photo_set.xml_files[0]) if photo_set.xml_files else "UNKNOWN"
-                        
-                        # Create FilePair for compatibility with process_file_set_with_context
-                        files = FilePair(
-                            xml=photo_set.xml_files[0] if photo_set.xml_files else None,
-                            jpg=photo_set.jpg_files[0] if photo_set.jpg_files else None,
-                            iid=iid
-                        )
-                        
-                        # Process each photo set
-                        success = process_file_set_with_context(files, iid, photo_set.base_directory, context)
-                        if success:
-                            success_count += 1
-                        else:
-                            error_count += 1
-                    except Exception as e:
-                        iid = "UNKNOWN"
+                    print(f"DEBUG: Photo set has {len(photo_set.jpg_files)} JPG files and {len(photo_set.xml_files)} XML files", file=sys.stderr, flush=True)
+                    
+                    # Process ALL files in the photo set, not just the first one
+                    # Match JPG and XML files by IID
+                    for xml_file in photo_set.xml_files:
                         try:
-                            iid = extract_iid_from_xml(photo_set.xml_files[0]) if photo_set.xml_files else "UNKNOWN"
-                        except:
-                            pass
-                        logger.error(f"Error processing photo set {iid}: {str(e)}", exc_info=True)
-                        if context.csv_writer is not None:
-                            context.csv_writer.writerow([iid, '', '', 'ERROR', 'PROCESSING', str(e)])
-                        error_count += 1
+                            # Extract IID from XML file
+                            iid = extract_iid_from_xml(xml_file)
+                            
+                            # Find matching JPG file by IID
+                            matching_jpg = None
+                            for jpg_file in photo_set.jpg_files:
+                                # Match by filename (assuming JPG and XML have same base name)
+                                if jpg_file.stem == xml_file.stem:
+                                    matching_jpg = jpg_file
+                                    break
+                            
+                            if matching_jpg is None:
+                                logger.warning(f"No matching JPG found for XML {xml_file.name} (IID: {iid})")
+                                if context.csv_writer is not None:
+                                    context.csv_writer.writerow([iid, str(xml_file), 'N/A', 'WARNING', 'MISSING_JPG', 'No matching JPG file found'])
+                                continue
+                            
+                            # Create FilePair for this specific JPG/XML pair
+                            files = FilePair(
+                                xml=xml_file,
+                                jpg=matching_jpg,
+                                iid=iid
+                            )
+                            
+                            # Process this file pair
+                            success = process_file_set_with_context(files, iid, photo_set.base_directory, context)
+                            if success:
+                                success_count += 1
+                            else:
+                                error_count += 1
+                                
+                        except Exception as e:
+                            iid = "UNKNOWN"
+                            try:
+                                iid = extract_iid_from_xml(xml_file) if xml_file else "UNKNOWN"
+                            except:
+                                pass
+                            logger.error(f"Error processing file {xml_file.name} (IID: {iid}): {str(e)}", exc_info=True)
+                            if context.csv_writer is not None:
+                                context.csv_writer.writerow([iid, str(xml_file), '', 'ERROR', 'PROCESSING', str(e)])
+                            error_count += 1
                         
             except Exception as e:
                 import traceback
