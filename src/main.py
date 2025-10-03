@@ -40,7 +40,7 @@ status_label = None
 label = None
 
 class FilePair(NamedTuple):
-    xml: Path
+    xml: Optional[Path]
     jpg: Optional[Path]
     iid: str
 
@@ -897,7 +897,8 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
         if context.dry_run:
             # Simulate processing steps
             context.logger.info(f"DRY RUN: Would convert {jpg_file.name} to TIFF with orientation correction")
-            context.logger.info(f"DRY RUN: Would extract IID {iid} from {xml_file.name}")
+            xml_name = xml_file.name if xml_file else 'N/A'
+            context.logger.info(f"DRY RUN: Would extract IID {iid} from {xml_name}")
             context.logger.info(f"DRY RUN: Would create ZIP package for {iid}")
             
             dry_run_notes = 'Would process successfully'
@@ -913,6 +914,11 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
         if tiff_path is None:
             if context.csv_writer is not None:
                 context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'ERROR', 'CONVERT_FAILED', 'JPG to TIFF conversion failed'])
+            return False
+
+        if xml_file is None:
+            if context.csv_writer is not None:
+                context.csv_writer.writerow([iid, 'N/A', str(jpg_file), 'ERROR', 'MISSING_XML', 'XML file is None'])
             return False
 
         new_tiff, new_xml = rename_files(subfolder, tiff_path, xml_file, iid)
@@ -1000,26 +1006,56 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
             
             # Use enhanced photo set detection to handle complex directory structures
             try:
-                photo_sets = find_photo_sets(folder_path)
+                import sys
+                print("DEBUG: About to call find_photo_sets_enhanced", file=sys.stderr, flush=True)
+                photo_sets = find_photo_sets_enhanced(folder_path)
+                print(f"DEBUG: find_photo_sets_enhanced returned {len(photo_sets)} sets", file=sys.stderr, flush=True)
                 log_user_friendly(f"🔍 Found {len(photo_sets)} photo sets to process")
                 logger.info(f"Enhanced detection found {len(photo_sets)} photo sets")
                 
+                print(f"\nDEBUG: About to loop through {len(photo_sets)} photo sets", file=sys.stderr, flush=True)
+                print(f"DEBUG: First photo set type: {type(photo_sets[0]) if photo_sets else 'N/A'}", file=sys.stderr, flush=True)
+                if photo_sets:
+                    print(f"DEBUG: First photo set: {photo_sets[0]}", file=sys.stderr, flush=True)
+                
                 for photo_set in photo_sets:
+                    print(f"DEBUG: Processing photo_set, type={type(photo_set)}", file=sys.stderr, flush=True)
                     try:
+                        # Extract IID from first XML file
+                        iid = extract_iid_from_xml(photo_set.xml_files[0]) if photo_set.xml_files else "UNKNOWN"
+                        
+                        # Create FilePair for compatibility with process_file_set_with_context
+                        files = FilePair(
+                            xml=photo_set.xml_files[0] if photo_set.xml_files else None,
+                            jpg=photo_set.jpg_files[0] if photo_set.jpg_files else None,
+                            iid=iid
+                        )
+                        
                         # Process each photo set
-                        success = process_file_set_with_context(photo_set.files, photo_set.iid, photo_set.directory, context)
+                        success = process_file_set_with_context(files, iid, photo_set.base_directory, context)
                         if success:
                             success_count += 1
                         else:
                             error_count += 1
                     except Exception as e:
-                        logger.error(f"Error processing photo set {photo_set.iid}: {str(e)}")
+                        iid = "UNKNOWN"
+                        try:
+                            iid = extract_iid_from_xml(photo_set.xml_files[0]) if photo_set.xml_files else "UNKNOWN"
+                        except:
+                            pass
+                        logger.error(f"Error processing photo set {iid}: {str(e)}", exc_info=True)
                         if context.csv_writer is not None:
-                            context.csv_writer.writerow([photo_set.iid, '', '', 'ERROR', 'PROCESSING', str(e)])
+                            context.csv_writer.writerow([iid, '', '', 'ERROR', 'PROCESSING', str(e)])
                         error_count += 1
                         
             except Exception as e:
+                import traceback
+                traceback_str = traceback.format_exc()
                 log_user_friendly(f"❌ Error finding photo sets: {e}")
+                logger.error(f"Error in batch processing: {str(e)}\n{traceback_str}")
+                print(f"\n{'='*60}\nFULL TRACEBACK:\n{'='*60}")
+                print(traceback_str)
+                print(f"{'='*60}\n")
                 # Fallback to basic error handling
                 if context.csv_writer is not None:
                     context.csv_writer.writerow(['', folder_path, '', 'ERROR', 'DETECTION', str(e)])
@@ -1104,7 +1140,7 @@ def show_instructions():
         instruction_text = """CETAMURA BATCH INGEST TOOL
 ==========================
 
-This tool automates the creation of ingest-ready ZIP packages for the Cetamura Digital Collections.
+This tool automates the creation of ingest-ready AIS-compatible ZIP packages for the Cetamura Digital Collections.
 
 REQUIREMENTS
 -----------
