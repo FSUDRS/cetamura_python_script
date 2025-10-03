@@ -170,4 +170,4 @@ jobs:
         
     - name: Summary
       run: |
-        python -c "print('='*60); print('REGRESSION TESTS PASSED'); print('='*60); print('✓ Multi-file processing works correctly'); print('✓ PhotoSet and FilePair structures validated'); print('✓ Batch processing handles multiple files'); print('✓ No files are skipped in photo sets'); print('='*60)"
+        python -c "print('='*60); print('REGRESSION TESTS PASSED'); print('='*60); print('[PASS] Multi-file processing works correctly'); print('[PASS] PhotoSet and FilePair structures validated'); print('[PASS] Batch processing handles multiple files'); print('[PASS] No files are skipped in photo sets'); print('='*60)"
