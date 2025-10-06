@@ -105,34 +105,34 @@ Valid ZIP files: 25
 ## Current Structure
 ```
 cetamura_python_script/
-├── src/
-│   ├── main.py              # Complete application (1500+ lines)
-│   └── __init__.py
-├── tests/
-│   ├── test_main.py         # Core functionality tests
-│   ├── test_utils.py        # Utility function tests
-│   ├── test_pairing_improvements.py
-│   └── run_tests.py         # Test runner
-├── dist_package/
-│   ├── build_scripts/       # Cross-platform build scripts
-│   ├── docs/               # Build documentation
-│   ├── install_windows.ps1 # Windows installer
-│   └── install_macos.sh    # macOS installer
-├── docs/
-│   ├── cicd.md             # Build automation guide
-│   ├── project_structure.md # This file
-│   ├── readme.md           # User guide
-│   └── bugs.md             # Known issues
-├── scripts/
-│   ├── build/              # Legacy build scripts
-│   ├── setup/              # Environment setup
-│   └── utilities/          # Development utilities
-├── requirements/
-│   └── requirements.txt    # Production dependencies
-├── .github/workflows/      # GitHub Actions CI/CD
-├── requirements-dev.txt    # Development dependencies
-├── pytest.ini            # Test configuration
-└── README.md             # Main project readme
+ src/
+    main.py              # Complete application (1500+ lines)
+    __init__.py
+ tests/
+    test_main.py         # Core functionality tests
+    test_utils.py        # Utility function tests
+    test_pairing_improvements.py
+    run_tests.py         # Test runner
+ dist_package/
+    build_scripts/       # Cross-platform build scripts
+    docs/               # Build documentation
+    install_windows.ps1 # Windows installer
+    install_macos.sh    # macOS installer
+ docs/
+    cicd.md             # Build automation guide
+    project_structure.md # This file
+    readme.md           # User guide
+    bugs.md             # Known issues
+ scripts/
+    build/              # Legacy build scripts
+    setup/              # Environment setup
+    utilities/          # Development utilities
+ requirements/
+    requirements.txt    # Production dependencies
+ .github/workflows/      # GitHub Actions CI/CD
+ requirements-dev.txt    # Development dependencies
+ pytest.ini            # Test configuration
+ README.md             # Main project readme
 ```
 
 ## What Each Part Does

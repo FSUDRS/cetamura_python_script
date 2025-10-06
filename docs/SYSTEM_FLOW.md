@@ -17,6 +17,17 @@ This is the **definitive requirements and architecture specification** for the C
 
 **IMPORTANT:** If code behavior differs from this document, the code is wrong (not this document).
 
+## Documentation Style Guidelines
+
+**NO EMOJIS RULE:** All documentation in this project must be written without emojis. This ensures:
+- Professional appearance
+- Better accessibility (screen readers)
+- Consistent rendering across all platforms
+- Clear, distraction-free technical documentation
+- Long-term readability and maintainability
+
+Use clear headings, bullet points, and formatting instead of decorative symbols.
+
 ---
 
 ## System Overview
@@ -751,18 +762,18 @@ Collects ALL files by type:
 **Example Discovery:**
 ```
 X:\Cetamura\1990\1990\
-├── 15.5N-18W/
-│   ├── FSU_Cetamura_photos_19900711_15.5N18W_001.jpg  ← Found
-│   ├── FSU_Cetamura_photos_19900711_15.5N18W_001.xml  ← Found
-│   ├── FSU_Cetamura_photos_19900724_15.5N18W_001.jpg  ← Found
-│   ├── FSU_Cetamura_photos_19900724_15.5N18W_001.xml  ← Found
-│   ├── ... (4 more JPG/XML pairs)
-│   └── manifest.ini  ← Found
-├── 18N-18W/
-│   ├── 5 JPG files  ← All found
-│   ├── 5 XML files  ← All found
-│   └── manifest.ini  ← Found
-└── ... (4 more photo sets)
+ 15.5N-18W/
+    FSU_Cetamura_photos_19900711_15.5N18W_001.jpg  ← Found
+    FSU_Cetamura_photos_19900711_15.5N18W_001.xml  ← Found
+    FSU_Cetamura_photos_19900724_15.5N18W_001.jpg  ← Found
+    FSU_Cetamura_photos_19900724_15.5N18W_001.xml  ← Found
+    ... (4 more JPG/XML pairs)
+    manifest.ini  ← Found
+ 18N-18W/
+    5 JPG files  ← All found
+    5 XML files  ← All found
+    manifest.ini  ← Found
+ ... (4 more photo sets)
 
 Total: 19 JPG, 19 XML, 6 manifests
 ```
@@ -811,9 +822,9 @@ PhotoSet(
 validate_photo_set(photo_set)
     ↓
 Checks:
-    - Has at least 1 JPG file? ✓
-    - Has at least 1 XML file? ✓
-    - Can extract IID from XML files? ✓
+    - Has at least 1 JPG file? 
+    - Has at least 1 XML file? 
+    - Can extract IID from XML files? 
     ↓
 Returns: True (photo set is valid)
 ```
@@ -907,13 +918,13 @@ Photo Set: 15.5N-18W (6 JPG + 6 XML files)
 Iteration 1:
     xml_file: FSU_Cetamura_photos_19900711_15.5N18W_001.xml
     iid: FSU_Cetamura_photos_19900711_15.5N18W_001
-    matching_jpg: FSU_Cetamura_photos_19900711_15.5N18W_001.jpg ✓
+    matching_jpg: FSU_Cetamura_photos_19900711_15.5N18W_001.jpg 
     → Process pair 1
 
 Iteration 2:
     xml_file: FSU_Cetamura_photos_19900724_15.5N18W_001.xml
     iid: FSU_Cetamura_photos_19900724_15.5N18W_001
-    matching_jpg: FSU_Cetamura_photos_19900724_15.5N18W_001.jpg ✓
+    matching_jpg: FSU_Cetamura_photos_19900724_15.5N18W_001.jpg 
     → Process pair 2
 
 ... (4 more iterations)
@@ -921,7 +932,7 @@ Iteration 2:
 Iteration 6:
     xml_file: FSU_Cetamura_photos_19900727_15.5N18W_001.xml
     iid: FSU_Cetamura_photos_19900727_15.5N18W_001
-    matching_jpg: FSU_Cetamura_photos_19900727_15.5N18W_001.jpg ✓
+    matching_jpg: FSU_Cetamura_photos_19900727_15.5N18W_001.jpg 
     → Process pair 6
 
 Total for this photo set: 6 files processed
@@ -1003,14 +1014,14 @@ SUMMARY,,,Success: 19,Errors: 0,Dry run: True
 ### Final Output:
 ```
 Before Fix:
-✗ 6 photo sets found
-✗ 6 files processed (only first file from each set)
-✗ 13 files ignored
+ 6 photo sets found
+ 6 files processed (only first file from each set)
+ 13 files ignored
 
 After Fix:
-✓ 6 photo sets found
-✓ 19 files processed (all files from all sets)
-✓ 0 files ignored
+ 6 photo sets found
+ 19 files processed (all files from all sets)
+ 0 files ignored
 ```
 
 ---
@@ -1020,22 +1031,22 @@ After Fix:
 ### Dry Run:
 ```
 X:\Cetamura\1990\1990\
-└── batch_report_20251003_120000.csv  (report only, no files changed)
+ batch_report_20251003_120000.csv  (report only, no files changed)
 ```
 
 ### Production Run:
 ```
 X:\Cetamura\1990\1990\
-├── output/
-│   ├── FSU_Cetamura_photos_19900711_15.5N18W_001.zip
-│   ├── FSU_Cetamura_photos_19900724_15.5N18W_001.zip
-│   ├── FSU_Cetamura_photos_19900725_15.5N18W_001.zip
-│   ├── ... (16 more ZIP files)
-│   └── batch_report_20251003_120000.csv
-└── 15.5N-18W/
-    ├── FSU_Cetamura_photos_19900711_155N18W_001.tiff  (converted)
-    ├── FSU_Cetamura_photos_19900711_155N18W_001.xml   (renamed)
-    └── ... (original JPGs deleted after conversion)
+ output/
+    FSU_Cetamura_photos_19900711_15.5N18W_001.zip
+    FSU_Cetamura_photos_19900724_15.5N18W_001.zip
+    FSU_Cetamura_photos_19900725_15.5N18W_001.zip
+    ... (16 more ZIP files)
+    batch_report_20251003_120000.csv
+ 15.5N-18W/
+     FSU_Cetamura_photos_19900711_155N18W_001.tiff  (converted)
+     FSU_Cetamura_photos_19900711_155N18W_001.xml   (renamed)
+     ... (original JPGs deleted after conversion)
 ```
 
 ---
@@ -1066,18 +1077,18 @@ X:\Cetamura\1990\1990\
 **Directory Structure Example:**
 ```
 X:\Cetamura\1990\1990\
-├── 15.5N-18W/
-│   ├── FSU_Cetamura_photos_19900711_15.5N18W_001.jpg
-│   ├── FSU_Cetamura_photos_19900711_15.5N18W_001.xml
-│   ├── FSU_Cetamura_photos_19900724_15.5N18W_001.jpg
-│   ├── FSU_Cetamura_photos_19900724_15.5N18W_001.xml
-│   ├── FSU_Cetamura_photos_19900725_15.5N18W_001.jpg
-│   ├── FSU_Cetamura_photos_19900725_15.5N18W_001.xml
-│   └── manifest.ini
-├── 18N-18W/
-│   ├── (5 JPG/XML pairs)
-│   └── manifest.ini
-└── ... (more photo sets)
+ 15.5N-18W/
+    FSU_Cetamura_photos_19900711_15.5N18W_001.jpg
+    FSU_Cetamura_photos_19900711_15.5N18W_001.xml
+    FSU_Cetamura_photos_19900724_15.5N18W_001.jpg
+    FSU_Cetamura_photos_19900724_15.5N18W_001.xml
+    FSU_Cetamura_photos_19900725_15.5N18W_001.jpg
+    FSU_Cetamura_photos_19900725_15.5N18W_001.xml
+    manifest.ini
+ 18N-18W/
+    (5 JPG/XML pairs)
+    manifest.ini
+ ... (more photo sets)
 ```
 
 **File Naming Requirements:**
@@ -1090,32 +1101,32 @@ X:\Cetamura\1990\1990\
 **Dry Run:**
 ```
 X:\Cetamura\1990\1990\
-└── batch_report_20251003_120000.csv  (report only)
+ batch_report_20251003_120000.csv  (report only)
 ```
 
 **Production:**
 ```
 X:\Cetamura\1990\1990\
-├── output/
-│   ├── FSU_Cetamura_photos_19900711_155N18W_001.zip
-│   ├── FSU_Cetamura_photos_19900724_155N18W_001.zip
-│   ├── ... (one ZIP per processed file)
-│   └── batch_report_20251003_120000.csv
-└── 15.5N-18W/
-    ├── FSU_Cetamura_photos_19900711_155N18W_001.tiff  (converted)
-    ├── FSU_Cetamura_photos_19900711_155N18W_001.xml   (renamed)
-    ├── ... (JPGs deleted after conversion)
-    └── manifest.ini  (unchanged)
+ output/
+    FSU_Cetamura_photos_19900711_155N18W_001.zip
+    FSU_Cetamura_photos_19900724_155N18W_001.zip
+    ... (one ZIP per processed file)
+    batch_report_20251003_120000.csv
+ 15.5N-18W/
+     FSU_Cetamura_photos_19900711_155N18W_001.tiff  (converted)
+     FSU_Cetamura_photos_19900711_155N18W_001.xml   (renamed)
+     ... (JPGs deleted after conversion)
+     manifest.ini  (unchanged)
 ```
 
 **Staging:**
 ```
 X:\Cetamura\1990\1990\
-├── staging_output/
-│   ├── (ZIPs here instead of output/)
-│   └── batch_report_20251003_120000.csv
-└── 15.5N-18W/
-    └── (original files unchanged)
+ staging_output/
+    (ZIPs here instead of output/)
+    batch_report_20251003_120000.csv
+ 15.5N-18W/
+     (original files unchanged)
 ```
 
 ---
