@@ -9,7 +9,7 @@
 This document describes the comprehensive test coverage for the Cetamura Batch Ingest Tool, including:
 - Original core functionality tests
 - Multi-file processing regression prevention tests  
-- **NEW:** Post-processing validation tests (27 tests)
+- Post-processing validation tests (27 tests)
 
 ---
 
@@ -121,7 +121,7 @@ These tests verify the critical "process ALL files" fix:
 
 ---
 
-## Validation Tests (27 tests - NEW)
+## Validation Tests  
 
 ### Overview
 The validation module (`src/validation.py`) provides comprehensive post-processing verification to ensure outputs match expectations. These tests validate that the validation system correctly identifies discrepancies, corrupted ZIPs, and missing files.

@@ -45,9 +45,9 @@ The tool now includes comprehensive validation to ensure outputs match expectati
 
 ### Pre-Flight Checks
 Before processing starts, the tool verifies:
-- ✅ Sufficient disk space available
-- ✅ Write permissions to output directory
-- ⚠️ Orphaned files from previous runs (warning)
+-  Sufficient disk space available
+-  Write permissions to output directory
+-  Orphaned files from previous runs (warning)
 
 **Example Output:**
 ```
@@ -57,9 +57,9 @@ Before processing starts, the tool verifies:
 
 ### Post-Processing Validation
 After processing completes, the tool validates:
-- ✅ Expected number of ZIPs match actual ZIPs created
-- ✅ Each ZIP contains correct structure (TIFF, XML, manifest.ini)
-- ✅ No ZIPs created during dry run mode
+-  Expected number of ZIPs match actual ZIPs created
+-  Each ZIP contains correct structure (TIFF, XML, manifest.ini)
+-  No ZIPs created during dry run mode
 
 **Example Output:**
 ```
@@ -84,11 +84,11 @@ Valid ZIP files: 25
 ```
 
 ### What Validation Detects
-- ❌ Missing ZIPs (success logged but no ZIP created)
-- ❌ Corrupted ZIPs (wrong number of files or missing components)
-- ❌ Disk full scenarios (caught before processing starts)
-- ⚠️ Orphaned files (*_PROC.tif, *_PROC.xml without ZIPs)
-- ❌ Dry run violations (ZIPs created when they shouldn't be)
+-  Missing ZIPs (success logged but no ZIP created)
+-  Corrupted ZIPs (wrong number of files or missing components)
+-  Disk full scenarios (caught before processing starts)
+-  Orphaned files (*_PROC.tif, *_PROC.xml without ZIPs)
+-  Dry run violations (ZIPs created when they shouldn't be)
 
 **Note:** Validation reports issues but doesn't block completed processing. Pre-flight checks will block processing if critical issues are found (disk space, permissions).
 
