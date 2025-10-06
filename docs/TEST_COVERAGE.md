@@ -1,12 +1,15 @@
 # Test Coverage Report
 
-**Date:** October 3, 2025  
-**Total Tests:** 25  
-**Status:** All Passing ✓
+**Date:** October 6, 2025  
+**Total Tests:** 52  
+**Status:** All Passing 
 
 ## Test Suite Overview
 
-This document describes the comprehensive test coverage for the Cetamura Batch Ingest Tool, with special focus on preventing regression of the multi-file processing bug.
+This document describes the comprehensive test coverage for the Cetamura Batch Ingest Tool, including:
+- Original core functionality tests
+- Multi-file processing regression prevention tests  
+- Post-processing validation tests (27 tests)
 
 ---
 
@@ -118,6 +121,163 @@ These tests verify the critical "process ALL files" fix:
 
 ---
 
+## Validation Tests  
+
+### Overview
+The validation module (`src/validation.py`) provides comprehensive post-processing verification to ensure outputs match expectations. These tests validate that the validation system correctly identifies discrepancies, corrupted ZIPs, and missing files.
+
+### ZIP Content Verification Tests (9 tests)
+
+**test_valid_zip_passes**
+- Creates ZIP with TIFF, XML, manifest.ini
+- Verifies `verify_zip_contents()` returns `(True, [])`
+- **Purpose:** Validate correct ZIP structure passes
+
+**test_valid_zip_with_tif_extension**
+- Creates ZIP with .tif (not .tiff) extension
+- Confirms both extensions are accepted
+- **Purpose:** Ensure file extension flexibility
+
+**test_missing_tiff_fails**
+- Creates ZIP without TIFF file
+- Verifies error: "Missing TIFF file"
+- **Purpose:** Detect incomplete ZIPs
+
+**test_missing_xml_fails**
+- Creates ZIP without XML file
+- Verifies error: "Missing XML file"
+- **Purpose:** Detect incomplete ZIPs
+
+**test_missing_manifest_fails**
+- Creates ZIP without manifest.ini
+- Verifies error: "Missing manifest.ini"
+- **Purpose:** Detect incomplete ZIPs
+
+**test_wrong_file_count_fails**
+- Creates ZIP with 4 files (should be 3)
+- Verifies error: "Expected 3 files"
+- **Purpose:** Catch extra files in ZIP
+
+**test_too_few_files_fails**
+- Creates ZIP with only 1 file
+- Verifies multiple errors for missing files
+- **Purpose:** Comprehensive validation
+
+**test_corrupted_zip_fails**
+- Creates corrupted ZIP file (invalid format)
+- Verifies error: "Corrupted ZIP file"
+- **Purpose:** Graceful handling of bad ZIPs
+
+**test_empty_zip_fails**
+- Creates empty ZIP (0 files)
+- Verifies count and content errors
+- **Purpose:** Edge case handling
+
+### Batch Output Validation Tests (7 tests)
+
+**test_matching_counts_passes**
+- Creates 3 valid ZIPs, expects 3
+- Verifies `validate_batch_output()` returns `passed=True`
+- **Purpose:** Validate normal operation
+
+**test_missing_zips_fails**
+- Creates 2 ZIPs but expects 3
+- Verifies `passed=False` and `missing_count=1`
+- **Purpose:** Detect silent failures
+
+**test_extra_zips_fails**
+- Creates 4 ZIPs but expects 2
+- Verifies mismatch error logged
+- **Purpose:** Detect unexpected extra files
+
+**test_invalid_zip_contents_fails**
+- Creates 2 valid ZIPs + 1 invalid ZIP
+- Verifies `invalid_zips` list contains error
+- **Purpose:** Catch corrupted output
+
+**test_dry_run_no_zips_passes**
+- Dry run with no ZIPs created
+- Verifies validation passes
+- **Purpose:** Dry run compliance
+
+**test_dry_run_with_zips_fails**
+- Dry run WITH ZIPs created (violation)
+- Verifies error: "Dry run created ZIPs"
+- **Purpose:** Enforce dry run guarantee
+
+**test_zero_success_count_passes**
+- No processing attempted, no ZIPs expected
+- Verifies validation passes with zero counts
+- **Purpose:** Handle edge case gracefully
+
+### Reconciliation Reporting Tests (5 tests)
+
+**test_perfect_reconciliation**
+- Input: 2 XML files
+- CSV: 2 SUCCESS rows
+- Output: 2 valid ZIPs
+- Verifies `discrepancies=[]`
+- **Purpose:** Validate normal reconciliation
+
+**test_discrepancy_detection_missing_zips**
+- Input: 1 XML file
+- CSV: 1 SUCCESS row
+- Output: 0 ZIPs
+- Verifies discrepancy detected
+- **Purpose:** Catch missing outputs
+
+**test_discrepancy_detection_invalid_zips**
+- Input: 2 XML files
+- CSV: 2 SUCCESS rows
+- Output: 2 ZIPs (1 valid, 1 invalid)
+- Verifies discrepancy: actual != valid
+- **Purpose:** Identify quality issues
+
+**test_orphaned_files_detection**
+- Creates *_PROC.tif and *_PROC.xml files
+- No corresponding ZIPs exist
+- Verifies `orphaned_files` list populated
+- **Purpose:** Detect incomplete processing
+
+**test_missing_csv_file**
+- Photo sets exist but CSV doesn't
+- Verifies `csv_success_rows=0`
+- **Purpose:** Graceful error handling
+
+### Pre-Flight Checks Tests (6 tests)
+
+**test_sufficient_disk_space_passes**
+- Normal disk space available
+- Verifies `passed=True`
+- **Purpose:** Baseline functionality
+
+**test_orphaned_files_warning**
+- Creates orphaned *_PROC files
+- Verifies warning logged
+- **Purpose:** Alert user to cleanup needed
+
+**test_multiple_orphaned_files**
+- Creates 3 TIFF + 2 XML orphaned files
+- Verifies counts: `orphaned_tiff_count=3`, `orphaned_xml_count=2`
+- **Purpose:** Accurate orphan counting
+
+**test_write_permission_check**
+- Verifies write permission to output dir
+- Confirms no blockers raised
+- **Purpose:** Prevent permission errors
+
+**test_no_orphaned_files_no_warning**
+- Clean directory (no orphans)
+- Verifies no orphan-related warnings
+- **Purpose:** Avoid false positives
+
+**test_large_batch_disk_space_estimation**
+- Creates photo set with 100 files
+- Verifies `required_space_gb ~= 0.98 GB`
+- **Purpose:** Accurate space estimation
+
+---
+
 ## Critical Regression Prevention
 
 ### The "Only First File Processed" Bug
@@ -153,44 +313,63 @@ for xml_file in photo_set.xml_files:
 
 | Feature | Tests | Coverage |
 |---------|-------|----------|
-| Photo Set Detection | 4 | ✓ Standard, Hierarchical, Multi-file |
-| Data Structures | 3 | ✓ PhotoSet, FilePair, Optional paths |
-| Multi-file Processing | 5 | ✓ Dry-run, Staging, Regression prevention |
-| IID Extraction | 4 | ✓ Namespaced, Non-namespaced, Enhanced, Error handling |
-| File Matching | 1 | ✓ Stem-based matching |
-| Image Processing | 2 | ✓ JPG→TIFF, EXIF orientation |
-| File Operations | 3 | ✓ Rename, ZIP, Sanitize |
-| Backward Compatibility | 1 | ✓ Old function signatures |
-| Integration Tests | 2 | ✓ Single file, Multi-file |
+| Photo Set Detection | 4 |  Standard, Hierarchical, Multi-file |
+| Data Structures | 3 |  PhotoSet, FilePair, Optional paths |
+| Multi-file Processing | 5 |  Dry-run, Staging, Regression prevention |
+| IID Extraction | 4 |  Namespaced, Non-namespaced, Enhanced, Error handling |
+| File Matching | 1 |  Stem-based matching |
+| Image Processing | 2 |  JPG→TIFF, EXIF orientation |
+| File Operations | 3 |  Rename, ZIP, Sanitize |
+| Backward Compatibility | 1 |  Old function signatures |
+| Integration Tests | 2 |  Single file, Multi-file |
+| **ZIP Content Verification** | **9** | ** Valid, Invalid, Corrupted, Empty** |
+| **Batch Output Validation** | **7** | ** Matching/Mismatched counts, Dry run** |
+| **Reconciliation Reporting** | **5** | ** Perfect/Discrepancy, Orphaned files** |
+| **Pre-Flight Checks** | **6** | ** Disk space, Permissions, Orphans** |
 
-**Total Coverage:** Comprehensive - All critical paths tested
+**Total Coverage:** Comprehensive - All critical paths tested  
+**Validation Coverage:** Complete - All validation scenarios tested
 
 ---
 
 ## Running the Tests
 
 ```bash
-# Run all tests
+# Run all tests (52 total)
+python -m pytest tests/ -v
+
+# Run only main tests (25 tests)
 python -m pytest tests/test_main.py -v
 
-# Run specific test
+# Run only validation tests (27 tests)
+python -m pytest tests/test_validation.py -v
+
+# Run specific regression test
 python -m pytest tests/test_main.py::test_no_files_skipped_in_multi_file_set -v
 
+# Run specific validation test
+python -m pytest tests/test_validation.py::TestVerifyZipContents::test_valid_zip_passes -v
+
 # Run with coverage report
-python -m pytest tests/test_main.py --cov=src.main --cov-report=html
+python -m pytest tests/ --cov=src --cov-report=html
 ```
 
 ---
 
 ## Continuous Integration
 
-These tests should be run:
-- Before every commit
-- Before every release
-- After any changes to batch processing logic
-- After any changes to PhotoSet/FilePair structures
+These tests run automatically on every push to GitHub:
+- **Main tests:** 25 tests validating core functionality
+- **Validation tests:** 27 tests validating post-processing verification
+- **Total CI tests:** 52 tests
 
-**Minimum passing threshold:** 100% (all 25 tests must pass)
+**CI Pipeline includes:**
+- Test job: Runs all 52 tests on Python 3.9 and 3.11
+- Verify-script job: Validates module imports and data structures
+- Regression-tests job: Runs critical multi-file processing tests
+- **NEW: Validation-tests job:** Runs all validation module tests
+
+**Minimum passing threshold:** 100% (all 52 tests must pass)
 
 ---
 
@@ -203,6 +382,10 @@ Consider adding tests for:
 - [ ] Concurrent processing (if implemented)
 - [ ] Memory usage profiling
 - [ ] Performance benchmarks
+- [x] **Validation module (COMPLETED - 27 tests)**
+- [x] **ZIP content verification (COMPLETED)**
+- [x] **Pre-flight checks (COMPLETED)**
+- [x] **Reconciliation reporting (COMPLETED)**
 
 ---
 
@@ -219,5 +402,5 @@ When modifying code:
 
 ---
 
-**Last Updated:** October 3, 2025  
-**Next Review:** Before v2025.10.04 release
+**Last Updated:** October 6, 2025  
+**Next Review:** Before next major release

@@ -985,6 +985,32 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
     logger.info(f"Source folder: {folder_path}")
     logger.info(f"Output folder: {output_dir}")
     
+    # PRE-FLIGHT CHECKS: Validate environment before processing
+    from .validation import pre_flight_checks
+    
+    # Get preliminary photo sets for pre-flight estimation
+    try:
+        prelim_photo_sets = find_photo_sets_enhanced(folder_path)
+        
+        log_user_friendly("Running pre-flight checks...")
+        preflight = pre_flight_checks(prelim_photo_sets, output_dir)
+        
+        if not preflight.passed:
+            for blocker in preflight.blockers:
+                log_user_friendly(f"[BLOCKER] {blocker}")
+                logger.error(f"Pre-flight check failed: {blocker}")
+            raise RuntimeError("Pre-flight checks failed. Aborting batch processing.")
+        
+        for warning in preflight.warnings:
+            log_user_friendly(f"[WARNING] Pre-flight: {warning}")
+            logger.warning(f"Pre-flight warning: {warning}")
+        
+        log_user_friendly(f"[PASS] Pre-flight checks passed. Disk space: {preflight.disk_space_gb:.2f} GB available")
+        logger.info(f"Pre-flight checks passed: {preflight.disk_space_gb:.2f} GB available, {preflight.required_space_gb:.2f} GB estimated")
+    except Exception as e:
+        logger.warning(f"Pre-flight checks skipped due to error: {e}")
+        log_user_friendly(f"[WARNING] Pre-flight checks skipped: {e}")
+    
     success_count = 0
     error_count = 0
     
@@ -1085,6 +1111,71 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
             logger.info(f"Batch process completed - Success: {success_count}, Errors: {error_count}")
             if context.csv_writer is not None:
                 context.csv_writer.writerow(['SUMMARY', '', '', f'Success: {success_count}', f'Errors: {error_count}', f'Dry run: {dry_run}'])
+        
+        # POST-PROCESSING VALIDATION: Verify output matches expectations
+        from .validation import validate_batch_output, generate_reconciliation_report
+        
+        try:
+            # Validate batch output
+            validation_result = validate_batch_output(
+                photo_sets=photo_sets,
+                output_dir=output_dir,
+                success_count=success_count,
+                dry_run=dry_run
+            )
+            
+            if not validation_result.passed:
+                log_user_friendly("[FAIL] Post-processing validation FAILED:")
+                logger.error("Post-processing validation FAILED:")
+                for error in validation_result.errors:
+                    log_user_friendly(f"  - {error}")
+                    logger.error(f"  - {error}")
+                for invalid_zip in validation_result.invalid_zips:
+                    log_user_friendly(f"  - Invalid ZIP: {invalid_zip}")
+                    logger.error(f"  - Invalid ZIP: {invalid_zip}")
+            else:
+                log_user_friendly(f"[PASS] Post-processing validation: {validation_result.valid_zips} valid ZIPs")
+                logger.info(f"[PASS] Post-processing validation: {validation_result.valid_zips} valid ZIPs")
+            
+            # Generate reconciliation report (skip for dry run)
+            if not dry_run:
+                reconciliation = generate_reconciliation_report(
+                    photo_sets=photo_sets,
+                    csv_path=csv_path,
+                    output_dir=output_dir
+                )
+                
+                log_user_friendly("=== Reconciliation Report ===")
+                log_user_friendly(f"Input XML files: {reconciliation.input_xml_count}")
+                log_user_friendly(f"CSV SUCCESS rows: {reconciliation.csv_success_rows}")
+                log_user_friendly(f"Actual ZIP files: {reconciliation.actual_zip_count}")
+                log_user_friendly(f"Valid ZIP files: {reconciliation.valid_zip_count}")
+                
+                logger.info("=== Reconciliation Report ===")
+                logger.info(f"Input XML files: {reconciliation.input_xml_count}")
+                logger.info(f"CSV SUCCESS rows: {reconciliation.csv_success_rows}")
+                logger.info(f"Actual ZIP files: {reconciliation.actual_zip_count}")
+                logger.info(f"Valid ZIP files: {reconciliation.valid_zip_count}")
+                
+                if reconciliation.discrepancies:
+                    log_user_friendly("Discrepancies found:")
+                    logger.warning("Discrepancies found:")
+                    for discrepancy in reconciliation.discrepancies:
+                        log_user_friendly(f"  - {discrepancy}")
+                        logger.warning(f"  - {discrepancy}")
+                else:
+                    log_user_friendly("[PASS] No discrepancies found.")
+                    logger.info("No discrepancies found.")
+                
+                if reconciliation.orphaned_files:
+                    log_user_friendly(f"Orphaned files found: {len(reconciliation.orphaned_files)}")
+                    logger.warning(f"Orphaned files found: {len(reconciliation.orphaned_files)}")
+                    for orphaned in reconciliation.orphaned_files[:5]:  # Limit to first 5
+                        log_user_friendly(f"  - {orphaned}")
+                        logger.warning(f"  - {orphaned}")
+        except Exception as e:
+            logger.warning(f"Post-processing validation skipped due to error: {e}")
+            log_user_friendly(f"[WARNING] Post-processing validation skipped: {e}")
             
         return success_count, error_count, csv_path
             

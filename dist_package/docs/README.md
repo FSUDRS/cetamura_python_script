@@ -21,13 +21,13 @@ This tool automates the process for creating ingest files for the Cetamura Digit
    
      ```
      Parent_Folder/
-     ├── 2006/
-     │   ├── 46N-3W/
-     │   │   ├── image.tiff
-     │   │   ├── metadata.xml
-     │   │   └── MANIFEST.ini
-     │   └── ...
-     └── ...
+      2006/
+         46N-3W/
+            image.tiff
+            metadata.xml
+            MANIFEST.ini
+         ...
+      ...
      ```
 
 2. **Processing Steps:**

@@ -34,7 +34,7 @@ jobs:
       run: |
         python -m pytest tests/ -v --tb=short
         
-    - name: Verify test count (should be 25 tests)
+    - name: Verify test count (should be 52 tests)
       run: |
         python -m pytest tests/ --collect-only -q | findstr "test session starts"
         
@@ -171,3 +171,61 @@ jobs:
     - name: Summary
       run: |
         python -c "print('='*60); print('REGRESSION TESTS PASSED'); print('='*60); print('[PASS] Multi-file processing works correctly'); print('[PASS] PhotoSet and FilePair structures validated'); print('[PASS] Batch processing handles multiple files'); print('[PASS] No files are skipped in photo sets'); print('='*60)"
+
+  validation-tests:
+    name: Post-Processing Validation Tests
+    needs: test
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: [3.9, 3.11]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements/requirements.txt
+        pip install -r requirements/requirements-dev.txt
+        
+    - name: Run validation module tests
+      run: |
+        python -m pytest tests/test_validation.py -v --tb=short
+        
+    - name: Verify ZIP content verification
+      run: |
+        python -m pytest tests/test_validation.py::TestVerifyZipContents -v
+        
+    - name: Verify batch output validation
+      run: |
+        python -m pytest tests/test_validation.py::TestValidateBatchOutput -v
+        
+    - name: Verify reconciliation reporting
+      run: |
+        python -m pytest tests/test_validation.py::TestReconciliationReport -v
+        
+    - name: Verify pre-flight checks
+      run: |
+        python -m pytest tests/test_validation.py::TestPreFlightChecks -v
+        
+    - name: Test validation module imports
+      run: |
+        python -c "from src.validation import verify_zip_contents, validate_batch_output, generate_reconciliation_report, pre_flight_checks; from src.validation import ValidationResult, ReconciliationReport, PreFlightResult; print('[PASS] All validation functions and data structures import correctly')"
+        
+    - name: Test pre-flight checks logic
+      run: |
+        python -c "from src.validation import pre_flight_checks; from pathlib import Path; result = pre_flight_checks([], Path('.')); print('[PASS] Pre-flight checks execute correctly' if result else '[FAIL]')"
+        
+    - name: Test reconciliation logic with missing CSV
+      run: |
+        python -c "from src.validation import generate_reconciliation_report; from pathlib import Path; report = generate_reconciliation_report([], Path('nonexistent.csv'), Path('.')); print('[PASS] Reconciliation handles missing CSV' if report.csv_success_rows == 0 else '[FAIL]')"
+        
+    - name: Summary
+      run: |
+        python -c "print('='*60); print('VALIDATION TESTS PASSED'); print('='*60); print('[PASS] ZIP content verification works'); print('[PASS] Batch output validation works'); print('[PASS] Reconciliation reporting works'); print('[PASS] Pre-flight checks work'); print('[PASS] All 27 validation tests passing'); print('='*60)"

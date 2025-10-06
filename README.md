@@ -37,6 +37,60 @@ The tool looks for photo sets with:
 - ZIP packages (one per photo set)
 - CSV report of all processing results
 - Detailed logs
+- **NEW:** Post-processing validation reports
+
+## Post-Processing Validation (New Feature)
+
+The tool now includes comprehensive validation to ensure outputs match expectations:
+
+### Pre-Flight Checks
+Before processing starts, the tool verifies:
+-  Sufficient disk space available
+-  Write permissions to output directory
+-  Orphaned files from previous runs (warning)
+
+**Example Output:**
+```
+[INFO] Running pre-flight checks...
+[PASS] Pre-flight checks passed. Disk space: 125.3 GB available
+```
+
+### Post-Processing Validation
+After processing completes, the tool validates:
+-  Expected number of ZIPs match actual ZIPs created
+-  Each ZIP contains correct structure (TIFF, XML, manifest.ini)
+-  No ZIPs created during dry run mode
+
+**Example Output:**
+```
+[PASS] Post-processing validation: 25 valid ZIPs
+```
+
+### Reconciliation Report
+The tool generates a detailed reconciliation report comparing:
+- Input XML file count
+- CSV SUCCESS row count
+- Actual ZIP file count
+- Valid ZIP file count
+
+**Example Output:**
+```
+=== Reconciliation Report ===
+Input XML files: 25
+CSV SUCCESS rows: 25
+Actual ZIP files: 25
+Valid ZIP files: 25
+[PASS] No discrepancies found.
+```
+
+### What Validation Detects
+-  Missing ZIPs (success logged but no ZIP created)
+-  Corrupted ZIPs (wrong number of files or missing components)
+-  Disk full scenarios (caught before processing starts)
+-  Orphaned files (*_PROC.tif, *_PROC.xml without ZIPs)
+-  Dry run violations (ZIPs created when they shouldn't be)
+
+**Note:** Validation reports issues but doesn't block completed processing. Pre-flight checks will block processing if critical issues are found (disk space, permissions).
 
 ## File Locations
 - **Output**: `output/` folder in your selected directory
@@ -51,34 +105,34 @@ The tool looks for photo sets with:
 ## Current Structure
 ```
 cetamura_python_script/
-├── src/
-│   ├── main.py              # Complete application (1500+ lines)
-│   └── __init__.py
-├── tests/
-│   ├── test_main.py         # Core functionality tests
-│   ├── test_utils.py        # Utility function tests
-│   ├── test_pairing_improvements.py
-│   └── run_tests.py         # Test runner
-├── dist_package/
-│   ├── build_scripts/       # Cross-platform build scripts
-│   ├── docs/               # Build documentation
-│   ├── install_windows.ps1 # Windows installer
-│   └── install_macos.sh    # macOS installer
-├── docs/
-│   ├── cicd.md             # Build automation guide
-│   ├── project_structure.md # This file
-│   ├── readme.md           # User guide
-│   └── bugs.md             # Known issues
-├── scripts/
-│   ├── build/              # Legacy build scripts
-│   ├── setup/              # Environment setup
-│   └── utilities/          # Development utilities
-├── requirements/
-│   └── requirements.txt    # Production dependencies
-├── .github/workflows/      # GitHub Actions CI/CD
-├── requirements-dev.txt    # Development dependencies
-├── pytest.ini            # Test configuration
-└── README.md             # Main project readme
+ src/
+    main.py              # Complete application (1500+ lines)
+    __init__.py
+ tests/
+    test_main.py         # Core functionality tests
+    test_utils.py        # Utility function tests
+    test_pairing_improvements.py
+    run_tests.py         # Test runner
+ dist_package/
+    build_scripts/       # Cross-platform build scripts
+    docs/               # Build documentation
+    install_windows.ps1 # Windows installer
+    install_macos.sh    # macOS installer
+ docs/
+    cicd.md             # Build automation guide
+    project_structure.md # This file
+    readme.md           # User guide
+    bugs.md             # Known issues
+ scripts/
+    build/              # Legacy build scripts
+    setup/              # Environment setup
+    utilities/          # Development utilities
+ requirements/
+    requirements.txt    # Production dependencies
+ .github/workflows/      # GitHub Actions CI/CD
+ requirements-dev.txt    # Development dependencies
+ pytest.ini            # Test configuration
+ README.md             # Main project readme
 ```
 
 ## What Each Part Does

@@ -70,16 +70,16 @@ chmod +x build_cross_platform.sh
 
 ```
 cetamura_python_script/
-├── src/
-│   └── main.py              # Main application (self-contained)
-├── assets/                  # Optional icons/logos
-├── dist/                    # Built executables
-├── build/                   # Build artifacts
-├── requirements.txt         # Python dependencies
-├── build_exe.ps1           # Windows build script
-├── build_exe_macos.sh      # macOS build script
-├── build_cross_platform.sh # Cross-platform build script
-└── README_BUILD.md         # This file
+ src/
+    main.py              # Main application (self-contained)
+ assets/                  # Optional icons/logos
+ dist/                    # Built executables
+ build/                   # Build artifacts
+ requirements.txt         # Python dependencies
+ build_exe.ps1           # Windows build script
+ build_exe_macos.sh      # macOS build script
+ build_cross_platform.sh # Cross-platform build script
+ README_BUILD.md         # This file
 ```
 
 ## Usage
@@ -91,13 +91,13 @@ cetamura_python_script/
 ### Expected Folder Structure
 ```
 Parent_Folder/
-├── 2006/
-│   ├── 46N-3W/
-│   │   ├── image.jpg
-│   │   ├── metadata.xml
-│   │   └── MANIFEST.ini
-│   └── ...
-└── ...
+ 2006/
+    46N-3W/
+       image.jpg
+       metadata.xml
+       MANIFEST.ini
+    ...
+ ...
 ```
 
 ## Troubleshooting
