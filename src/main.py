@@ -986,7 +986,7 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
     logger.info(f"Output folder: {output_dir}")
     
     # PRE-FLIGHT CHECKS: Validate environment before processing
-    from .validation import pre_flight_checks
+    from validation import pre_flight_checks
     
     # Get preliminary photo sets for pre-flight estimation
     try:
@@ -1113,7 +1113,7 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
                 context.csv_writer.writerow(['SUMMARY', '', '', f'Success: {success_count}', f'Errors: {error_count}', f'Dry run: {dry_run}'])
         
         # POST-PROCESSING VALIDATION: Verify output matches expectations
-        from .validation import validate_batch_output, generate_reconciliation_report
+        from validation import validate_batch_output, generate_reconciliation_report
         
         try:
             # Validate batch output
