@@ -7,7 +7,13 @@ from typing import Optional, Any
 # Prefer vendored stdlib modules included in src/_vendored when freezing
 import sys
 from pathlib import Path as _Path
-_vendored = _Path(__file__).resolve().parent / "_vendored"
+
+# Add src directory to Python path for module imports
+_src_dir = _Path(__file__).resolve().parent
+if str(_src_dir) not in sys.path:
+    sys.path.insert(0, str(_src_dir))
+
+_vendored = _src_dir / "_vendored"
 if _vendored.exists():
     sys.path.insert(0, str(_vendored))
 
