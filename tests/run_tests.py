@@ -22,7 +22,7 @@ try:
         extract_iid_from_xml,
         sanitize_name,
         batch_process_with_safety_nets,
-        convert_jpg_to_tiff,
+        convert_to_tiff,
         rename_files,
         package_to_zip,
         validate_image_orientation,
@@ -38,11 +38,8 @@ try:
 
 except Exception as e:
     print(f"ERROR: Failed to import required functions from main: {e}")
-    print(f"   Current working directory: {Path.cwd()}")
-    print(f"   Source path: {src_path}")
-    print(f"   Source path exists: {src_path.exists()}")
-    IMPORTS_SUCCESSFUL = False
-
+    # ... (rest of error printing)
+    
     # Fallback stubs that raise informative errors when used (so failures are obvious)
     def _missing_stub(name):
         def _fn(*args, **kwargs):
@@ -53,7 +50,7 @@ except Exception as e:
     extract_iid_from_xml = _missing_stub('extract_iid_from_xml')
     sanitize_name = _missing_stub('sanitize_name')
     batch_process_with_safety_nets = _missing_stub('batch_process_with_safety_nets')
-    convert_jpg_to_tiff = _missing_stub('convert_jpg_to_tiff')
+    convert_to_tiff = _missing_stub('convert_to_tiff')
     rename_files = _missing_stub('rename_files')
     package_to_zip = _missing_stub('package_to_zip')
     validate_image_orientation = _missing_stub('validate_image_orientation')
