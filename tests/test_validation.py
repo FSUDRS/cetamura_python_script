@@ -252,7 +252,7 @@ class TestReconciliationReport:
         photo_sets = [
             PhotoSet(
                 base_directory=tmp_path,
-                jpg_files=[Path("img1.jpg"), Path("img2.jpg")],
+                image_files=[Path("img1.jpg"), Path("img2.jpg")],
                 xml_files=[Path("meta1.xml"), Path("meta2.xml")],
                 manifest_file=Path("manifest.txt"),
                 structure_type='standard'
@@ -261,7 +261,7 @@ class TestReconciliationReport:
         
         # Create CSV with 2 SUCCESS rows
         csv_path = tmp_path / "batch_summary.csv"
-        csv_path.write_text("status\nSUCCESS\nSUCCESS\n")
+        csv_path.write_text("Status\nSUCCESS\nSUCCESS\n")
         
         # Create 2 valid ZIPs
         for i in range(2):
@@ -284,7 +284,7 @@ class TestReconciliationReport:
         photo_sets = [
             PhotoSet(
                 base_directory=tmp_path,
-                jpg_files=[Path("img1.jpg")],
+                image_files=[Path("img1.jpg")],
                 xml_files=[Path("meta1.xml")],
                 manifest_file=Path("manifest.txt"),
                 structure_type='standard'
@@ -293,7 +293,7 @@ class TestReconciliationReport:
         
         # CSV shows 1 SUCCESS
         csv_path = tmp_path / "batch_summary.csv"
-        csv_path.write_text("status\nSUCCESS\n")
+        csv_path.write_text("Status\nSUCCESS\n")
         
         # But no ZIPs created (output directory is empty)
         
@@ -310,7 +310,7 @@ class TestReconciliationReport:
         photo_sets = [
             PhotoSet(
                 base_directory=tmp_path,
-                jpg_files=[Path("img1.jpg"), Path("img2.jpg")],
+                image_files=[Path("img1.jpg"), Path("img2.jpg")],
                 xml_files=[Path("meta1.xml"), Path("meta2.xml")],
                 manifest_file=Path("manifest.txt"),
                 structure_type='standard'
@@ -318,7 +318,7 @@ class TestReconciliationReport:
         ]
         
         csv_path = tmp_path / "batch_summary.csv"
-        csv_path.write_text("status\nSUCCESS\nSUCCESS\n")
+        csv_path.write_text("Status\nSUCCESS\nSUCCESS\n")
         
         # Create 1 valid ZIP and 1 invalid ZIP
         zip_path = tmp_path / "test_0.zip"
@@ -362,7 +362,7 @@ class TestReconciliationReport:
         photo_sets = [
             PhotoSet(
                 base_directory=tmp_path,
-                jpg_files=[Path("img1.jpg")],
+                image_files=[Path("img1.jpg")],
                 xml_files=[Path("meta1.xml")],
                 manifest_file=Path("manifest.txt"),
                 structure_type='standard'
@@ -386,7 +386,7 @@ class TestPreFlightChecks:
         photo_sets = [
             PhotoSet(
                 base_directory=tmp_path,
-                jpg_files=[Path("img1.jpg")],
+                image_files=[Path("img1.jpg")],
                 xml_files=[Path("meta1.xml")],
                 manifest_file=Path("manifest.txt"),
                 structure_type='standard'
@@ -458,7 +458,7 @@ class TestPreFlightChecks:
         photo_sets = [
             PhotoSet(
                 base_directory=tmp_path,
-                jpg_files=[Path(f"img{i}.jpg") for i in range(100)],
+                image_files=[Path(f"img{i}.jpg") for i in range(100)],
                 xml_files=[Path(f"meta{i}.xml") for i in range(100)],
                 manifest_file=Path("manifest.txt"),
                 structure_type='standard'

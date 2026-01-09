@@ -90,7 +90,7 @@ def verify_zip_contents(zip_path: Path) -> tuple[bool, list[str]]:
             # Check required files
             has_tiff = any(f.lower().endswith('.tif') or f.lower().endswith('.tiff') for f in files)
             has_xml = any(f.lower().endswith('.xml') for f in files)
-            has_manifest = 'manifest.ini' in files
+            has_manifest = any(f.lower() == 'manifest.ini' for f in files)
             
             if not has_tiff:
                 errors.append("Missing TIFF file")
@@ -236,7 +236,7 @@ def generate_reconciliation_report(
         try:
             with open(csv_path, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
-                csv_success_rows = sum(1 for row in reader if row.get('status') == 'SUCCESS')
+                csv_success_rows = sum(1 for row in reader if row.get('Status') == 'SUCCESS')
         except Exception as e:
             logging.warning(f"Could not read CSV file: {e}")
     

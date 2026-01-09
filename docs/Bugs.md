@@ -38,9 +38,4 @@
 - **'tuple' object has no attribute 'iid' error** (v2025.10.03)
   - Root cause: `batch_process_with_safety_nets` was calling `find_photo_sets()` which returns plain tuples instead of `find_photo_sets_enhanced()` which returns PhotoSet NamedTuples
   - Fix: Changed line 1011 to call `find_photo_sets_enhanced()` directly, ensuring PhotoSet objects with named attributes (base_directory, jpg_files, xml_files, manifest_file, structure_type) are used throughout batch processing
-  - Impact: Batch processing now successfully handles all photo sets without AttributeError
-- CSV writer None errors (v2025.09.17)
-- Orientation correction failures (v2025.09.16)  
-- Duplicate processing (v2025.09.15)
-- GUI freezing during processing (v2025.09.14)
 

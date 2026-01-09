@@ -1,3 +1,4 @@
 # Cetamura Batch Ingest Tool - Requirements
 Pillow>=8.0.0
 pyinstaller>=5.0.0
+pymupdf>=1.20.0

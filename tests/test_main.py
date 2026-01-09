@@ -9,7 +9,7 @@ import csv
 from src.main import (
     find_photo_sets,
     find_photo_sets_enhanced,
-    convert_jpg_to_tiff,
+    convert_to_tiff,
     rename_files,
     package_to_zip,
     extract_iid_from_xml,
@@ -50,17 +50,17 @@ def test_find_photo_sets(setup_test_directory):
     """Test that find_photo_sets identifies valid directory sets."""
     result = find_photo_sets(str(setup_test_directory))
     assert len(result) == 1
-    directory, jpg_files, xml_files, ini_files = result[0]
+    directory, image_files, xml_files, ini_files = result[0]
     assert str(directory) == str(setup_test_directory / "valid_set")
 
-def test_convert_jpg_to_tiff(tmp_path):
-    """Test JPG to TIFF conversion."""
+def test_convert_to_tiff(tmp_path):
+    """Test Image to TIFF conversion (JPG support)."""
     # Create a small test JPG image
     jpg_path = tmp_path / "test.jpg"
     image = Image.new('RGB', (10, 10), color='red')
     image.save(jpg_path, 'JPEG')
     
-    result = convert_jpg_to_tiff(jpg_path)
+    result = convert_to_tiff(jpg_path)
     assert result is not None
     assert result.suffix == '.tiff'
     assert result.exists()
@@ -189,13 +189,13 @@ def test_full_workflow(tmp_path):
 def test_photoset_namedtuple_structure():
     """Test that PhotoSet NamedTuple has correct structure"""
     base_dir = Path("/test/dir")
-    jpg_files = [Path("/test/dir/img1.jpg"), Path("/test/dir/img2.jpg")]
+    image_files = [Path("/test/dir/img1.jpg"), Path("/test/dir/img2.jpg")]
     xml_files = [Path("/test/dir/img1.xml"), Path("/test/dir/img2.xml")]
     manifest = Path("/test/dir/manifest.ini")
     
     photo_set = PhotoSet(
         base_directory=base_dir,
-        jpg_files=jpg_files,
+        image_files=image_files,
         xml_files=xml_files,
         manifest_file=manifest,
         structure_type='standard'
@@ -203,13 +203,13 @@ def test_photoset_namedtuple_structure():
     
     # Verify structure
     assert photo_set.base_directory == base_dir
-    assert len(photo_set.jpg_files) == 2
+    assert len(photo_set.image_files) == 2
     assert len(photo_set.xml_files) == 2
     assert photo_set.manifest_file == manifest
     assert photo_set.structure_type == 'standard'
     
     # Verify it's a list, not a single file
-    assert isinstance(photo_set.jpg_files, list)
+    assert isinstance(photo_set.image_files, list)
     assert isinstance(photo_set.xml_files, list)
     assert isinstance(photo_set.manifest_file, Path)
 
@@ -220,24 +220,24 @@ def test_filepair_namedtuple_structure():
     jpg_path = Path("/test/file.jpg")
     iid = "cetamura:12345"
     
-    file_pair = FilePair(xml=xml_path, jpg=jpg_path, iid=iid)
+    file_pair = FilePair(xml=xml_path, image=jpg_path, iid=iid)
     
     assert file_pair.xml == xml_path
-    assert file_pair.jpg == jpg_path
+    assert file_pair.image == jpg_path
     assert file_pair.iid == iid
 
 
 def test_filepair_with_optional_paths():
     """Test FilePair with None values (orphaned files)"""
     # XML without JPG
-    file_pair1 = FilePair(xml=Path("/test/file.xml"), jpg=None, iid="test:001")
+    file_pair1 = FilePair(xml=Path("/test/file.xml"), image=None, iid="test:001")
     assert file_pair1.xml is not None
-    assert file_pair1.jpg is None
+    assert file_pair1.image is None
     
     # JPG without XML (shouldn't happen but test the structure)
-    file_pair2 = FilePair(xml=None, jpg=Path("/test/file.jpg"), iid="test:002")
+    file_pair2 = FilePair(xml=None, image=Path("/test/file.jpg"), iid="test:002")
     assert file_pair2.xml is None
-    assert file_pair2.jpg is not None
+    assert file_pair2.image is not None
 
 
 @pytest.fixture
@@ -287,7 +287,7 @@ def test_find_photo_sets_enhanced_with_multiple_files(setup_multi_file_directory
     assert isinstance(photo_set, PhotoSet)
     
     # Verify it contains ALL 3 files
-    assert len(photo_set.jpg_files) == 3
+    assert len(photo_set.image_files) == 3
     assert len(photo_set.xml_files) == 3
     
     # Verify manifest is a single file (not a list)
@@ -403,7 +403,7 @@ def test_file_matching_by_stem(setup_multi_file_directory):
     # Verify each XML has a matching JPG with the same stem
     for xml_file in photo_set.xml_files:
         xml_stem = xml_file.stem
-        matching_jpgs = [jpg for jpg in photo_set.jpg_files if jpg.stem == xml_stem]
+        matching_jpgs = [jpg for jpg in photo_set.image_files if jpg.stem == xml_stem]
         assert len(matching_jpgs) == 1, f"Expected exactly 1 matching JPG for {xml_file.name}"
 
 
@@ -448,7 +448,7 @@ def test_hierarchical_photo_set_structure(tmp_path):
     # Each should have structure_type='hierarchical'
     for ps in photo_sets:
         assert ps.structure_type == 'hierarchical'
-        assert len(ps.jpg_files) == 1
+        assert len(ps.image_files) == 1
         assert len(ps.xml_files) == 1
 
 
@@ -484,16 +484,16 @@ def test_backward_compatibility_find_photo_sets(setup_multi_file_directory):
     assert isinstance(result, list)
     assert len(result) == 1
     
-    directory, jpg_files, xml_files, manifest_files = result[0]
+    directory, image_files, xml_files, manifest_files = result[0]
     
     # Verify tuple format
     assert isinstance(directory, Path)
-    assert isinstance(jpg_files, list)
+    assert isinstance(image_files, list)
     assert isinstance(xml_files, list)
     assert isinstance(manifest_files, list)
     
     # Verify it contains ALL files
-    assert len(jpg_files) == 3
+    assert len(image_files) == 3
     assert len(xml_files) == 3
     assert len(manifest_files) == 1
 

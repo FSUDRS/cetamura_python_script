@@ -19,6 +19,10 @@ if _vendored.exists():
 
 from pathlib import Path
 from PIL import Image, ImageTk, UnidentifiedImageError
+try:
+    import fitz  # PyMuPDF
+except ImportError:
+    fitz = None
 import xml.etree.ElementTree as ET
 import zipfile
 import os
@@ -36,6 +40,8 @@ NAMESPACES = {
     'mods': 'http://www.loc.gov/mods/v3'
 }
 
+VALID_IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.tif', '.tiff', '.png', '.pdf'}
+
 # GUI global variables - initialized in main()
 root_window = None
 btn_select = None
@@ -47,7 +53,7 @@ label = None
 
 class FilePair(NamedTuple):
     xml: Optional[Path]
-    jpg: Optional[Path]
+    image: Optional[Path]
     iid: str
 
 
@@ -65,7 +71,7 @@ class BatchContext(NamedTuple):
 class PhotoSet(NamedTuple):
     """Data structure for a complete photo set"""
     base_directory: Path
-    jpg_files: List[Path]
+    image_files: List[Path]
     xml_files: List[Path]
     manifest_file: Path
     structure_type: str  # 'standard', 'hierarchical'
@@ -161,43 +167,50 @@ def sanitize_name(name: str) -> str:
     return sanitized
 
 
-def derive_jpg_candidates_from_iid(iid: str) -> List[str]:
-    """Generate possible JPG filenames from an IID"""
+def derive_image_candidates_from_iid(iid: str) -> List[str]:
+    """Generate possible Image filenames from an IID"""
     base = sanitize_name(iid)
-    return [
-        f"{base}.jpg", f"{base}.jpeg",
-        f"{base}_1.jpg", f"{base}_01.jpg", 
-        f"{base}-1.jpg", f"{base}_001.jpg"
-    ]
+    candidates = []
+    # Add all valid extensions
+    for ext in VALID_IMAGE_EXTENSIONS:
+        candidates.extend([
+            f"{base}{ext}", 
+            f"{base.upper()}{ext.upper()}", # Case variants
+            f"{base}_1{ext}", 
+            f"{base}_01{ext}", 
+            f"{base}-1{ext}", 
+            f"{base}_001{ext}"
+        ])
+    return candidates
 
 
-def pick_matching_jpg(jpg_files: List[Path], iid: str, used: set) -> Optional[Path]:
-    """Find the best matching JPG file for a given IID"""
+def pick_matching_image(image_files: List[Path], iid: str, used: set) -> Optional[Path]:
+    """Find the best matching Image file for a given IID"""
     # 1) Exact filename matches first
-    candidates = set(derive_jpg_candidates_from_iid(iid))
-    for jpg in jpg_files:
-        if jpg.name.lower() in [c.lower() for c in candidates] and jpg not in used:
-            return jpg
+    candidates = set(derive_image_candidates_from_iid(iid))
+    for img in image_files:
+        if img.name.lower() in [c.lower() for c in candidates] and img not in used:
+            return img
 
     # 2) Fuzzy: same stem matches iid or contains iid token
-    for jpg in jpg_files:
-        if jpg in used: 
+    for img in image_files:
+        if img in used: 
             continue
-        stem = jpg.stem.lower()
+        stem = img.stem.lower()
         sanitized_iid = sanitize_name(iid).lower()
         
         if stem == sanitized_iid:
-            return jpg
+            return img
         if stem.startswith(sanitized_iid):
-            return jpg
+            return img
         if sanitized_iid in stem.split('_'):
-            return jpg
+            return img
 
     # 3) No match found
     return None
 
 
-def build_pairs_by_iid(jpg_files: List[Path], xml_files: List[Path]) -> List[FilePair]:
+def build_pairs_by_iid(image_files: List[Path], xml_files: List[Path]) -> List[FilePair]:
     """Build file pairs based on IID matching instead of position"""
     xml_to_iid = {}
     for xml in xml_files:
@@ -207,23 +220,23 @@ def build_pairs_by_iid(jpg_files: List[Path], xml_files: List[Path]) -> List[Fil
         else:
             logging.warning(f"No IID in XML: {xml}")
 
-    used_jpgs: set = set()
+    used_images: set = set()
     pairs: List[FilePair] = []
 
     for xml, iid in xml_to_iid.items():
-        jpg = pick_matching_jpg(jpg_files, iid, used_jpgs)
-        if jpg:
-            used_jpgs.add(jpg)
-            pairs.append(FilePair(xml=xml, jpg=jpg, iid=iid))
+        image = pick_matching_image(image_files, iid, used_images)
+        if image:
+            used_images.add(image)
+            pairs.append(FilePair(xml=xml, image=image, iid=iid))
         else:
-            # Pair without JPG - log and handle gracefully downstream
-            pairs.append(FilePair(xml=xml, jpg=None, iid=iid))
-            logging.warning(f"No matching JPG found for IID={iid} (XML={xml.name})")
+            # Pair without Image - log and handle gracefully downstream
+            pairs.append(FilePair(xml=xml, image=None, iid=iid))
+            logging.warning(f"No matching Image found for IID={iid} (XML={xml.name})")
 
-    # Log leftover JPGs
-    leftovers = [j for j in jpg_files if j not in used_jpgs]
+    # Log leftover Images
+    leftovers = [j for j in image_files if j not in used_images]
     if leftovers:
-        logging.info(f"Unpaired JPGs: {[j.name for j in leftovers]}")
+        logging.info(f"Unpaired Images: {[j.name for j in leftovers]}")
 
     return pairs
 
@@ -277,7 +290,7 @@ def find_all_files_recursive(parent_folder: Path, max_depth: int = 5) -> Dict[st
         Dictionary containing lists of files by type
     """
     files = {
-        'jpg': [],
+        'image': [],
         'xml': [],
         'manifest': []
     }
@@ -289,8 +302,8 @@ def find_all_files_recursive(parent_folder: Path, max_depth: int = 5) -> Dict[st
         try:
             for item in directory.iterdir():
                 if item.is_file():
-                    if item.suffix.lower() in ['.jpg', '.jpeg']:
-                        files['jpg'].append(item)
+                    if item.suffix.lower() in VALID_IMAGE_EXTENSIONS:
+                        files['image'].append(item)
                     elif item.suffix.lower() == '.xml':
                         files['xml'].append(item)
                     elif item.name.lower() == 'manifest.ini':
@@ -301,7 +314,7 @@ def find_all_files_recursive(parent_folder: Path, max_depth: int = 5) -> Dict[st
             logging.warning(f"Cannot access directory {directory}: {e}")
     
     search_directory(parent_folder, 0)
-    logging.debug(f"Enhanced finder discovered - JPG: {len(files['jpg'])}, XML: {len(files['xml'])}, Manifest: {len(files['manifest'])}")
+    logging.debug(f"Enhanced finder discovered - Image: {len(files['image'])}, XML: {len(files['xml'])}, Manifest: {len(files['manifest'])}")
     return files
 
 
@@ -315,7 +328,7 @@ def group_files_by_directory(files: Dict[str, List[Path]]) -> List[Dict]:
     Returns:
         List of dictionaries containing grouped files
     """
-    directory_groups = defaultdict(lambda: {'jpg': [], 'xml': [], 'manifest': []})
+    directory_groups = defaultdict(lambda: {'image': [], 'xml': [], 'manifest': []})
     
     # Group files by their parent directory
     for file_type, file_list in files.items():
@@ -328,7 +341,7 @@ def group_files_by_directory(files: Dict[str, List[Path]]) -> List[Dict]:
     for directory, grouped_files in directory_groups.items():
         file_group = {
             'directory': directory,
-            'jpg_files': grouped_files['jpg'],
+            'image_files': grouped_files['image'],
             'xml_files': grouped_files['xml'],
             'manifest_files': grouped_files['manifest']
         }
@@ -357,23 +370,23 @@ def find_hierarchical_sets(files: Dict[str, List[Path]], base_path: Path) -> Lis
         manifest_dir = manifest_file.parent
         
         # Find all images and XML files that are descendants of this manifest's directory
-        associated_jpg = [f for f in files['jpg'] if manifest_dir in f.parents or f.parent == manifest_dir]
+        associated_image = [f for f in files['image'] if manifest_dir in f.parents or f.parent == manifest_dir]
         associated_xml = [f for f in files['xml'] if manifest_dir in f.parents or f.parent == manifest_dir]
         
-        if associated_jpg and associated_xml:
+        if associated_image and associated_xml:
             # Group by immediate subdirectory if files are not in manifest directory
-            if any(f.parent != manifest_dir for f in associated_jpg + associated_xml):
+            if any(f.parent != manifest_dir for f in associated_image + associated_xml):
                 # Group files by their immediate directory under manifest_dir
-                subdir_groups = defaultdict(lambda: {'jpg': [], 'xml': []})
+                subdir_groups = defaultdict(lambda: {'image': [], 'xml': []})
                 
-                for jpg_file in associated_jpg:
-                    if jpg_file.parent == manifest_dir:
-                        subdir_groups[manifest_dir]['jpg'].append(jpg_file)
+                for image_file in associated_image:
+                    if image_file.parent == manifest_dir:
+                        subdir_groups[manifest_dir]['image'].append(image_file)
                     else:
                         # Find the immediate subdirectory under manifest_dir
-                        for parent in jpg_file.parents:
+                        for parent in image_file.parents:
                             if parent.parent == manifest_dir:
-                                subdir_groups[parent]['jpg'].append(jpg_file)
+                                subdir_groups[parent]['image'].append(image_file)
                                 break
                 
                 for xml_file in associated_xml:
@@ -388,10 +401,10 @@ def find_hierarchical_sets(files: Dict[str, List[Path]], base_path: Path) -> Lis
                 
                 # Create photo sets for each subdirectory that has both types
                 for subdir, grouped in subdir_groups.items():
-                    if grouped['jpg'] and grouped['xml']:
+                    if grouped['image'] and grouped['xml']:
                         photo_set = PhotoSet(
                             base_directory=subdir,
-                            jpg_files=grouped['jpg'],
+                            image_files=grouped['image'],
                             xml_files=grouped['xml'],
                             manifest_file=manifest_file,
                             structure_type='hierarchical'
@@ -402,7 +415,7 @@ def find_hierarchical_sets(files: Dict[str, List[Path]], base_path: Path) -> Lis
                 # Files are directly in manifest directory
                 photo_set = PhotoSet(
                     base_directory=manifest_dir,
-                    jpg_files=associated_jpg,
+                    image_files=associated_image,
                     xml_files=associated_xml,
                     manifest_file=manifest_file,
                     structure_type='standard'
@@ -415,7 +428,7 @@ def find_hierarchical_sets(files: Dict[str, List[Path]], base_path: Path) -> Lis
 
 def validate_photo_set(photo_set: PhotoSet) -> bool:
     """
-    Validate that a photo set has matching XML files for JPG files.
+    Validate that a photo set has matching XML files for Image files.
     
     Args:
         photo_set: PhotoSet to validate
@@ -423,8 +436,8 @@ def validate_photo_set(photo_set: PhotoSet) -> bool:
     Returns:
         True if valid, False otherwise
     """
-    if len(photo_set.jpg_files) == 0 or len(photo_set.xml_files) == 0:
-        logging.warning(f"Invalid photo set {photo_set.base_directory}: Missing JPG or XML files")
+    if len(photo_set.image_files) == 0 or len(photo_set.xml_files) == 0:
+        logging.warning(f"Invalid photo set {photo_set.base_directory}: Missing Image or XML files")
         return False
     
     # Check if we can extract IIDs from XML files
@@ -440,7 +453,7 @@ def validate_photo_set(photo_set: PhotoSet) -> bool:
         logging.warning(f"Invalid photo set {photo_set.base_directory}: No valid XML files with IID")
         return False
     
-    logging.debug(f"Valid photo set {photo_set.base_directory}: {len(photo_set.jpg_files)} JPG, {valid_xml_count} valid XML")
+    logging.debug(f"Valid photo set {photo_set.base_directory}: {len(photo_set.image_files)} Image, {valid_xml_count} valid XML")
     return True
 
 
@@ -508,10 +521,10 @@ def find_photo_sets_enhanced(parent_folder: str, flexible_structure: bool = True
         if any(ps.base_directory == group['directory'] for ps in photo_sets):
             continue
         
-        if group['jpg_files'] and group['xml_files'] and group['manifest_files']:
+        if group['image_files'] and group['xml_files'] and group['manifest_files']:
             photo_set = PhotoSet(
                 base_directory=group['directory'],
-                jpg_files=group['jpg_files'],
+                image_files=group['image_files'],
                 xml_files=group['xml_files'],
                 manifest_file=group['manifest_files'][0],  # Take first manifest if multiple
                 structure_type='standard'
@@ -555,7 +568,7 @@ def find_photo_sets(parent_folder: str) -> list:
     for photo_set in enhanced_results:
         compatible_tuple = (
             photo_set.base_directory,       # directory (Path object)
-            photo_set.jpg_files,           # list of JPG/JPEG files  
+            photo_set.image_files,           # list of Image files  
             photo_set.xml_files,           # list of XML files
             [photo_set.manifest_file]      # list of manifest files (original expects list)
         )
@@ -715,20 +728,25 @@ def debug_orientation_issues(folder_path: str, output_csv: str = "orientation_de
     
     logging.info(f"Starting orientation debug for folder: {folder}")
     
-    # Find all JPG files recursively
-    jpg_files = []
-    for ext in ['.jpg', '.jpeg', '.JPG', '.JPEG']:
-        jpg_files.extend(folder.rglob(f"*{ext}"))
+    # Find all Image files recursively
+    image_files = []
+    for ext in VALID_IMAGE_EXTENSIONS:
+        # Check both lower and upper case
+        image_files.extend(folder.rglob(f"*{ext}"))
+        image_files.extend(folder.rglob(f"*{ext.upper()}"))
     
-    logging.info(f"Found {len(jpg_files)} JPG files to analyze")
+    # Remove duplicates
+    image_files = list(set(image_files))
     
-    for jpg_file in jpg_files:
-        orientation_info = validate_image_orientation(jpg_file)
-        orientation_info['relative_path'] = str(jpg_file.relative_to(folder))
+    logging.info(f"Found {len(image_files)} Image files to analyze")
+    
+    for image_file in image_files:
+        orientation_info = validate_image_orientation(image_file)
+        orientation_info['relative_path'] = str(image_file.relative_to(folder))
         results.append(orientation_info)
         
         if orientation_info.get('needs_correction', False):
-            logging.warning(f"Image needs orientation correction: {jpg_file.name} - {orientation_info['orientation_name']}")
+            logging.warning(f"Image needs orientation correction: {image_file.name} - {orientation_info['orientation_name']}")
     
     # Write CSV report
     csv_path = folder / output_csv
@@ -751,44 +769,102 @@ def debug_orientation_issues(folder_path: str, output_csv: str = "orientation_de
     return csv_path
 
 
-def convert_jpg_to_tiff(jpg_path: Path) -> Optional[Path]:
+def convert_to_tiff(image_path: Path) -> Optional[Path]:
     """
-    Converts a .jpg file to .tiff with proper EXIF orientation handling.
+    Converts an image file (JPG, PNG, PDF, etc.) to .tiff with proper EXIF orientation handling.
     Detects and attempts to fix corrupted files before skipping them.
-    Deletes the original JPG file after successful conversion.
+    Deletes the original file after successful conversion.
     """
     try:
-        tiff_path = jpg_path.with_suffix('.tiff')
+        tiff_path = image_path.with_suffix('.tiff')
         
-        with Image.open(jpg_path) as img:
+        # Check exclusion to avoid overwriting existing TIFFs if source is TIFF
+        if image_path.suffix.lower() in ['.tif', '.tiff']:
+            logging.info(f"File {image_path} is already TIFF. Skipping conversion logic but verifying.")
+            try:
+                with Image.open(image_path) as img:
+                    img.verify()
+                return image_path
+            except Exception:
+                logging.warning(f"Corrupted TIFF detected: {image_path}")
+                return None
+
+        # Special handling for PDF
+        if image_path.suffix.lower() == '.pdf':
+             # Try PyMuPDF (fitz) first as it doesn't require Ghostscript
+             if fitz:
+                 try:
+                     doc = fitz.open(image_path)
+                     page = doc.load_page(0)  # load the first page
+                     pix = page.get_pixmap()
+                     
+                     # Create PIL Image from pixmap
+                     mode = "RGBA" if pix.alpha else "RGB"
+                     img = Image.frombytes(mode, [pix.width, pix.height], pix.samples)
+                     
+                     if img.mode != 'RGB':
+                        img = img.convert('RGB')
+                        
+                     img.save(tiff_path, "TIFF", compression='none')
+                     doc.close()
+                     
+                     image_path.unlink()
+                     logging.info(f"Converted PDF {image_path} to {tiff_path} using PyMuPDF")
+                     return tiff_path
+                 except Exception as e:
+                     logging.warning(f"PyMuPDF conversion failed for {image_path}: {e}. Falling back to Pillow.")
+
+             # Fallback to Pillow (needs Ghostscript)
+             try:
+                with Image.open(image_path) as img:
+                    # PDF might have multiple pages, this typically picks the first one
+                    # We need to make sure we are getting a valid image object
+                    
+                    # Convert to RGB (PDFs are often CMYK or P)
+                    img = img.convert('RGB')
+                    img.save(tiff_path, "TIFF", compression='none')
+                    
+                image_path.unlink()
+                logging.info(f"Converted PDF {image_path} to {tiff_path}")
+                return tiff_path
+             except Exception as e:
+                 logging.error(f"Failed to convert PDF {image_path}. Ensure Ghostscript or valid PDF decoder is installed: {e}")
+                 # Fallback strategy not available without external libs (pdf2image)
+                 return None
+
+        # Standard Image Conversion (JPG, PNG, etc.)
+        with Image.open(image_path) as img:
             img.verify()  # Verify if the image is corrupted
         
         # Re-open for processing
-        with Image.open(jpg_path) as img:
+        with Image.open(image_path) as img:
             # Apply EXIF orientation correction
-            img = apply_exif_orientation(img, jpg_path)
+            img = apply_exif_orientation(img, image_path)
             
-            # Convert to RGB if not already (handles various formats)
+            # Convert to RGB (handles RGBA from PNG, CMYK, etc.)
             if img.mode != 'RGB':
                 img = img.convert('RGB')
             
-            # Save as TIFF with high quality, no compression to preserve quality
+            # Save as TIFF with high quality, no compression
             img.save(tiff_path, "TIFF", compression='none')
         
-        # Delete the original JPG file after successful conversion
-        jpg_path.unlink()
-        logging.info(f"Converted {jpg_path} to {tiff_path} and deleted original JPG")
+        # Delete the original file after successful conversion
+        image_path.unlink()
+        logging.info(f"Converted {image_path} to {tiff_path} and deleted original")
         return tiff_path
         
     except UnidentifiedImageError as e:
-        logging.warning(f"Corrupted file detected: {jpg_path}. Attempting to fix...")
-        fixed_path = fix_corrupted_jpg(jpg_path)
-        if fixed_path:
-            return convert_jpg_to_tiff(fixed_path)  # Retry with the fixed file
-        logging.error(f"Unable to process {jpg_path}: {e}")
+        logging.warning(f"Corrupted file detected: {image_path}. Attempting to fix...")
+        # Only try to fix JPGs with the specific fix_corrupted_jpg logic
+        if image_path.suffix.lower() in ['.jpg', '.jpeg']:
+            fixed_path = fix_corrupted_jpg(image_path)
+            if fixed_path:
+                return convert_to_tiff(fixed_path)  # Retry with the fixed file
+        
+        logging.error(f"Unable to process {image_path}: {e}")
         return None
     except Exception as e:
-        logging.error(f"Error converting {jpg_path} to TIFF: {e}")
+        logging.error(f"Error converting {image_path} to TIFF: {e}")
         return None
 
 def extract_iid_from_xml(xml_file: Path) -> str:
@@ -883,26 +959,26 @@ def package_to_zip(tiff_path: Path, xml_path: Path, manifest_path: Path, output_
 def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, context: BatchContext) -> bool:
     """Process a single file set with context for dry-run and staging support"""
     try:
-        jpg_file = files.jpg
+        image_file = files.image
         xml_file = files.xml
         
         context.logger.info(f"Processing IID {iid} from {subfolder}")
         
-        if jpg_file is None:
+        if image_file is None:
             if context.csv_writer is not None:
-                context.csv_writer.writerow([iid, str(xml_file), 'N/A', 'WARNING', 'ORPHANED_XML', 'No matching JPG found'])
+                context.csv_writer.writerow([iid, str(xml_file), 'N/A', 'WARNING', 'ORPHANED_XML', 'No matching Image found'])
             return False
         
         # Validate orientation before processing
-        orientation_info = validate_image_orientation(jpg_file)
+        orientation_info = validate_image_orientation(image_file)
         if orientation_info.get('needs_correction', False):
-            context.logger.info(f"Image {jpg_file.name} has orientation {orientation_info['orientation_name']} - will be corrected")
+            context.logger.info(f"Image {image_file.name} has orientation {orientation_info['orientation_name']} - will be corrected")
             if context.csv_writer is not None:
-                context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'INFO', 'ORIENTATION', f"Detected: {orientation_info['orientation_name']}"])
+                context.csv_writer.writerow([iid, str(xml_file), str(image_file), 'INFO', 'ORIENTATION', f"Detected: {orientation_info['orientation_name']}"])
             
         if context.dry_run:
             # Simulate processing steps
-            context.logger.info(f"DRY RUN: Would convert {jpg_file.name} to TIFF with orientation correction")
+            context.logger.info(f"DRY RUN: Would convert {image_file.name} to TIFF with orientation correction")
             xml_name = xml_file.name if xml_file else 'N/A'
             context.logger.info(f"DRY RUN: Would extract IID {iid} from {xml_name}")
             context.logger.info(f"DRY RUN: Would create ZIP package for {iid}")
@@ -912,19 +988,19 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
                 dry_run_notes += f" (would correct {orientation_info['orientation_name']})"
             
             if context.csv_writer is not None:
-                context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'SUCCESS', 'DRY_RUN', dry_run_notes])
+                context.csv_writer.writerow([iid, str(xml_file), str(image_file), 'SUCCESS', 'DRY_RUN', dry_run_notes])
             return True
         
         # Actual processing with orientation correction
-        tiff_path = convert_jpg_to_tiff(jpg_file)  # Now includes orientation handling
+        tiff_path = convert_to_tiff(image_file)  # Now includes orientation handling
         if tiff_path is None:
             if context.csv_writer is not None:
-                context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'ERROR', 'CONVERT_FAILED', 'JPG to TIFF conversion failed'])
+                context.csv_writer.writerow([iid, str(xml_file), str(image_file), 'ERROR', 'CONVERT_FAILED', 'Image to TIFF conversion failed'])
             return False
 
         if xml_file is None:
             if context.csv_writer is not None:
-                context.csv_writer.writerow([iid, 'N/A', str(jpg_file), 'ERROR', 'MISSING_XML', 'XML file is None'])
+                context.csv_writer.writerow([iid, 'N/A', str(image_file), 'ERROR', 'MISSING_XML', 'XML file is None'])
             return False
 
         new_tiff, new_xml = rename_files(subfolder, tiff_path, xml_file, iid)
@@ -935,7 +1011,7 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
         
         if not manifest_path:
             if context.csv_writer is not None:
-                context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'ERROR', 'NO_MANIFEST', 'No manifest file found'])
+                context.csv_writer.writerow([iid, str(xml_file), str(image_file), 'ERROR', 'NO_MANIFEST', 'No manifest file found'])
             return False
             
         # Package the files
@@ -945,12 +1021,12 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
         if orientation_info.get('needs_correction', False):
             success_notes += f" (corrected {orientation_info['orientation_name']})"
         if context.csv_writer is not None:
-            context.csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'SUCCESS', 'PROCESSED', success_notes])
+            context.csv_writer.writerow([iid, str(xml_file), str(image_file), 'SUCCESS', 'PROCESSED', success_notes])
         return True
             
     except Exception as e:
         if context.csv_writer is not None:
-            context.csv_writer.writerow([iid, str(xml_file) if xml_file else '', str(jpg_file) if jpg_file else '', 'ERROR', 'EXCEPTION', str(e)])
+            context.csv_writer.writerow([iid, str(xml_file) if xml_file else '', str(image_file) if image_file else '', 'ERROR', 'EXCEPTION', str(e)])
         context.logger.error(f"Error processing {iid}: {str(e)}")
         return False
 
@@ -1038,47 +1114,36 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
             
             # Use enhanced photo set detection to handle complex directory structures
             try:
-                import sys
-                print("DEBUG: About to call find_photo_sets_enhanced", file=sys.stderr, flush=True)
                 photo_sets = find_photo_sets_enhanced(folder_path)
-                print(f"DEBUG: find_photo_sets_enhanced returned {len(photo_sets)} sets", file=sys.stderr, flush=True)
                 log_user_friendly(f"🔍 Found {len(photo_sets)} photo sets to process")
                 logger.info(f"Enhanced detection found {len(photo_sets)} photo sets")
                 
-                print(f"\nDEBUG: About to loop through {len(photo_sets)} photo sets", file=sys.stderr, flush=True)
-                print(f"DEBUG: First photo set type: {type(photo_sets[0]) if photo_sets else 'N/A'}", file=sys.stderr, flush=True)
-                if photo_sets:
-                    print(f"DEBUG: First photo set: {photo_sets[0]}", file=sys.stderr, flush=True)
-                
-                for photo_set in photo_sets:
-                    print(f"DEBUG: Processing photo_set, type={type(photo_set)}", file=sys.stderr, flush=True)
-                    print(f"DEBUG: Photo set has {len(photo_set.jpg_files)} JPG files and {len(photo_set.xml_files)} XML files", file=sys.stderr, flush=True)
-                    
+                for photo_set in photo_sets:                    
                     # Process ALL files in the photo set, not just the first one
-                    # Match JPG and XML files by IID
+                    # Match Image and XML files by IID
                     for xml_file in photo_set.xml_files:
                         try:
                             # Extract IID from XML file
                             iid = extract_iid_from_xml(xml_file)
                             
-                            # Find matching JPG file by IID
-                            matching_jpg = None
-                            for jpg_file in photo_set.jpg_files:
-                                # Match by filename (assuming JPG and XML have same base name)
-                                if jpg_file.stem == xml_file.stem:
-                                    matching_jpg = jpg_file
+                            # Find matching Image file by IID
+                            matching_image = None
+                            for image_file in photo_set.image_files:
+                                # Match by filename (assuming Image and XML have same base name)
+                                if image_file.stem == xml_file.stem:
+                                    matching_image = image_file
                                     break
                             
-                            if matching_jpg is None:
-                                logger.warning(f"No matching JPG found for XML {xml_file.name} (IID: {iid})")
+                            if matching_image is None:
+                                logger.warning(f"No matching Image found for XML {xml_file.name} (IID: {iid})")
                                 if context.csv_writer is not None:
-                                    context.csv_writer.writerow([iid, str(xml_file), 'N/A', 'WARNING', 'MISSING_JPG', 'No matching JPG file found'])
+                                    context.csv_writer.writerow([iid, str(xml_file), 'N/A', 'WARNING', 'MISSING_IMAGE', 'No matching Image file found'])
                                 continue
                             
-                            # Create FilePair for this specific JPG/XML pair
+                            # Create FilePair for this specific Image/XML pair
                             files = FilePair(
                                 xml=xml_file,
-                                jpg=matching_jpg,
+                                image=matching_image,
                                 iid=iid
                             )
                             

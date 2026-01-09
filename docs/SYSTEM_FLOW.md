@@ -17,18 +17,7 @@ This is the **definitive requirements and architecture specification** for the C
 
 **IMPORTANT:** If code behavior differs from this document, the code is wrong (not this document).
 
-## Documentation Style Guidelines
 
-**NO EMOJIS RULE:** All documentation in this project must be written without emojis. This ensures:
-- Professional appearance
-- Better accessibility (screen readers)
-- Consistent rendering across all platforms
-- Clear, distraction-free technical documentation
-- Long-term readability and maintainability
-
-Use clear headings, bullet points, and formatting instead of decorative symbols.
-
----
 
 ## System Overview
 
@@ -1604,6 +1593,18 @@ VALID_IMAGE_EXTENSIONS = ['.jpg', '.jpeg']  # Case-insensitive
 MANIFEST_FILENAME = 'manifest.ini'  # Case-insensitive
 MODS_NAMESPACE = 'http://www.loc.gov/mods/v3'
 ```
+
+---
+## Documentation Style Guidelines
+
+**NO EMOJIS RULE:** All documentation in this project must be written without emojis. This ensures:
+- Professional appearance
+- Better accessibility (screen readers)
+- Consistent rendering across all platforms
+- Clear, distraction-free technical documentation
+- Long-term readability and maintainability
+
+Use clear headings, bullet points, and formatting instead of decorative symbols.
 
 ---
 
