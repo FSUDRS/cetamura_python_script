@@ -87,7 +87,7 @@ jobs:
     - name: Check enhanced script functions
       run: |
         python -c "
-        from src.main import sanitize_name, convert_jpg_to_tiff, extract_iid_from_xml
+        from src.main import sanitize_name, convert_to_tiff, extract_iid_from_xml
         from src.main import find_photo_sets_enhanced, batch_process_with_safety_nets, extract_iid_from_xml_enhanced
         from src.main import PhotoSet, FilePair, BatchContext, validate_photo_set, apply_exif_orientation
         print('Successfully validated all core and enhanced module functions')
