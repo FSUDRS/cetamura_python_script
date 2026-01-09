@@ -102,19 +102,19 @@ jobs:
         # Test PhotoSet creation
         ps = PhotoSet(
             base_directory=Path('.'),
-            jpg_files=[Path('test.jpg')],
+            image_files=[Path('test.jpg')],
             xml_files=[Path('test.xml')],
             manifest_file=Path('manifest.ini'),
             structure_type='standard'
         )
-        assert isinstance(ps.jpg_files, list), 'jpg_files must be a list'
+        assert isinstance(ps.image_files, list), 'image_files must be a list'
         assert isinstance(ps.xml_files, list), 'xml_files must be a list'
-        print('PhotoSet structure validated: jpg_files and xml_files are lists')
+        print('PhotoSet structure validated: image_files and xml_files are lists')
         
         # Test FilePair creation
-        fp = FilePair(xml=Path('test.xml'), jpg=Path('test.jpg'), iid='test:001')
+        fp = FilePair(xml=Path('test.xml'), image=Path('test.jpg'), iid='test:001')
         assert fp.iid == 'test:001', 'FilePair IID mismatch'
-        print('FilePair structure validated: xml, jpg, iid fields present')
+        print('FilePair structure validated: xml, image, iid fields present')
         "
         
     - name: List available functions in the module (diagnostic)
