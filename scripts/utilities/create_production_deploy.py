@@ -15,8 +15,8 @@ def create_production_deployment():
     print("🚀 Creating Production Deployment - Safety Net Version")
     print("=" * 60)
     
-    # Get current directory
-    project_root = Path(__file__).parent
+    # Get current directory (repo root)
+    project_root = Path(__file__).resolve().parents[2]
     
     # Create production deployment directory
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -26,20 +26,18 @@ def create_production_deployment():
     prod_dir.mkdir(exist_ok=True)
     
     # Copy essential files to production
-    files_to_deploy = [
+    # Define files as (source_rel_to_root, dest_rel_to_prod)
+    files_candidates = [
         ("src/main.py", "main.py"),
-        ("requirements.txt", "requirements.txt"),
+        ("requirements/requirements.txt", "requirements.txt"),
         ("README.md", "README.md"),
-        ("batch_tool.log", "batch_tool.log") if Path("batch_tool.log").exists() else None,
-        ("assets/", "assets/") if Path("assets").exists() else None
+        ("batch_tool.log", "batch_tool.log"),
+        ("assets/", "assets/")
     ]
     
     print("\n📋 Copying files to production deployment:")
     
-    for source, dest in files_to_deploy:
-        if source is None:
-            continue
-            
+    for source, dest in files_candidates:
         source_path = project_root / source
         dest_path = prod_dir / dest
         
@@ -51,7 +49,8 @@ def create_production_deployment():
                 shutil.copy2(source_path, dest_path)
                 print(f"✓ {source} -> {dest}")
         else:
-            print(f"⚠ {source} not found, skipping")
+            if source not in ["batch_tool.log", "assets/"]: # Optional files
+                 print(f"⚠ {source} not found, skipping")
     
     # Create production documentation
     create_production_docs(prod_dir)
@@ -176,7 +175,7 @@ Parent_Folder/
 **Features:** Dry-Run, Staging, CSV Reporting, Enhanced UX
 """
     
-    (docs_dir / "README_PRODUCTION.md").write_text(prod_readme)
+    (docs_dir / "README_PRODUCTION.md").write_text(prod_readme, encoding="utf-8")
     print("✓ Production documentation created")
 
 def create_deployment_scripts(prod_dir):
@@ -221,7 +220,7 @@ echo Application closed
 pause
 """
     
-    (prod_dir / "deploy_windows.bat").write_text(windows_script)
+    (prod_dir / "deploy_windows.bat").write_text(windows_script, encoding="utf-8")
     
     # Linux/macOS deployment script
     unix_script = f"""#!/bin/bash
@@ -258,7 +257,7 @@ python3 main.py
 echo "Application closed"
 """
     
-    (prod_dir / "deploy_unix.sh").write_text(unix_script)
+    (prod_dir / "deploy_unix.sh").write_text(unix_script, encoding="utf-8")
     
     # Make Unix script executable
     try:
@@ -272,14 +271,18 @@ def create_version_info(prod_dir):
     """Create version information file"""
     
     version_info = f"""# Cetamura Batch Ingest Tool - Version Information
-# Production Release - Safety Net Version
+# Production Release - Validation & Safety Net Update
 
 VERSION="{datetime.now().strftime('%Y.%m.%d')}"
 BUILD_DATE="{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-RELEASE_TYPE="Production - Safety Net Features"
+RELEASE_TYPE="Production - Validation Features"
 
 # Key Features in This Release:
 FEATURES = [
+    "Post-Processing Validation - Automated verification of ZIP outputs",
+    "Reconciliation Reporting - detailed input/output auditing",
+    "Expanded File Support - Native processing of PDF and TIFF formats",
+    "Pre-Flight Checks - disk space and orphan file detection",
     "Dry-Run Mode - Preview processing without file changes",
     "Staging Mode - Non-destructive output to staging directory", 
     "CSV Reporting - Detailed processing logs with timestamps",
@@ -292,9 +295,12 @@ FEATURES = [
 
 # Improvements Completed:
 COMPLETED_IMPROVEMENTS = [
+    "#5 Post-Processing Validation - 100% Complete",
     "#8 UX Polish - 100% Complete",
     "#3 Manifest Validation - 100% Complete", 
-    "#6 Safety Nets - 100% Complete"
+    "#6 Safety Nets - 100% Complete",
+    "Expanded File Format Support (PDF/TIFF) - 100% Complete",
+    "CI/Test Infrastructure - Refactored and Stable"
 ]
 
 # Technical Details:
@@ -302,6 +308,7 @@ PYTHON_VERSION_MIN = "3.7"
 DEPENDENCIES = [
     "tkinter (GUI framework)",
     "PIL/Pillow (image processing)",
+    "PyMuPDF (PDF processing)",
     "pathlib (file operations)",
     "xml.etree.ElementTree (XML parsing)",
     "csv (report generation)"
@@ -315,7 +322,7 @@ TESTED_PLATFORMS = [
 ]
 """
     
-    (prod_dir / "VERSION_INFO.txt").write_text(version_info)
+    (prod_dir / "VERSION_INFO.txt").write_text(version_info, encoding="utf-8")
     print("✓ Version information created")
 
 def main():

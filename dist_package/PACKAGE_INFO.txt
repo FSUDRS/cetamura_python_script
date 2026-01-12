@@ -40,4 +40,4 @@ REQUIREMENTS:
   - 50MB disk space
   - Internet connection (for dependency installation)
 
-Version: 1.0.0 | Date: July 11, 2025 | Size: ~18MB
+Version: 1.2.0 | Date: January 12, 2026 | Size: ~18MB
