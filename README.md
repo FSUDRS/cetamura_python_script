@@ -1,5 +1,8 @@
 # CETAMURA BATCH INGEST TOOL
 
+![Version](https://img.shields.io/badge/version-1.2.0-blue)
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+
 ## Overview
 
 This tool automates the process for creating ingest files for the Cetamura Digital Collections.
@@ -28,12 +31,12 @@ python src/main.py
 
 ## What Gets Processed
 The tool looks for photo sets with:
-- JPG image file
+- Image file (JPG, TIFF, or PDF)
 - XML metadata file
 - INI manifest file
 
 ## Output
-- Converted TIFF files (with orientation correction)
+- Processed image files (TIFF/PDF preserved or converted)
 - ZIP packages (one per photo set)
 - CSV report of all processing results
 - Detailed logs
@@ -170,12 +173,14 @@ cetamura_python_script/
 
 ## Dependencies
 - PIL/Pillow - Image processing and orientation correction
+- PyMuPDF - PDF processing and rendering
 - tkinter - GUI (built into Python)
 - pathlib - File handling
 - csv - Report generation
 - logging - Error tracking and debugging
 
 ## Recent Changes
+- **v1.2.0**: Expanded file support (PDF/TIFF) and comprehensive safety nets (Dry-Run, Staging).
 - Consolidated all functionality into `src/main.py`
 - Added a function to automatically adjust wrongly positioned images using EXIF metadata
 
