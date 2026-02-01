@@ -423,14 +423,13 @@ def validate_photo_set(photo_set: PhotoSet) -> bool:
 
 ```python
 # Create context
-context = BatchContext(
-    output_dir=output_dir,
-    dry_run=dry_run,
-    staging=staging,
-    csv_path=csv_path,
-    csv_writer=csv_writer,
-    logger=logger
-)
+context = BatchContext(...)
+
+# Global Recovery Index: Map all image files in project by stem
+global_image_index = {}
+for file in find_all_files_recursive(folder_path):
+    if is_image(file):
+        global_image_index[file.stem] = file
 
 # Find photo sets
 photo_sets = find_photo_sets_enhanced(folder_path)
@@ -443,14 +442,31 @@ for photo_set in photo_sets:
             # Extract IID from this specific XML
             iid = extract_iid_from_xml(xml_file)
             
-            # Find matching JPG by filename stem
+            # Find matching JPG
             matching_jpg = None
+            
+            # Strategy 1: Strict Filename Match (Local)
             for jpg_file in photo_set.jpg_files:
                 if jpg_file.stem == xml_file.stem:
                     matching_jpg = jpg_file
                     break
             
-            # Warn if no match
+            # Strategy 2: Smart IID Match (Local)
+            if not matching_jpg:
+                 # Check if IID appears in any local filename
+                 ...
+
+            # Strategy 3: Lone Survivor (Local)
+            if not matching_jpg and len(jpgs)==1 and len(xmls)==1:
+                 matching_jpg = photo_set.jpg_files[0]
+
+            # Strategy 4: Global Recovery (Cross-Directory Link) [NEW v2026.01.30]
+            if not matching_jpg:
+                if xml_file.stem in global_image_index:
+                    matching_jpg = global_image_index[xml_file.stem]
+                    logger.warning(f"Strategy 4: Recovered image from {matching_jpg.parent}")
+
+            # Warn if still no match
             if matching_jpg is None:
                 logger.warning(f"No matching JPG for {xml_file.name}")
                 csv_writer.writerow([iid, str(xml_file), 'N/A', 'WARNING', 'MISSING_JPG', '...'])
@@ -472,23 +488,19 @@ for photo_set in photo_sets:
                 error_count += 1
                 
         except Exception as e:
-            logger.error(f"Error processing {xml_file.name}: {e}", exc_info=True)
-            csv_writer.writerow([iid, str(xml_file), '', 'ERROR', 'PROCESSING', str(e)])
-            error_count += 1
-
-# Write summary
-csv_writer.writerow(['SUMMARY', '', '', f'Success: {success_count}', f'Errors: {error_count}', f'Dry run: {dry_run}'])
-
-return success_count, error_count, csv_path
+            logger.error(...)
 ```
 
 **Key Behaviors:**
 1. **Outer loop:** Iterate through PhotoSets
 2. **Inner loop:** Iterate through ALL xml_files in each PhotoSet
-3. **Matching:** Find corresponding JPG by filename stem
-4. **FilePair creation:** One per file, not per PhotoSet
-5. **Error handling:** File-level errors don't stop batch
-6. **Counting:** Track success/error per file
+3. **Matching Strategies:** 
+    - 1. Precise local filename match
+    - 2. Local IID substring match
+    - 3. Single-pair assumption
+    - 4. **Global Recovery:** Finds images even if moved to wrong folder
+4. **Error handling:** File-level errors don't stop batch
+5. **Counting:** Track success/error per file
 
 **Example Execution:**
 ```

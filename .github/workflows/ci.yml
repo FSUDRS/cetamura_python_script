@@ -47,6 +47,10 @@ jobs:
         python -m pytest tests/test_main.py::test_photoset_namedtuple_structure -v
         python -m pytest tests/test_main.py::test_find_photo_sets_enhanced_with_multiple_files -v
         
+    - name: Run Global Recovery Strategy tests
+      run: |
+        python -m pytest tests/test_global_recovery.py -v
+        
     - name: Test custom test runner (all tests)
       run: |
         python tests/run_tests.py

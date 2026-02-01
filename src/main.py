@@ -436,9 +436,14 @@ def validate_photo_set(photo_set: PhotoSet) -> bool:
     Returns:
         True if valid, False otherwise
     """
-    if len(photo_set.image_files) == 0 or len(photo_set.xml_files) == 0:
-        logging.warning(f"Invalid photo set {photo_set.base_directory}: Missing Image or XML files")
+    # Allow missing images to support Global Recovery (orphaned XMLs)
+    if len(photo_set.xml_files) == 0:
+        logging.warning(f"Invalid photo set {photo_set.base_directory}: No XML files")
         return False
+
+    if len(photo_set.image_files) == 0:
+        logging.info(f"Photo set {photo_set.base_directory} has no images locally - candidate for Global Recovery")
+        # Proceed to allow this set
     
     # Check if we can extract IIDs from XML files
     valid_xml_count = 0
@@ -521,10 +526,12 @@ def find_photo_sets_enhanced(parent_folder: str, flexible_structure: bool = True
         if any(ps.base_directory == group['directory'] for ps in photo_sets):
             continue
         
-        if group['image_files'] and group['xml_files'] and group['manifest_files']:
+        # Relaxed condition: If we have XMLs and Manifest, we treat it as a set to process.
+        # This allows detecting "Orphaned XMLs" where the image is missing or located elsewhere (Global Recovery).
+        if group['xml_files'] and group['manifest_files']:
             photo_set = PhotoSet(
                 base_directory=group['directory'],
-                image_files=group['image_files'],
+                image_files=group['image_files'], # Might be empty
                 xml_files=group['xml_files'],
                 manifest_file=group['manifest_files'][0],  # Take first manifest if multiple
                 structure_type='standard'
@@ -1118,6 +1125,17 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
                 log_user_friendly(f"🔍 Found {len(photo_sets)} photo sets to process")
                 logger.info(f"Enhanced detection found {len(photo_sets)} photo sets")
                 
+                # Build global image index for recovery of misplaced files
+                global_image_index = {}
+                try:
+                    scan_results = find_all_files_recursive(Path(folder_path))
+                    # scan_results is {'image': [...], ...}
+                    for fpath in scan_results.get('image', []):
+                        global_image_index[fpath.stem] = fpath
+                    logger.info(f"Global index built with {len(global_image_index)} images")
+                except Exception as idx_err:
+                    logger.warning(f"Failed to build global index: {idx_err}")
+
                 for photo_set in photo_sets:                    
                     # Process ALL files in the photo set, not just the first one
                     # Match Image and XML files by IID
@@ -1128,12 +1146,43 @@ def batch_process_with_safety_nets(folder_path: str, dry_run: bool = False, stag
                             
                             # Find matching Image file by IID
                             matching_image = None
+                            
+                            # Strategy 1: Strict Filename Match
+                            # ... inside current directory
                             for image_file in photo_set.image_files:
-                                # Match by filename (assuming Image and XML have same base name)
                                 if image_file.stem == xml_file.stem:
                                     matching_image = image_file
                                     break
                             
+                            # Strategy 2: Smart IID Match (Fallback)
+                            # ... inside current directory
+                            if matching_image is None:
+                                for image_file in photo_set.image_files:
+                                    # Check if the IID string appears in the image filename
+                                    if iid in image_file.name:
+                                        matching_image = image_file
+                                        logger.info(f"Smart Match: Found image {image_file.name} for XML {xml_file.name} based on IID {iid}")
+                                        break
+                                        
+                            # Strategy 3: Lone Survivor / Single Pair Match (Fallback)
+                            # ... inside current directory
+                            if matching_image is None:
+                                if len(photo_set.image_files) == 1 and len(photo_set.xml_files) == 1:
+                                    matching_image = photo_set.image_files[0]
+                                    logger.info(f"Smart Match: Assumed pairing for lone files - Image {matching_image.name} and XML {xml_file.name}")
+
+                            # Strategy 4: Global Index Recovery (Cross-Directory Link)
+                            if matching_image is None:
+                                # Try to match by stem in the global index
+                                if xml_file.stem in global_image_index:
+                                    potential_match = global_image_index[xml_file.stem]
+                                    # Verify it's not the same file we already checked (unlikely if loop finished)
+                                    matching_image = potential_match
+                                    logger.warning(f"Strategy 4: Recovered image {matching_image.name} from DIFFERENT directory: {matching_image.parent}")
+                                    if context.csv_writer is not None:
+                                        # Log this recovery operation
+                                        context.csv_writer.writerow([iid, str(xml_file), str(matching_image), 'WARNING', 'CROSS_LINK', f'Image recovered from: {matching_image.parent.name}'])
+
                             if matching_image is None:
                                 logger.warning(f"No matching Image found for XML {xml_file.name} (IID: {iid})")
                                 if context.csv_writer is not None:
