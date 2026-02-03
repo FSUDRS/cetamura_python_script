@@ -19,6 +19,9 @@ if _vendored.exists():
 
 from pathlib import Path
 from PIL import Image, ImageTk, UnidentifiedImageError
+# Allow loading large images (prevent DecompressionBombError for large maps)
+Image.MAX_IMAGE_PIXELS = None
+
 try:
     import fitz  # PyMuPDF
 except ImportError:
@@ -308,7 +311,7 @@ def find_all_files_recursive(parent_folder: Path, max_depth: int = 5) -> Dict[st
                         files['xml'].append(item)
                     elif item.name.lower() == 'manifest.ini':
                         files['manifest'].append(item)
-                elif item.is_dir():
+                elif item.is_dir() and not item.is_symlink():
                     search_directory(item, current_depth + 1)
         except (PermissionError, OSError) as e:
             logging.warning(f"Cannot access directory {directory}: {e}")
@@ -803,20 +806,24 @@ def convert_to_tiff(image_path: Path) -> Optional[Path]:
                  try:
                      doc = fitz.open(image_path)
                      page = doc.load_page(0)  # load the first page
-                     pix = page.get_pixmap()
+                     
+                     # Render at 300 DPI (default is 72 DPI)
+                     zoom = 300 / 72
+                     mat = fitz.Matrix(zoom, zoom)
+                     pix = page.get_pixmap(matrix=mat)
                      
                      # Create PIL Image from pixmap
                      mode = "RGBA" if pix.alpha else "RGB"
-                     img = Image.frombytes(mode, [pix.width, pix.height], pix.samples)
+                     img = Image.frombytes(mode, (pix.width, pix.height), pix.samples)
                      
                      if img.mode != 'RGB':
                         img = img.convert('RGB')
                         
-                     img.save(tiff_path, "TIFF", compression='none')
+                     img.save(tiff_path, "TIFF", compression='none', dpi=(300, 300))
                      doc.close()
                      
                      image_path.unlink()
-                     logging.info(f"Converted PDF {image_path} to {tiff_path} using PyMuPDF")
+                     logging.info(f"Converted PDF {image_path} to {tiff_path} using PyMuPDF (300 DPI)")
                      return tiff_path
                  except Exception as e:
                      logging.warning(f"PyMuPDF conversion failed for {image_path}: {e}. Falling back to Pillow.")
@@ -829,7 +836,7 @@ def convert_to_tiff(image_path: Path) -> Optional[Path]:
                     
                     # Convert to RGB (PDFs are often CMYK or P)
                     img = img.convert('RGB')
-                    img.save(tiff_path, "TIFF", compression='none')
+                    img.save(tiff_path, "TIFF", compression='none', dpi=(300, 300))
                     
                 image_path.unlink()
                 logging.info(f"Converted PDF {image_path} to {tiff_path}")
@@ -845,6 +852,9 @@ def convert_to_tiff(image_path: Path) -> Optional[Path]:
         
         # Re-open for processing
         with Image.open(image_path) as img:
+            # Capture original DPI if available
+            original_dpi = img.info.get('dpi', (300, 300))
+
             # Apply EXIF orientation correction
             img = apply_exif_orientation(img, image_path)
             
@@ -852,8 +862,8 @@ def convert_to_tiff(image_path: Path) -> Optional[Path]:
             if img.mode != 'RGB':
                 img = img.convert('RGB')
             
-            # Save as TIFF with high quality, no compression
-            img.save(tiff_path, "TIFF", compression='none')
+            # Save as TIFF with high quality, no compression, preserving DPI
+            img.save(tiff_path, "TIFF", compression='none', dpi=original_dpi)
         
         # Delete the original file after successful conversion
         image_path.unlink()
@@ -1329,7 +1339,7 @@ def batch_process(root: str, jpg_files: list, xml_files: list, ini_files: list) 
             try:
                 # Process files
                 iid = extract_iid_from_xml(xml_file)
-                tiff_path = convert_jpg_to_tiff(jpg_file)
+                tiff_path = convert_to_tiff(jpg_file)
                 if tiff_path is None:
                     skipped += 1
                     continue
