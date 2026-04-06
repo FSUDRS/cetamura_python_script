@@ -295,9 +295,9 @@ def setup_patent_batch_directory(tmp_path):
     patent_batch_dir.mkdir()
 
     manifest_content = """[package]
-submitter_email = rmr17b@fsu.edu
-content_model = ir:citationCModel
-parent_collection = fsu:florida_state_university_patents
+submitter_email = submitter@example.edu
+content_model = example:contentModel
+parent_collection = example:patent_collection
 """
     (patent_batch_dir / "manifest.ini").write_text(manifest_content, encoding="utf-8")
 
@@ -659,9 +659,9 @@ def test_patent_batch_pdf_falls_back_to_search_roots(tmp_path, monkeypatch):
     patent_id = "US-12444920-B2"
     (patent_batch_dir / "manifest.ini").write_text(
         """[package]
-submitter_email = rmr17b@fsu.edu
-content_model = ir:citationCModel
-parent_collection = fsu:florida_state_university_patents
+submitter_email = patent-operator@example.edu
+content_model = example:contentModel
+parent_collection = example:patent_collection
 """,
         encoding="utf-8",
     )
@@ -684,13 +684,13 @@ parent_collection = fsu:florida_state_university_patents
 
 
 def test_patent_batch_invalid_manifest_blocks_batch(setup_patent_batch_directory):
-    """Invalid manifest values should prevent patent ZIP creation for the batch."""
+    """Missing required manifest fields should prevent patent ZIP creation for the batch."""
     root_dir, patent_batch_dir, patent_ids = setup_patent_batch_directory
     (patent_batch_dir / "manifest.ini").write_text(
         """[package]
-submitter_email = wrong@example.com
-content_model = ir:citationCModel
-parent_collection = fsu:florida_state_university_patents
+submitter_email =
+content_model = example:contentModel
+parent_collection = example:patent_collection
 """,
         encoding="utf-8",
     )
@@ -706,6 +706,29 @@ parent_collection = fsu:florida_state_university_patents
     assert error_count == len(patent_ids)
     assert not list((root_dir / "output").glob("*.zip"))
     assert "INVALID_MANIFEST" in csv_path.read_text(encoding="utf-8")
+
+
+def test_patent_batch_manifest_allows_variable_values(setup_patent_batch_directory):
+    """Patent manifests should allow different non-empty package values."""
+    root_dir, patent_batch_dir, patent_ids = setup_patent_batch_directory
+    (patent_batch_dir / "manifest.ini").write_text(
+        """[package]
+submitter_email = another.submitter@example.edu
+content_model = custom:patentModel
+parent_collection = custom:patent_collection
+""",
+        encoding="utf-8",
+    )
+
+    success_count, error_count, _ = batch_process_with_safety_nets(
+        folder_path=str(root_dir),
+        dry_run=False,
+        staging=False,
+        workflow=WORKFLOW_PATENT,
+    )
+
+    assert success_count == len(patent_ids)
+    assert error_count == 0
 
 
 def test_scan_folder_for_workflow_photo_summary(setup_multi_file_directory):

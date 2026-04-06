@@ -54,15 +54,8 @@ Behavior:
 - XML filename stem must match the IID
 - normalized XML `document ID` must match the IID
 - ZIP contents are `PDF + XML + manifest.ini`
-
-Required patent manifest values:
-
-```ini
-[package]
-submitter_email = rmr17b@fsu.edu
-content_model = ir:citationCModel
-parent_collection = fsu:florida_state_university_patents
-```
+- the shared manifest must include a `[package]` section and the required package fields
+- the application does not enforce specific patent manifest values
 
 ## Run Modes
 

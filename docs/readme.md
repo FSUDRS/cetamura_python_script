@@ -26,15 +26,7 @@ Have these ready:
 - patent XML files in one batch directory
 - one shared `manifest.ini` in that same directory
 - matching PDFs in the same directory, or accessible through configured fallback search roots
-
-Required patent manifest values:
-
-```ini
-[package]
-submitter_email = rmr17b@fsu.edu
-content_model = ir:citationCModel
-parent_collection = fsu:florida_state_university_patents
-```
+- a shared manifest with a `[package]` section and the required package fields
 
 ## Main Screen
 

@@ -66,11 +66,11 @@ PATENT_SEARCH_ROOTS = [
     for path_str in os.environ.get('CETAMURA_PATENT_SEARCH_ROOTS', '').split(os.pathsep)
     if path_str.strip()
 ]
-PATENT_MANIFEST_REQUIREMENTS = {
-    'submitter_email': 'rmr17b@fsu.edu',
-    'content_model': 'ir:citationCModel',
-    'parent_collection': 'fsu:florida_state_university_patents',
-}
+PATENT_MANIFEST_REQUIRED_KEYS = (
+    'submitter_email',
+    'content_model',
+    'parent_collection',
+)
 
 # GUI global variables - initialized in main()
 root_window = None
@@ -327,7 +327,7 @@ def extract_identifier_from_xml_by_type(xml_file: Path, identifier_type: str) ->
 
 
 def validate_patent_manifest(manifest_path: Path) -> List[str]:
-    """Validate the shared patent manifest values."""
+    """Validate that the shared patent manifest has the required structure."""
     errors: List[str] = []
     parser = configparser.ConfigParser()
 
@@ -340,12 +340,10 @@ def validate_patent_manifest(manifest_path: Path) -> List[str]:
     if not parser.has_section('package'):
         return ["manifest.ini missing [package] section"]
 
-    for key, expected_value in PATENT_MANIFEST_REQUIREMENTS.items():
+    for key in PATENT_MANIFEST_REQUIRED_KEYS:
         actual_value = parser.get('package', key, fallback='').strip()
-        if actual_value != expected_value:
-            errors.append(
-                f"manifest.ini has {key}='{actual_value}' (expected '{expected_value}')"
-            )
+        if not actual_value:
+            errors.append(f"manifest.ini missing required package value: {key}")
 
     return errors
 
