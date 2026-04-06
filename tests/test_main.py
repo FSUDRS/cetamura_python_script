@@ -295,7 +295,7 @@ def setup_patent_batch_directory(tmp_path):
     patent_batch_dir.mkdir()
 
     manifest_content = """[package]
-submitter_email = submitter@example.edu
+submitter_email = submitter_placeholder
 content_model = example:contentModel
 parent_collection = example:patent_collection
 """
@@ -659,7 +659,7 @@ def test_patent_batch_pdf_falls_back_to_search_roots(tmp_path, monkeypatch):
     patent_id = "US-12444920-B2"
     (patent_batch_dir / "manifest.ini").write_text(
         """[package]
-submitter_email = patent-operator@example.edu
+submitter_email = patent_operator_placeholder
 content_model = example:contentModel
 parent_collection = example:patent_collection
 """,
@@ -713,7 +713,7 @@ def test_patent_batch_manifest_allows_variable_values(setup_patent_batch_directo
     root_dir, patent_batch_dir, patent_ids = setup_patent_batch_directory
     (patent_batch_dir / "manifest.ini").write_text(
         """[package]
-submitter_email = another.submitter@example.edu
+submitter_email = alternate_submitter_placeholder
 content_model = custom:patentModel
 parent_collection = custom:patent_collection
 """,
