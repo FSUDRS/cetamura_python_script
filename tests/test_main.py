@@ -4,6 +4,7 @@ Focused on functions actually used by the GUI application
 """
 import pytest
 from pathlib import Path
+from typing import Optional
 from PIL import Image
 import csv
 import zipfile
@@ -276,7 +277,7 @@ def setup_multi_file_directory(tmp_path):
     return tmp_path, photo_set_dir, test_files
 
 
-def create_patent_xml(iid: str, document_id: str | None = None) -> str:
+def create_patent_xml(iid: str, document_id: Optional[str] = None) -> str:
     document_id = document_id or iid.replace('-', ' ')
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <mods xmlns="http://www.loc.gov/mods/v3">
