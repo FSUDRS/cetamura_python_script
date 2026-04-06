@@ -1,214 +1,207 @@
-# CETAMURA BATCH INGEST TOOL
+# Cetamura Batch Ingest Tool
 
-![Version](https://img.shields.io/badge/version-1.2.0-blue)
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+![Version](https://img.shields.io/badge/version-1.3.0-blue)
+![Build](https://img.shields.io/badge/build-GitHub_Actions-brightgreen)
 
 ## Overview
 
-This tool automates the process for creating ingest files for the Cetamura Digital Collections.
+The Cetamura Batch Ingest Tool packages ingest-ready ZIP files for two workflows:
 
-> 
-## Quick Start
+- `Photo`: image asset + XML metadata + `manifest.ini`
+- `Patent`: PDF + XML metadata + shared `manifest.ini`
 
+The current application is workflow-aware, non-mutating, and designed so staging and production runs never modify source folders. Generated ZIPs, reports, and temporary scratch files are written only under the selected folder's `output/` or `staging_output/` directory.
 
-### Run from Source(Best way)
+## Key Features
+
+- GUI workflow selector for `Photo` and `Patent`
+- `Dry Run`, `Staging`, and `Production` run modes
+- Non-mutating processing in both staging and production
+- Output-side scratch workspace for photo TIFF conversion
+- Patent batch packaging with shared manifest validation
+- Optional fallback patent PDF lookup via `CETAMURA_PATENT_SEARCH_ROOTS`
+- CSV reporting, technical logs, and user-facing summary logs
+- Pre-flight checks, ZIP validation, and reconciliation reporting
+- GitHub Actions CI for tests and regression coverage
+
+## Supported Workflows
+
+### Photo Workflow
+
+Expected input:
+
+- image file such as `.jpg`, `.jpeg`, `.png`, `.tif`, `.tiff`, or `.pdf`
+- matching XML metadata containing an IID
+- `manifest.ini`
+
+Behavior:
+
+- source images are read only
+- TIFF conversion happens in an output-side scratch workspace
+- ZIP contents are `TIFF + XML + manifest.ini`
+
+### Patent Workflow
+
+Expected input:
+
+- one or more patent XML files in a batch directory
+- one shared `manifest.ini` in that same batch directory
+- matching patent PDFs in the batch directory, or in configured fallback search roots
+
+Behavior:
+
+- canonical package name comes from XML `<identifier type="IID">`
+- XML filename stem must match the IID
+- normalized XML `document ID` must match the IID
+- ZIP contents are `PDF + XML + manifest.ini`
+
+Required patent manifest values:
+
+```ini
+[package]
+submitter_email = rmr17b@fsu.edu
+content_model = ir:citationCModel
+parent_collection = fsu:florida_state_university_patents
+```
+
+## Run Modes
+
+### Dry Run
+
+- performs discovery, validation, and CSV reporting
+- creates no ZIP files
+- leaves source and output packages untouched
+
+### Staging
+
+- writes ZIP files and reports to `staging_output/`
+- intended for review before production
+
+### Production
+
+- writes ZIP files and reports to `output/`
+- intended for final ingest-ready packaging
+
+## Running From Source
+
+### Requirements
+
+- Windows 10 or 11
+- Python `3.9+`
+
+### Install
+
 ```bash
-git clone [repo-url]
+git clone https://github.com/FSUDRS/cetamura_python_script.git
 cd cetamura_python_script
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements/requirements.txt
+```
+
+### Launch
+
+```bash
 python src/main.py
 ```
 
-## How to Use
+### Optional Development Dependencies
 
-1. **Select Folder**: Choose the parent folder containing your photo sets
-2. **Processing Options**:
-   - **Workflow Type**: Choose `Photo` or `Patent`
-   - **Dry Run**: Preview what will happen without changing files
-   - **Staging**: Build reviewable ZIPs in `staging_output/`
-   - **Production**: Build final ZIPs in `output/`
-3. **Start Processing**: Click the button and wait for completion
-4. **Check Results**: Review the CSV report and output folder
-
-## What Gets Processed
-The tool supports two workflows:
-- **Photo**: image file (JPG, TIFF, PNG, or PDF) + XML metadata + `manifest.ini`
-- **Patent**: patent PDF + patent XML + shared `manifest.ini`
-
-## Output
-- ZIP packages only in `output/` or `staging_output/`
-- CSV report of all processing results
-- Detailed logs
-- **NEW:** Post-processing validation reports
-
-Source folders are now treated as read-only in both staging and production. Any temporary conversion work happens in an internal scratch workspace under the output root and is cleaned up after packaging.
-
-## Post-Processing Validation (New Feature)
-
-The tool now includes comprehensive validation to ensure outputs match expectations:
-
-### Pre-Flight Checks
-Before processing starts, the tool verifies:
--  Sufficient disk space available
--  Write permissions to output directory
--  Orphaned files from previous runs (warning)
-
-**Example Output:**
-```
-[INFO] Running pre-flight checks...
-[PASS] Pre-flight checks passed. Disk space: 125.3 GB available
+```bash
+python -m pip install -r requirements/requirements-dev.txt
 ```
 
-### Post-Processing Validation
-After processing completes, the tool validates:
--  Expected number of ZIPs match actual ZIPs created
--  Each ZIP contains correct structure (TIFF, XML, manifest.ini)
--  No ZIPs created during dry run mode
+## Patent PDF Fallback Configuration
 
-**Example Output:**
-```
-[PASS] Post-processing validation: 25 valid ZIPs
-```
+If patent PDFs may live outside the selected batch folder, configure fallback search roots with the `CETAMURA_PATENT_SEARCH_ROOTS` environment variable.
 
-### Reconciliation Report
-The tool generates a detailed reconciliation report comparing:
-- Input XML file count
-- CSV SUCCESS row count
-- Actual ZIP file count
-- Valid ZIP file count
+Windows example:
 
-**Example Output:**
-```
-=== Reconciliation Report ===
-Input XML files: 25
-CSV SUCCESS rows: 25
-Actual ZIP files: 25
-Valid ZIP files: 25
-[PASS] No discrepancies found.
+```powershell
+$env:CETAMURA_PATENT_SEARCH_ROOTS = "C:\patents\primary;D:\cetamura\archive"
+python src\main.py
 ```
 
-### What Validation Detects
--  Missing ZIPs (success logged but no ZIP created)
--  Corrupted ZIPs (wrong number of files or missing components)
--  Disk full scenarios (caught before processing starts)
--  Orphaned files (*_PROC.tif, *_PROC.xml without ZIPs)
--  Dry run violations (ZIPs created when they shouldn't be)
+Use the platform path separator when providing multiple roots.
 
-**Note:** Validation reports issues but doesn't block completed processing. Pre-flight checks will block processing if critical issues are found (disk space, permissions).
+## Output and Logs
 
-## File Locations
-- **Output**: `output/` folder in your selected directory
-- **Staging**: `staging_output/` folder (for staging mode)
-- **Reports**: CSV files with timestamp in filename
-- **Logs**: `batch_tool.log` in application folder
+For a selected source folder:
+
+- staging ZIPs are written to `staging_output/`
+- production ZIPs are written to `output/`
+- CSV reports are written to the active output folder, or to the selected folder during dry run
+- technical logs are written to `batch_tool.log`
+- user-facing summary logs are written to `batch_process_summary.log`
+
+The application may create a temporary `.work/` directory under the active output root during processing. It is cleaned up after successful runs.
+
+## Validation and Safety Nets
+
+Before processing:
+
+- disk space is checked
+- output write access is checked
+- configured patent fallback roots are validated when patent mode is active
+
+After processing:
+
+- ZIP counts are validated against successful CSV rows
+- ZIP contents are validated by workflow
+- reconciliation compares XML count, CSV success count, actual ZIP count, and valid ZIP count
+
+## Testing
+
+Run the local test suite:
+
+```bash
+python -m pytest
+```
+
+Run the project test runner:
+
+```bash
+python tests/run_tests.py
+```
+
+The GitHub Actions workflow runs on pushes to `main`, `master`, and `ci-cd-development`.
+
+## Repository Layout
+
+```text
+cetamura_python_script/
+  .github/
+    workflows/
+      ci.yml
+  docs/
+    readme.md
+  requirements/
+    requirements.txt
+    requirements-dev.txt
+  src/
+    main.py
+    validation.py
+  tests/
+    run_tests.py
+    test_global_recovery.py
+    test_main.py
+    test_validation.py
+  README.md
+  pytest.ini
+```
 
 ## Troubleshooting
-- **No photo sets found**: Check folder structure and file naming
-- **Processing fails**: Check the CSV report for specific errors
-- **Application won't start**: Ensure Python 3.11+ or download fresh executable
-## Current Structure
-```
-cetamura_python_script/
- src/
-    main.py              # Complete application (1500+ lines)
-    __init__.py
- tests/
-    test_main.py         # Core functionality tests
-    test_utils.py        # Utility function tests
-    test_pairing_improvements.py
-    run_tests.py         # Test runner
- dist_package/
-    build_scripts/       # Cross-platform build scripts
-    docs/               # Build documentation
-    install_windows.ps1 # Windows installer
-    install_macos.sh    # macOS installer
- docs/
-    cicd.md             # Build automation guide
-    project_structure.md # This file
-    readme.md           # User guide
-    bugs.md             # Known issues
- scripts/
-    build/              # Legacy build scripts
-    setup/              # Environment setup
-    utilities/          # Development utilities
- requirements/
-    requirements.txt    # Production dependencies
- .github/workflows/      # GitHub Actions CI/CD
- requirements-dev.txt    # Development dependencies
- pytest.ini            # Test configuration
- README.md             # Main project readme
-```
 
-## What Each Part Does
+- `No valid photo sets detected`: verify image files, XML files, and `manifest.ini` placement.
+- `No valid patent batch directories detected`: verify patent XML files and exactly one shared `manifest.ini` in the batch directory.
+- `No PDF found for ...`: either place the PDF in the selected patent batch folder or configure `CETAMURA_PATENT_SEARCH_ROOTS`.
+- `Post-processing validation failed`: review the CSV report and `batch_tool.log` for ZIP or count mismatches.
 
-**src/main.py**
-- Complete GUI application
-- Batch processing logic
-- Image orientation correction
-- File validation and conversion
-- CSV reporting
-- Everything runs from this one file
+## Current Status
 
-**tests/**
-- Unit tests for all main functions
-- Test runner and configuration
-- Validates core functionality
+The current release includes:
 
-**dist_package/**
-- Cross-platform build scripts
-- Windows and macOS installers
-- Distribution documentation
-
-**docs/**
-- User and developer documentation
-- Straightforward, no-jargon guides
-- Build and troubleshooting info
-
-## How It Works
-1. User runs `python src/main.py` or the built executable
-2. GUI opens for folder selection
-3. App finds photo sets (JPG + XML + manifest files)
-4. Processes images with orientation correction
-5. Creates ZIP packages for each photo set
-6. Generates CSV report of results
-
-## Dependencies
-- PIL/Pillow - Image processing and orientation correction
-- PyMuPDF - PDF processing and rendering
-- tkinter - GUI (built into Python)
-- pathlib - File handling
-- csv - Report generation
-- logging - Error tracking and debugging
-
-## Recent Changes
-- **v1.2.0**: Expanded file support (PDF/TIFF) and comprehensive safety nets (Dry-Run, Staging).
-- Consolidated all functionality into `src/main.py`
-- Added a function to automatically adjust wrongly positioned images using EXIF metadata
-
-### Building Executables
-```bash
-# Windows
-scripts/build/build_exe.ps1
-
-# macOS
-scripts/build/build_exe_macos.sh
-
-# Cross-platform
-scripts/build/build_cross_platform.sh
-```
-
-### Development Setup
-```bash
-# Windows
-scripts/setup/setup_dev.ps1
-
-# macOS
-scripts/setup/setup_macos.sh
-```
-
-## Notes
-- The main working application is in `src/main.py`
-- All build and utility scripts are now organized under `scripts/`
-- Logs are automatically stored in the `logs/` directory
-
----
+- non-mutating staging and production behavior
+- patent batch packaging
+- workflow-aware GUI refresh
+- garnet-and-gold UI theme
+- expanded regression coverage and CI compatibility updates
