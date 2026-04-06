@@ -52,6 +52,18 @@ class TestVerifyZipContents:
         is_valid, errors = verify_zip_contents(zip_path)
         assert is_valid is True
         assert len(errors) == 0
+
+    def test_valid_patent_zip_passes_for_pdf_mode(self, tmp_path):
+        """Patent ZIPs should validate against PDF + XML + manifest.ini."""
+        zip_path = tmp_path / "patent.zip"
+        with zipfile.ZipFile(zip_path, 'w') as zf:
+            zf.writestr("US-12444920-B2.pdf", b"%PDF-1.4 fake")
+            zf.writestr("US-12444920-B2.xml", b"<xml/>")
+            zf.writestr("manifest.ini", b"[package]")
+
+        is_valid, errors = verify_zip_contents(zip_path, expected_asset_type="pdf")
+        assert is_valid is True
+        assert errors == []
     
     def test_missing_tiff_fails(self, tmp_path):
         """ZIP missing TIFF file fails"""
@@ -340,22 +352,21 @@ class TestReconciliationReport:
         assert any("Actual ZIP count" in d and "Valid ZIP count" in d for d in report.discrepancies)
     
     def test_orphaned_files_detection(self, tmp_path):
-        """Detects orphaned _PROC files without corresponding ZIPs"""
+        """Detects leftover scratch files without corresponding ZIPs"""
         photo_sets = []
         csv_path = tmp_path / "batch_summary.csv"
         csv_path.write_text("status\n")
-        
-        # Create orphaned files
-        (tmp_path / "file1_PROC.tif").write_bytes(b"fake tiff")
-        (tmp_path / "file2_PROC.xml").write_bytes(b"<xml/>")
-        
-        # No ZIPs created
-        
-        report = generate_reconciliation_report(photo_sets, csv_path, tmp_path)
+
+        work_root = tmp_path / ".work" / "run_001"
+        work_root.mkdir(parents=True)
+        (work_root / "file1.tif").write_bytes(b"fake tiff")
+        (work_root / "file2.xml").write_bytes(b"<xml/>")
+
+        report = generate_reconciliation_report(photo_sets, csv_path, tmp_path, work_root=tmp_path / ".work")
         
         assert len(report.orphaned_files) == 2
-        assert any("file1_PROC.tif" in of for of in report.orphaned_files)
-        assert any("file2_PROC.xml" in of for of in report.orphaned_files)
+        assert any("file1.tif" in of for of in report.orphaned_files)
+        assert any("file2.xml" in of for of in report.orphaned_files)
     
     def test_missing_csv_file(self, tmp_path):
         """Handles missing CSV file gracefully"""
@@ -401,34 +412,35 @@ class TestPreFlightChecks:
         assert result.required_space_gb >= 0
     
     def test_orphaned_files_warning(self, tmp_path):
-        """Orphaned files trigger warning"""
-        # Create orphaned files
-        (tmp_path / "old_PROC.tif").write_bytes(b"fake tiff")
-        (tmp_path / "old_PROC.xml").write_bytes(b"<xml/>")
+        """Leftover scratch files trigger warning"""
+        work_root = tmp_path / ".work" / "run_001"
+        work_root.mkdir(parents=True)
+        (work_root / "old.tif").write_bytes(b"fake tiff")
+        (work_root / "old.xml").write_bytes(b"<xml/>")
         
         photo_sets = []
-        result = pre_flight_checks(photo_sets, tmp_path)
+        result = pre_flight_checks(photo_sets, tmp_path, work_root=tmp_path / ".work")
         
         assert result.orphaned_tiff_count == 1
         assert result.orphaned_xml_count == 1
-        assert any("orphaned" in w.lower() for w in result.warnings)
+        assert any("scratch" in w.lower() for w in result.warnings)
     
     def test_multiple_orphaned_files(self, tmp_path):
-        """Multiple orphaned files are counted correctly"""
-        # Create multiple orphaned files
-        (tmp_path / "file1_PROC.tif").write_bytes(b"fake tiff")
-        (tmp_path / "file2_PROC.tif").write_bytes(b"fake tiff")
-        (tmp_path / "file3_PROC.tif").write_bytes(b"fake tiff")
-        (tmp_path / "file1_PROC.xml").write_bytes(b"<xml/>")
-        (tmp_path / "file2_PROC.xml").write_bytes(b"<xml/>")
+        """Multiple leftover scratch files are counted correctly"""
+        work_root = tmp_path / ".work" / "run_001"
+        work_root.mkdir(parents=True)
+        (work_root / "file1.tif").write_bytes(b"fake tiff")
+        (work_root / "file2.tif").write_bytes(b"fake tiff")
+        (work_root / "file3.tif").write_bytes(b"fake tiff")
+        (work_root / "file1.xml").write_bytes(b"<xml/>")
+        (work_root / "file2.xml").write_bytes(b"<xml/>")
         
         photo_sets = []
-        result = pre_flight_checks(photo_sets, tmp_path)
+        result = pre_flight_checks(photo_sets, tmp_path, work_root=tmp_path / ".work")
         
         assert result.orphaned_tiff_count == 3
         assert result.orphaned_xml_count == 2
-        assert any("3 TIFF" in w for w in result.warnings)
-        assert any("2 XML" in w for w in result.warnings)
+        assert any("leftover scratch files" in w.lower() for w in result.warnings)
     
     def test_write_permission_check(self, tmp_path):
         """Write permission is validated"""
@@ -441,16 +453,15 @@ class TestPreFlightChecks:
         assert len(result.blockers) == 0
     
     def test_no_orphaned_files_no_warning(self, tmp_path):
-        """No orphaned files means no warnings"""
+        """No leftover scratch files means no warnings"""
         photo_sets = []
         
         result = pre_flight_checks(photo_sets, tmp_path)
         
         assert result.orphaned_tiff_count == 0
         assert result.orphaned_xml_count == 0
-        # Should either have no warnings or warnings not about orphaned files
-        orphan_warnings = [w for w in result.warnings if "orphaned" in w.lower()]
-        assert len(orphan_warnings) == 0
+        scratch_warnings = [w for w in result.warnings if "scratch" in w.lower()]
+        assert len(scratch_warnings) == 0
     
     def test_large_batch_disk_space_estimation(self, tmp_path):
         """Large batch estimates disk space correctly"""

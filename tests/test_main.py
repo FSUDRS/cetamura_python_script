@@ -6,6 +6,8 @@ import pytest
 from pathlib import Path
 from PIL import Image
 import csv
+import zipfile
+import src.main as main_module
 from src.main import (
     find_photo_sets,
     find_photo_sets_enhanced,
@@ -21,6 +23,9 @@ from src.main import (
     validate_photo_set,
     batch_process_with_safety_nets,
     apply_exif_orientation,
+    scan_folder_for_workflow,
+    WORKFLOW_PHOTO,
+    WORKFLOW_PATENT,
 )
 
 @pytest.fixture
@@ -271,6 +276,38 @@ def setup_multi_file_directory(tmp_path):
     return tmp_path, photo_set_dir, test_files
 
 
+def create_patent_xml(iid: str, document_id: str | None = None) -> str:
+    document_id = document_id or iid.replace('-', ' ')
+    return f"""<?xml version="1.0" encoding="UTF-8"?>
+<mods xmlns="http://www.loc.gov/mods/v3">
+    <identifier type="IID">{iid}</identifier>
+    <identifier type="document ID">{document_id}</identifier>
+</mods>"""
+
+
+@pytest.fixture
+def setup_patent_batch_directory(tmp_path):
+    """Setup a nested patent batch directory with shared manifest and matching PDF/XML pairs."""
+    root_dir = tmp_path / "selected"
+    root_dir.mkdir()
+    patent_batch_dir = root_dir / "2018-2026"
+    patent_batch_dir.mkdir()
+
+    manifest_content = """[package]
+submitter_email = rmr17b@fsu.edu
+content_model = ir:citationCModel
+parent_collection = fsu:florida_state_university_patents
+"""
+    (patent_batch_dir / "manifest.ini").write_text(manifest_content, encoding="utf-8")
+
+    patent_ids = ["US-10025952-B1", "US-10032256-B1"]
+    for patent_id in patent_ids:
+        (patent_batch_dir / f"{patent_id}.xml").write_text(create_patent_xml(patent_id), encoding="utf-8")
+        (patent_batch_dir / f"{patent_id}.pdf").write_bytes(b"%PDF-1.4 fake patent pdf")
+
+    return root_dir, patent_batch_dir, patent_ids
+
+
 def test_find_photo_sets_enhanced_with_multiple_files(setup_multi_file_directory):
     """Test that find_photo_sets_enhanced finds ALL files in a photo set"""
     tmp_path, photo_set_dir, test_files = setup_multi_file_directory
@@ -391,6 +428,40 @@ def test_batch_process_multi_file_staging(setup_multi_file_directory):
     # Verify 3 ZIP files were created
     zip_files = list(staging_dir.glob("*.zip"))
     assert len(zip_files) == 3
+
+    # Verify source files remain unchanged
+    assert all(jpg.exists() for jpg, xml in test_files)
+    assert all(xml.exists() for jpg, xml in test_files)
+    assert (photo_set_dir / "manifest.ini").exists()
+
+    # Final output should not retain scratch files or converted copies
+    assert not list(photo_set_dir.glob("*.tiff"))
+    assert not (staging_dir / ".work").exists()
+
+
+def test_batch_process_multi_file_production_is_non_mutating(setup_multi_file_directory):
+    """Production mode should also leave source files unchanged."""
+    tmp_path, photo_set_dir, test_files = setup_multi_file_directory
+
+    success_count, error_count, csv_path = batch_process_with_safety_nets(
+        folder_path=str(tmp_path),
+        dry_run=False,
+        staging=False
+    )
+
+    assert success_count == 3
+    assert error_count == 0
+
+    output_dir = tmp_path / "output"
+    zip_files = list(output_dir.glob("*.zip"))
+    assert len(zip_files) == 3
+    assert csv_path.exists()
+
+    assert all(jpg.exists() for jpg, xml in test_files)
+    assert all(xml.exists() for jpg, xml in test_files)
+    assert (photo_set_dir / "manifest.ini").exists()
+    assert not list(photo_set_dir.glob("*.tiff"))
+    assert not (output_dir / ".work").exists()
 
 
 def test_file_matching_by_stem(setup_multi_file_directory):
@@ -538,3 +609,147 @@ def test_no_files_skipped_in_multi_file_set(setup_multi_file_directory):
     assert iid_001_count >= 1, "File 001 was not processed"
     assert iid_002_count >= 1, "File 002 was not processed"
     assert iid_003_count >= 1, "File 003 was not processed"
+
+
+def test_patent_batch_processing_uses_shared_manifest_and_pdf_zip(
+    setup_patent_batch_directory,
+):
+    """Patent mode should create one PDF/XML/manifest ZIP per patent XML."""
+    root_dir, patent_batch_dir, patent_ids = setup_patent_batch_directory
+
+    success_count, error_count, csv_path = batch_process_with_safety_nets(
+        folder_path=str(root_dir),
+        dry_run=False,
+        staging=False,
+        workflow=WORKFLOW_PATENT,
+    )
+
+    assert success_count == len(patent_ids)
+    assert error_count == 0
+    assert csv_path.exists()
+
+    output_dir = root_dir / "output"
+    zip_files = sorted(output_dir.glob("*.zip"))
+    assert len(zip_files) == len(patent_ids)
+    assert not (output_dir / ".work").exists()
+
+    for patent_id in patent_ids:
+        zip_path = output_dir / f"{patent_id}.zip"
+        assert zip_path.exists()
+        with zipfile.ZipFile(zip_path, "r") as archive:
+            names = archive.namelist()
+            assert f"{patent_id}.pdf" in names
+            assert f"{patent_id}.xml" in names
+            assert "manifest.ini" in names
+
+        assert (patent_batch_dir / f"{patent_id}.pdf").exists()
+        assert (patent_batch_dir / f"{patent_id}.xml").exists()
+
+
+def test_patent_batch_pdf_falls_back_to_search_roots(tmp_path, monkeypatch):
+    """Patent mode should use configured fallback search roots when the batch folder lacks a PDF."""
+    root_dir = tmp_path / "selected"
+    root_dir.mkdir()
+    patent_batch_dir = root_dir / "batch"
+    patent_batch_dir.mkdir()
+    fallback_dir = tmp_path / "fallback"
+    fallback_dir.mkdir()
+
+    patent_id = "US-12444920-B2"
+    (patent_batch_dir / "manifest.ini").write_text(
+        """[package]
+submitter_email = rmr17b@fsu.edu
+content_model = ir:citationCModel
+parent_collection = fsu:florida_state_university_patents
+""",
+        encoding="utf-8",
+    )
+    (patent_batch_dir / f"{patent_id}.xml").write_text(create_patent_xml(patent_id), encoding="utf-8")
+    (fallback_dir / f"{patent_id}.pdf").write_bytes(b"%PDF-1.4 fallback patent pdf")
+
+    monkeypatch.setattr(main_module, "PATENT_SEARCH_ROOTS", [fallback_dir])
+
+    success_count, error_count, _ = batch_process_with_safety_nets(
+        folder_path=str(root_dir),
+        dry_run=False,
+        staging=False,
+        workflow=WORKFLOW_PATENT,
+    )
+
+    assert success_count == 1
+    assert error_count == 0
+    assert (root_dir / "output" / f"{patent_id}.zip").exists()
+    assert not (patent_batch_dir / f"{patent_id}.pdf").exists()
+
+
+def test_patent_batch_invalid_manifest_blocks_batch(setup_patent_batch_directory):
+    """Invalid manifest values should prevent patent ZIP creation for the batch."""
+    root_dir, patent_batch_dir, patent_ids = setup_patent_batch_directory
+    (patent_batch_dir / "manifest.ini").write_text(
+        """[package]
+submitter_email = wrong@example.com
+content_model = ir:citationCModel
+parent_collection = fsu:florida_state_university_patents
+""",
+        encoding="utf-8",
+    )
+
+    success_count, error_count, csv_path = batch_process_with_safety_nets(
+        folder_path=str(root_dir),
+        dry_run=False,
+        staging=False,
+        workflow=WORKFLOW_PATENT,
+    )
+
+    assert success_count == 0
+    assert error_count == len(patent_ids)
+    assert not list((root_dir / "output").glob("*.zip"))
+    assert "INVALID_MANIFEST" in csv_path.read_text(encoding="utf-8")
+
+
+def test_scan_folder_for_workflow_photo_summary(setup_multi_file_directory):
+    """Folder scans should summarize photo workflow readiness."""
+    tmp_path, _, _ = setup_multi_file_directory
+
+    summary = scan_folder_for_workflow(str(tmp_path), WORKFLOW_PHOTO)
+
+    assert summary.workflow == WORKFLOW_PHOTO
+    assert summary.ready is True
+    assert summary.unit_count == 1
+    assert summary.metadata_count == 3
+    assert summary.asset_count == 3
+    assert "Ready for photo packaging" in summary.status_text
+
+
+def test_scan_folder_for_workflow_patent_summary(setup_patent_batch_directory):
+    """Folder scans should summarize patent workflow readiness."""
+    root_dir, _, patent_ids = setup_patent_batch_directory
+
+    summary = scan_folder_for_workflow(str(root_dir), WORKFLOW_PATENT)
+
+    assert summary.workflow == WORKFLOW_PATENT
+    assert summary.ready is True
+    assert summary.unit_count == 1
+    assert summary.metadata_count == len(patent_ids)
+    assert summary.asset_count == len(patent_ids)
+    assert "Ready for patent packaging" in summary.status_text
+
+
+def test_patent_batch_processing_skips_photo_recovery_scan(setup_patent_batch_directory, monkeypatch):
+    """Patent mode should not build the photo recovery index."""
+    root_dir, _, patent_ids = setup_patent_batch_directory
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("Patent mode should not call the photo recovery scan")
+
+    monkeypatch.setattr(main_module, "find_all_files_recursive", fail_if_called)
+
+    success_count, error_count, _ = batch_process_with_safety_nets(
+        folder_path=str(root_dir),
+        dry_run=False,
+        staging=False,
+        workflow=WORKFLOW_PATENT,
+    )
+
+    assert success_count == len(patent_ids)
+    assert error_count == 0

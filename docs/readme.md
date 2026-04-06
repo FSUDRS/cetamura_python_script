@@ -12,7 +12,7 @@ Processes archaeological photo collections by converting JPG images to TIFF form
 ### Option 1: Run the Executable
 1. Download `Cetamura_Batch_Tool.exe` from GitHub releases
 2. Double-click to run
-3. Select your photo folder
+3. Select your source folder
 4. Click "Start Batch Process"
 
 ### Option 2: Run from Source
@@ -26,24 +26,24 @@ python src/main.py
 ## How to Use
 
 1. **Select Folder**: Choose the parent folder containing your photo sets
-2. **Processing Options**: 
+2. **Processing Options**:
+   - **Workflow Type**: `Photo` or `Patent`
    - **Dry Run**: Preview what will happen without changing files
-   - **Staging**: Process to staging folder for review
-   - **Production**: Final processing
+   - **Staging**: Build ZIPs in `staging_output/`
+   - **Production**: Build ZIPs in `output/`
 3. **Start Processing**: Click the button and wait for completion
 4. **Check Results**: Review the CSV report and output folder
 
 ## What Gets Processed
-The tool looks for photo sets with:
-- JPG image file
-- XML metadata file
-- INI manifest file
+- **Photo workflow**: image file + XML metadata + `manifest.ini`
+- **Patent workflow**: patent PDF + patent XML + shared `manifest.ini`
 
 ## Output
-- Converted TIFF files (with orientation correction)
-- ZIP packages (one per photo set)
+- ZIP packages (one per photo set / patent)
 - CSV report of all processing results
 - Detailed logs
+
+Source folders remain unchanged in both staging and production. Temporary TIFF conversion work is created only inside the output root and cleaned up after packaging.
 
 ## File Locations
 - **Output**: `output/` folder in your selected directory

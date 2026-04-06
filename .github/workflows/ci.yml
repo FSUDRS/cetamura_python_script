@@ -34,7 +34,7 @@ jobs:
       run: |
         python -m pytest tests/ -v --tb=short
         
-    - name: Verify test count (should be 52 tests)
+    - name: Verify test collection (currently 62 tests)
       run: |
         python -m pytest tests/ --collect-only -q | findstr "test session starts"
         

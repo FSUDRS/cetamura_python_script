@@ -17,7 +17,7 @@ Data Structures:
 """
 
 from pathlib import Path
-from typing import NamedTuple, List
+from typing import NamedTuple, List, Optional
 import zipfile
 import shutil
 import logging
@@ -57,7 +57,12 @@ class PreFlightResult(NamedTuple):
     blockers: List[str]
 
 
-def verify_zip_contents(zip_path: Path) -> tuple[bool, list[str]]:
+def _resolve_work_root(output_dir: Path, work_root: Optional[Path]) -> Path:
+    """Resolve the scratch workspace root for validation and pre-flight checks."""
+    return work_root if work_root is not None else output_dir / ".work"
+
+
+def verify_zip_contents(zip_path: Path, expected_asset_type: str = "tiff") -> tuple[bool, list[str]]:
     """
     Verify ZIP contains exactly 3 files: TIFF, XML, manifest.ini
     
@@ -88,12 +93,17 @@ def verify_zip_contents(zip_path: Path) -> tuple[bool, list[str]]:
                 errors.append(f"Expected 3 files, found {len(files)}")
             
             # Check required files
-            has_tiff = any(f.lower().endswith('.tif') or f.lower().endswith('.tiff') for f in files)
+            if expected_asset_type == "pdf":
+                has_primary_asset = any(f.lower().endswith('.pdf') for f in files)
+                missing_asset_message = "Missing PDF file"
+            else:
+                has_primary_asset = any(f.lower().endswith('.tif') or f.lower().endswith('.tiff') for f in files)
+                missing_asset_message = "Missing TIFF file"
             has_xml = any(f.lower().endswith('.xml') for f in files)
             has_manifest = any(f.lower() == 'manifest.ini' for f in files)
             
-            if not has_tiff:
-                errors.append("Missing TIFF file")
+            if not has_primary_asset:
+                errors.append(missing_asset_message)
             if not has_xml:
                 errors.append("Missing XML file")
             if not has_manifest:
@@ -111,7 +121,9 @@ def validate_batch_output(
     photo_sets: List,
     output_dir: Path,
     success_count: int,
-    dry_run: bool
+    dry_run: bool,
+    expected_asset_type: str = "tiff",
+    work_root: Optional[Path] = None,
 ) -> ValidationResult:
     """
     Validate batch processing output matches expectations
@@ -141,6 +153,7 @@ def validate_batch_output(
     errors = []
     warnings = []
     invalid_zips = []
+    resolved_work_root = _resolve_work_root(output_dir, work_root)
     
     # Dry run should have no ZIPs
     if dry_run:
@@ -172,11 +185,15 @@ def validate_batch_output(
     # Verify each ZIP's contents
     valid_zips = 0
     for zip_path in actual_zip_paths:
-        is_valid, zip_errors = verify_zip_contents(zip_path)
+        is_valid, zip_errors = verify_zip_contents(zip_path, expected_asset_type=expected_asset_type)
         if is_valid:
             valid_zips += 1
         else:
             invalid_zips.append(f"{zip_path.name}: {', '.join(zip_errors)}")
+
+    leftover_work_files = [path for path in resolved_work_root.rglob("*") if path.is_file()] if resolved_work_root.exists() else []
+    if leftover_work_files:
+        errors.append(f"Leftover scratch files found: {len(leftover_work_files)}")
     
     # Calculate missing count
     missing_count = max(0, expected_count - valid_zips)
@@ -198,7 +215,9 @@ def validate_batch_output(
 def generate_reconciliation_report(
     photo_sets: List,
     csv_path: Path,
-    output_dir: Path
+    output_dir: Path,
+    expected_asset_type: str = "tiff",
+    work_root: Optional[Path] = None,
 ) -> ReconciliationReport:
     """
     Generate reconciliation report comparing input vs output
@@ -227,6 +246,8 @@ def generate_reconciliation_report(
         >>> for discrepancy in report.discrepancies:
         ...     print(f"Discrepancy: {discrepancy}")
     """
+    resolved_work_root = _resolve_work_root(output_dir, work_root)
+
     # Count input XML files
     input_xml_count = sum(len(ps.xml_files) for ps in photo_sets)
     
@@ -246,27 +267,14 @@ def generate_reconciliation_report(
     # Validate each ZIP
     valid_zip_count = 0
     for zip_path in output_dir.glob("*.zip"):
-        is_valid, _ = verify_zip_contents(zip_path)
+        is_valid, _ = verify_zip_contents(zip_path, expected_asset_type=expected_asset_type)
         if is_valid:
             valid_zip_count += 1
     
-    # Find orphaned files (TIFF/XML without corresponding ZIP)
-    orphaned_files = []
-    processed_tiffs = list(output_dir.glob("*_PROC.tif"))
-    processed_xmls = list(output_dir.glob("*_PROC.xml"))
-    
-    for tiff in processed_tiffs:
-        # Check if corresponding ZIP exists
-        base_name = tiff.stem.replace('_PROC', '')
-        zip_name = f"{base_name}.zip"
-        if not (output_dir / zip_name).exists():
-            orphaned_files.append(str(tiff))
-    
-    for xml in processed_xmls:
-        base_name = xml.stem.replace('_PROC', '')
-        zip_name = f"{base_name}.zip"
-        if not (output_dir / zip_name).exists():
-            orphaned_files.append(str(xml))
+    orphaned_files = [
+        str(path) for path in resolved_work_root.rglob("*")
+        if path.is_file()
+    ] if resolved_work_root.exists() else []
     
     # Identify discrepancies
     discrepancies = []
@@ -295,7 +303,9 @@ def generate_reconciliation_report(
 
 def pre_flight_checks(
     photo_sets: List,
-    output_dir: Path
+    output_dir: Path,
+    work_root: Optional[Path] = None,
+    required_paths: Optional[List[Path]] = None,
 ) -> PreFlightResult:
     """
     Perform pre-flight checks before batch processing
@@ -323,10 +333,12 @@ def pre_flight_checks(
     """
     warnings = []
     blockers = []
+    resolved_work_root = _resolve_work_root(output_dir, work_root)
+    disk_target = output_dir if output_dir.exists() else output_dir.parent
     
     # Check disk space
     try:
-        stat = shutil.disk_usage(output_dir)
+        stat = shutil.disk_usage(disk_target)
         disk_space_gb = stat.free / (1024**3)
     except Exception as e:
         blockers.append(f"Cannot check disk space: {e}")
@@ -347,18 +359,25 @@ def pre_flight_checks(
             f"{required_space_gb:.2f} GB estimated"
         )
     
-    # Check for orphaned files from previous runs
-    orphaned_tiff = list(output_dir.glob("*_PROC.tif"))
-    orphaned_xml = list(output_dir.glob("*_PROC.xml"))
-    
-    if orphaned_tiff or orphaned_xml:
+    leftover_work_files = [path for path in resolved_work_root.rglob("*") if path.is_file()] if resolved_work_root.exists() else []
+    orphaned_tiff = [path for path in leftover_work_files if path.suffix.lower() in {".tif", ".tiff"}]
+    orphaned_xml = [path for path in leftover_work_files if path.suffix.lower() == ".xml"]
+
+    if leftover_work_files:
         warnings.append(
-            f"Found orphaned files: {len(orphaned_tiff)} TIFF, {len(orphaned_xml)} XML"
+            f"Found leftover scratch files: {len(leftover_work_files)} in {resolved_work_root}"
         )
+
+    for required_path in required_paths or []:
+        if not required_path.exists():
+            blockers.append(f"Required path does not exist: {required_path}")
+        elif not required_path.is_dir():
+            blockers.append(f"Required path is not a directory: {required_path}")
     
     # Check write permissions
     try:
-        test_file = output_dir / ".write_test"
+        probe_dir = output_dir if output_dir.exists() else output_dir.parent
+        test_file = probe_dir / ".write_test"
         test_file.touch()
         test_file.unlink()
     except Exception as e:

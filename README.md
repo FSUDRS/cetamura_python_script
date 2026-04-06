@@ -22,25 +22,26 @@ python src/main.py
 ## How to Use
 
 1. **Select Folder**: Choose the parent folder containing your photo sets
-2. **Processing Options**: 
+2. **Processing Options**:
+   - **Workflow Type**: Choose `Photo` or `Patent`
    - **Dry Run**: Preview what will happen without changing files
-   - **Staging**: Process to staging folder for review
-   - **Production**: Final processing
+   - **Staging**: Build reviewable ZIPs in `staging_output/`
+   - **Production**: Build final ZIPs in `output/`
 3. **Start Processing**: Click the button and wait for completion
 4. **Check Results**: Review the CSV report and output folder
 
 ## What Gets Processed
-The tool looks for photo sets with:
-- Image file (JPG, TIFF, or PDF)
-- XML metadata file
-- INI manifest file
+The tool supports two workflows:
+- **Photo**: image file (JPG, TIFF, PNG, or PDF) + XML metadata + `manifest.ini`
+- **Patent**: patent PDF + patent XML + shared `manifest.ini`
 
 ## Output
-- Processed image files (TIFF/PDF preserved or converted)
-- ZIP packages (one per photo set)
+- ZIP packages only in `output/` or `staging_output/`
 - CSV report of all processing results
 - Detailed logs
 - **NEW:** Post-processing validation reports
+
+Source folders are now treated as read-only in both staging and production. Any temporary conversion work happens in an internal scratch workspace under the output root and is cleaned up after packaging.
 
 ## Post-Processing Validation (New Feature)
 

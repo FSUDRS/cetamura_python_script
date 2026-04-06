@@ -68,6 +68,9 @@ def test_global_recovery_strategy(setup_sandbox):
     # 2. Check if ZIP was created
     expected_zip = output_dir / "TEST_IID_001.zip"
     assert expected_zip.exists(), "ZIP file should be created despite cross-folder separation"
+    assert (root_dir / "folder_b" / "TEST_IID_001.jpg").exists(), "Recovered source image should remain in place"
+    assert (root_dir / "folder_a" / "TEST_IID_001.xml").exists(), "Source XML should remain in place"
+    assert not (output_dir / ".work").exists(), "Scratch workspace should be cleaned up"
     
     # 3. Check ZIP content
     with zipfile.ZipFile(expected_zip, 'r') as z:
