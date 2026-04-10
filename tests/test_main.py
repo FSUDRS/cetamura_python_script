@@ -9,8 +9,9 @@ from typing import Optional
 from PIL import Image
 import csv
 import zipfile
-import src.main as main_module
 from src.main import (
+    ET,
+    MAX_SAFE_IMAGE_PIXELS,
     find_photo_sets,
     find_photo_sets_enhanced,
     convert_to_tiff,
@@ -77,13 +78,13 @@ def test_convert_to_tiff(tmp_path):
 
 def test_xml_parser_uses_defusedxml():
     """Security hardening should use defusedxml for XML parsing."""
-    assert "defusedxml" in main_module.ET.__name__
+    assert "defusedxml" in ET.__name__
 
 
 def test_image_pixel_limit_is_bounded():
     """Pillow decompression-bomb protection should remain enabled."""
-    assert main_module.Image.MAX_IMAGE_PIXELS == main_module.MAX_SAFE_IMAGE_PIXELS
-    assert main_module.Image.MAX_IMAGE_PIXELS is not None
+    assert Image.MAX_IMAGE_PIXELS == MAX_SAFE_IMAGE_PIXELS
+    assert Image.MAX_IMAGE_PIXELS is not None
 
 
 def test_extract_iid_from_xml_namespaced(tmp_path):
@@ -177,8 +178,6 @@ def test_package_to_zip(tmp_path):
     assert zip_path.suffix == ".zip"
 
     # Verify zip contents
-    import zipfile
-
     with zipfile.ZipFile(zip_path, "r") as zip_file:
         names = zip_file.namelist()
         assert any(name.endswith(".tiff") for name in names)
@@ -694,7 +693,7 @@ parent_collection = example:patent_collection
     )
     (fallback_dir / f"{patent_id}.pdf").write_bytes(b"%PDF-1.4 fallback patent pdf")
 
-    monkeypatch.setattr(main_module, "PATENT_SEARCH_ROOTS", [fallback_dir])
+    monkeypatch.setattr("src.main.PATENT_SEARCH_ROOTS", [fallback_dir])
 
     success_count, error_count, _ = batch_process_with_safety_nets(
         folder_path=str(root_dir),
@@ -794,7 +793,7 @@ def test_patent_batch_processing_skips_photo_recovery_scan(
     def fail_if_called(*args, **kwargs):
         raise AssertionError("Patent mode should not call the photo recovery scan")
 
-    monkeypatch.setattr(main_module, "find_all_files_recursive", fail_if_called)
+    monkeypatch.setattr("src.main.find_all_files_recursive", fail_if_called)
 
     success_count, error_count, _ = batch_process_with_safety_nets(
         folder_path=str(root_dir),

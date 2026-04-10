@@ -9,22 +9,23 @@ import os
 from pathlib import Path
 from datetime import datetime
 
+
 def create_production_deployment():
     """Create a production deployment with safety net improvements"""
-    
+
     print("🚀 Creating Production Deployment - Safety Net Version")
     print("=" * 60)
-    
+
     # Get current directory (repo root)
     project_root = Path(__file__).resolve().parents[2]
-    
+
     # Create production deployment directory
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     prod_dir = project_root / f"production_deploy_{timestamp}"
-    
+
     print(f"📁 Creating deployment directory: {prod_dir.name}")
     prod_dir.mkdir(exist_ok=True)
-    
+
     # Copy essential files to production
     # Define files as (source_rel_to_root, dest_rel_to_prod)
     files_candidates = [
@@ -32,15 +33,15 @@ def create_production_deployment():
         ("requirements/requirements.txt", "requirements.txt"),
         ("README.md", "README.md"),
         ("batch_tool.log", "batch_tool.log"),
-        ("assets/", "assets/")
+        ("assets/", "assets/"),
     ]
-    
+
     print("\n📋 Copying files to production deployment:")
-    
+
     for source, dest in files_candidates:
         source_path = project_root / source
         dest_path = prod_dir / dest
-        
+
         if source_path.exists():
             if source_path.is_dir():
                 shutil.copytree(source_path, dest_path, dirs_exist_ok=True)
@@ -49,21 +50,21 @@ def create_production_deployment():
                 shutil.copy2(source_path, dest_path)
                 print(f"✓ {source} -> {dest}")
         else:
-            if source not in ["batch_tool.log", "assets/"]: # Optional files
-                 print(f"⚠ {source} not found, skipping")
-    
+            if source not in ["batch_tool.log", "assets/"]:  # Optional files
+                print(f"⚠ {source} not found, skipping")
+
     # Create production documentation
     create_production_docs(prod_dir)
-    
+
     # Create deployment scripts
     create_deployment_scripts(prod_dir)
-    
+
     # Create version info
     create_version_info(prod_dir)
-    
-    print(f"\n🎉 Production deployment created successfully!")
+
+    print("\n🎉 Production deployment created successfully!")
     print(f"📍 Location: {prod_dir}")
-    print(f"\n📋 Deployment includes:")
+    print("\n📋 Deployment includes:")
     print("• Enhanced main.py with safety net features")
     print("• Dry-run and staging mode capabilities")
     print("• CSV reporting system")
@@ -71,15 +72,16 @@ def create_production_deployment():
     print("• Comprehensive error handling")
     print("• Production documentation")
     print("• Deployment scripts")
-    
+
     return prod_dir
+
 
 def create_production_docs(prod_dir):
     """Create production-specific documentation"""
-    
+
     docs_dir = prod_dir / "docs"
     docs_dir.mkdir(exist_ok=True)
-    
+
     # Production README
     prod_readme = f"""# Cetamura Batch Ingest Tool - Production Release
 ## Safety Net Version {datetime.now().strftime("%Y.%m.%d")}
@@ -174,13 +176,14 @@ Parent_Folder/
 **Build Date:** {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}  
 **Features:** Dry-Run, Staging, CSV Reporting, Enhanced UX
 """
-    
+
     (docs_dir / "README_PRODUCTION.md").write_text(prod_readme, encoding="utf-8")
     print("✓ Production documentation created")
 
+
 def create_deployment_scripts(prod_dir):
     """Create deployment scripts for different environments"""
-    
+
     # Windows deployment script
     windows_script = f"""@echo off
 REM Cetamura Batch Tool - Production Deployment Script
@@ -219,9 +222,9 @@ python main.py
 echo Application closed
 pause
 """
-    
+
     (prod_dir / "deploy_windows.bat").write_text(windows_script, encoding="utf-8")
-    
+
     # Linux/macOS deployment script
     unix_script = f"""#!/bin/bash
 # Cetamura Batch Tool - Production Deployment Script
@@ -256,20 +259,21 @@ python3 main.py
 
 echo "Application closed"
 """
-    
+
     (prod_dir / "deploy_unix.sh").write_text(unix_script, encoding="utf-8")
-    
+
     # Make Unix script executable
     try:
         os.chmod(prod_dir / "deploy_unix.sh", 0o755)
-    except:
-        pass  # Windows doesn't support chmod
-    
+    except OSError as exc:
+        print(f"Note: could not mark deploy_unix.sh executable: {exc}")
+
     print("✓ Deployment scripts created")
+
 
 def create_version_info(prod_dir):
     """Create version information file"""
-    
+
     version_info = f"""# Cetamura Batch Ingest Tool - Version Information
 # Production Release - Validation & Safety Net Update
 
@@ -321,16 +325,17 @@ TESTED_PLATFORMS = [
     "Linux with Python 3.7+"
 ]
 """
-    
+
     (prod_dir / "VERSION_INFO.txt").write_text(version_info, encoding="utf-8")
     print("✓ Version information created")
+
 
 def main():
     """Main deployment function"""
     try:
         prod_dir = create_production_deployment()
-        
-        print(f"\n🎯 PRODUCTION DEPLOYMENT READY")
+
+        print("\n🎯 PRODUCTION DEPLOYMENT READY")
         print("=" * 40)
         print(f"📍 Location: {prod_dir}")
         print("\n📋 Next Steps:")
@@ -339,14 +344,16 @@ def main():
         print("3. Deploy to production systems")
         print("4. Train users on new safety features")
         print("\n✅ Ready for production use!")
-        
+
         return True
-        
+
     except Exception as e:
         print(f"\n❌ Deployment failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 if __name__ == "__main__":
     success = main()

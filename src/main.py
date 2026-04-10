@@ -40,7 +40,6 @@ import defusedxml.ElementTree as ET
 import zipfile
 import os
 import re
-import sys
 import csv
 import platform
 import subprocess
@@ -2056,8 +2055,10 @@ def _batch_process_core(
                                         if xml_file
                                         else "UNKNOWN"
                                     )
-                                except Exception:
-                                    pass
+                                except Exception as exc:
+                                    logger.debug(
+                                        f"Could not re-extract IID from {xml_file}: {exc}"
+                                    )
                                 logger.error(
                                     f"Error processing file {xml_file.name} (IID: {iid}): {str(e)}",
                                     exc_info=True,
@@ -2877,8 +2878,8 @@ def _main_final():
     style = Style()
     try:
         style.theme_use("clam")
-    except Exception:
-        pass
+    except Exception as exc:
+        logging.debug(f"Could not apply ttk theme 'clam': {exc}")
     style.configure("App.TFrame", background=APP_BG)
     style.configure("Card.TFrame", background=CARD_BG)
     style.configure("Hero.TFrame", background=ACCENT_BG)
