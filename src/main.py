@@ -1049,12 +1049,12 @@ def apply_exif_orientation(img: Image.Image, image_path: Path) -> Image.Image:
             orientation_names = {
                 1: "Normal",
                 2: "Mirrored horizontally",
-                3: "Rotated 180Ã‚Â°",
+                3: "Rotated 180°",
                 4: "Mirrored vertically",
-                5: "Mirrored horizontally, rotated 90Ã‚Â° CCW",
-                6: "Rotated 90Ã‚Â° CW",
-                7: "Mirrored horizontally, rotated 90Ã‚Â° CW",
-                8: "Rotated 90Ã‚Â° CCW",
+                5: "Mirrored horizontally, rotated 90° CCW",
+                6: "Rotated 90° CW",
+                7: "Mirrored horizontally, rotated 90° CW",
+                8: "Rotated 90° CCW",
             }
 
             orientation_name = orientation_names.get(
@@ -1070,37 +1070,37 @@ def apply_exif_orientation(img: Image.Image, image_path: Path) -> Image.Image:
                 img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
                 logging.info(f"Applied horizontal flip to {image_path.name}")
             elif orientation == 3:
-                # Rotated 180Ã‚Â°
+                # Rotated 180°
                 img = img.rotate(180, expand=True)
-                logging.info(f"Applied 180Ã‚Â° rotation to {image_path.name}")
+                logging.info(f"Applied 180° rotation to {image_path.name}")
             elif orientation == 4:
                 # Mirrored vertically
                 img = img.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
                 logging.info(f"Applied vertical flip to {image_path.name}")
             elif orientation == 5:
-                # Mirrored horizontally, then rotated 90Ã‚Â° CCW
+                # Mirrored horizontally, then rotated 90° CCW
                 img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT).rotate(
                     270, expand=True
                 )
                 logging.info(
-                    f"Applied horizontal flip + 270Ã‚Â° rotation to {image_path.name}"
+                    f"Applied horizontal flip + 270° rotation to {image_path.name}"
                 )
             elif orientation == 6:
-                # Rotated 90Ã‚Â° CW (270Ã‚Â° CCW)
+                # Rotated 90° CW (270° CCW)
                 img = img.rotate(270, expand=True)
-                logging.info(f"Applied 270Ã‚Â° rotation to {image_path.name}")
+                logging.info(f"Applied 270° rotation to {image_path.name}")
             elif orientation == 7:
-                # Mirrored horizontally, then rotated 90Ã‚Â° CW
+                # Mirrored horizontally, then rotated 90° CW
                 img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT).rotate(
                     90, expand=True
                 )
                 logging.info(
-                    f"Applied horizontal flip + 90Ã‚Â° rotation to {image_path.name}"
+                    f"Applied horizontal flip + 90° rotation to {image_path.name}"
                 )
             elif orientation == 8:
-                # Rotated 90Ã‚Â° CCW
+                # Rotated 90° CCW
                 img = img.rotate(90, expand=True)
-                logging.info(f"Applied 90Ã‚Â° rotation to {image_path.name}")
+                logging.info(f"Applied 90° rotation to {image_path.name}")
             elif orientation == 1:
                 # Normal orientation - no change needed
                 logging.debug(f"Image {image_path.name} has normal orientation")
@@ -1148,12 +1148,12 @@ def validate_image_orientation(image_path: Path) -> dict:
             orientation_names = {
                 1: "Normal",
                 2: "Mirrored horizontally",
-                3: "Rotated 180Ã‚Â°",
+                3: "Rotated 180°",
                 4: "Mirrored vertically",
-                5: "Mirrored horizontally, rotated 90Ã‚Â° CCW",
-                6: "Rotated 90Ã‚Â° CW",
-                7: "Mirrored horizontally, rotated 90Ã‚Â° CW",
-                8: "Rotated 90Ã‚Â° CCW",
+                5: "Mirrored horizontally, rotated 90° CCW",
+                6: "Rotated 90° CW",
+                7: "Mirrored horizontally, rotated 90° CW",
+                8: "Rotated 90° CCW",
             }
             orientation_info["orientation_name"] = orientation_names.get(
                 orientation, f"Unknown ({orientation})"
