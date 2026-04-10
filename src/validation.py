@@ -26,6 +26,7 @@ import csv
 
 class ValidationResult(NamedTuple):
     """Immutable validation result from batch output validation"""
+
     passed: bool
     expected_count: int
     actual_count: int
@@ -38,6 +39,7 @@ class ValidationResult(NamedTuple):
 
 class ReconciliationReport(NamedTuple):
     """Immutable reconciliation report comparing input vs output"""
+
     input_xml_count: int
     csv_success_rows: int
     actual_zip_count: int
@@ -48,6 +50,7 @@ class ReconciliationReport(NamedTuple):
 
 class PreFlightResult(NamedTuple):
     """Immutable pre-flight check result"""
+
     passed: bool
     disk_space_gb: float
     required_space_gb: float
@@ -62,18 +65,20 @@ def _resolve_work_root(output_dir: Path, work_root: Optional[Path]) -> Path:
     return work_root if work_root is not None else output_dir / ".work"
 
 
-def verify_zip_contents(zip_path: Path, expected_asset_type: str = "tiff") -> tuple[bool, list[str]]:
+def verify_zip_contents(
+    zip_path: Path, expected_asset_type: str = "tiff"
+) -> tuple[bool, list[str]]:
     """
     Verify ZIP contains exactly 3 files: TIFF, XML, manifest.ini
-    
+
     Args:
         zip_path: Path to ZIP file to validate
-    
+
     Returns:
         Tuple of (is_valid, errors) where:
             - is_valid: True if ZIP structure is valid
             - errors: List of error messages (empty if valid)
-    
+
     Example:
         >>> is_valid, errors = verify_zip_contents(Path("output.zip"))
         >>> if is_valid:
@@ -83,37 +88,40 @@ def verify_zip_contents(zip_path: Path, expected_asset_type: str = "tiff") -> tu
         ...         print(f"Error: {error}")
     """
     errors = []
-    
+
     try:
-        with zipfile.ZipFile(zip_path, 'r') as zf:
+        with zipfile.ZipFile(zip_path, "r") as zf:
             files = zf.namelist()
-            
+
             # Check file count
             if len(files) != 3:
                 errors.append(f"Expected 3 files, found {len(files)}")
-            
+
             # Check required files
             if expected_asset_type == "pdf":
-                has_primary_asset = any(f.lower().endswith('.pdf') for f in files)
+                has_primary_asset = any(f.lower().endswith(".pdf") for f in files)
                 missing_asset_message = "Missing PDF file"
             else:
-                has_primary_asset = any(f.lower().endswith('.tif') or f.lower().endswith('.tiff') for f in files)
+                has_primary_asset = any(
+                    f.lower().endswith(".tif") or f.lower().endswith(".tiff")
+                    for f in files
+                )
                 missing_asset_message = "Missing TIFF file"
-            has_xml = any(f.lower().endswith('.xml') for f in files)
-            has_manifest = any(f.lower() == 'manifest.ini' for f in files)
-            
+            has_xml = any(f.lower().endswith(".xml") for f in files)
+            has_manifest = any(f.lower() == "manifest.ini" for f in files)
+
             if not has_primary_asset:
                 errors.append(missing_asset_message)
             if not has_xml:
                 errors.append("Missing XML file")
             if not has_manifest:
                 errors.append("Missing manifest.ini")
-                
+
     except zipfile.BadZipFile:
         errors.append("Corrupted ZIP file")
     except Exception as e:
         errors.append(f"Unexpected error: {e}")
-    
+
     return (len(errors) == 0, errors)
 
 
@@ -127,21 +135,21 @@ def validate_batch_output(
 ) -> ValidationResult:
     """
     Validate batch processing output matches expectations
-    
+
     This function performs post-processing validation to ensure:
     - Expected number of ZIPs match actual ZIPs created
     - Each ZIP contains correct structure (TIFF, XML, manifest.ini)
     - Dry run mode created no files
-    
+
     Args:
         photo_sets: List of PhotoSet objects processed
         output_dir: Directory containing output ZIPs
         success_count: Number of successful file processings
         dry_run: Whether this was a dry run (should have no ZIPs)
-    
+
     Returns:
         ValidationResult with detailed validation outcome
-    
+
     Example:
         >>> result = validate_batch_output(photo_sets, output_dir, 25, False)
         >>> if result.passed:
@@ -154,7 +162,7 @@ def validate_batch_output(
     warnings = []
     invalid_zips = []
     resolved_work_root = _resolve_work_root(output_dir, work_root)
-    
+
     # Dry run should have no ZIPs
     if dry_run:
         actual_zips = list(output_dir.glob("*.zip"))
@@ -168,38 +176,44 @@ def validate_batch_output(
             invalid_zips=[],
             missing_count=0,
             errors=errors,
-            warnings=warnings
+            warnings=warnings,
         )
-    
+
     # Production: verify ZIP count and contents
     expected_count = success_count
     actual_zip_paths = list(output_dir.glob("*.zip"))
     actual_count = len(actual_zip_paths)
-    
+
     # Check count mismatch
     if actual_count != expected_count:
         errors.append(
             f"ZIP count mismatch: expected {expected_count}, found {actual_count}"
         )
-    
+
     # Verify each ZIP's contents
     valid_zips = 0
     for zip_path in actual_zip_paths:
-        is_valid, zip_errors = verify_zip_contents(zip_path, expected_asset_type=expected_asset_type)
+        is_valid, zip_errors = verify_zip_contents(
+            zip_path, expected_asset_type=expected_asset_type
+        )
         if is_valid:
             valid_zips += 1
         else:
             invalid_zips.append(f"{zip_path.name}: {', '.join(zip_errors)}")
 
-    leftover_work_files = [path for path in resolved_work_root.rglob("*") if path.is_file()] if resolved_work_root.exists() else []
+    leftover_work_files = (
+        [path for path in resolved_work_root.rglob("*") if path.is_file()]
+        if resolved_work_root.exists()
+        else []
+    )
     if leftover_work_files:
         errors.append(f"Leftover scratch files found: {len(leftover_work_files)}")
-    
+
     # Calculate missing count
     missing_count = max(0, expected_count - valid_zips)
-    
-    passed = (len(errors) == 0 and len(invalid_zips) == 0)
-    
+
+    passed = len(errors) == 0 and len(invalid_zips) == 0
+
     return ValidationResult(
         passed=passed,
         expected_count=expected_count,
@@ -208,7 +222,7 @@ def validate_batch_output(
         invalid_zips=invalid_zips,
         missing_count=missing_count,
         errors=errors,
-        warnings=warnings
+        warnings=warnings,
     )
 
 
@@ -221,25 +235,25 @@ def generate_reconciliation_report(
 ) -> ReconciliationReport:
     """
     Generate reconciliation report comparing input vs output
-    
+
     This function reconciles:
     - Input XML file count
     - CSV SUCCESS row count
     - Actual ZIP file count
     - Valid ZIP file count
-    
+
     And identifies:
     - Discrepancies between counts
     - Orphaned files (TIFF/XML without corresponding ZIP)
-    
+
     Args:
         photo_sets: List of PhotoSet objects processed
         csv_path: Path to CSV summary file
         output_dir: Directory containing output files
-    
+
     Returns:
         ReconciliationReport with detailed breakdown
-    
+
     Example:
         >>> report = generate_reconciliation_report(photo_sets, csv_path, output_dir)
         >>> print(f"Input: {report.input_xml_count}, Output: {report.valid_zip_count}")
@@ -250,32 +264,37 @@ def generate_reconciliation_report(
 
     # Count input XML files
     input_xml_count = sum(len(ps.xml_files) for ps in photo_sets)
-    
+
     # Count CSV SUCCESS rows
     csv_success_rows = 0
     if csv_path.exists():
         try:
-            with open(csv_path, 'r', encoding='utf-8') as f:
+            with open(csv_path, "r", encoding="utf-8") as f:
                 reader = csv.DictReader(f)
-                csv_success_rows = sum(1 for row in reader if row.get('Status') == 'SUCCESS')
+                csv_success_rows = sum(
+                    1 for row in reader if row.get("Status") == "SUCCESS"
+                )
         except Exception as e:
             logging.warning(f"Could not read CSV file: {e}")
-    
+
     # Count actual ZIPs created
     actual_zip_count = len(list(output_dir.glob("*.zip")))
-    
+
     # Validate each ZIP
     valid_zip_count = 0
     for zip_path in output_dir.glob("*.zip"):
-        is_valid, _ = verify_zip_contents(zip_path, expected_asset_type=expected_asset_type)
+        is_valid, _ = verify_zip_contents(
+            zip_path, expected_asset_type=expected_asset_type
+        )
         if is_valid:
             valid_zip_count += 1
-    
-    orphaned_files = [
-        str(path) for path in resolved_work_root.rglob("*")
-        if path.is_file()
-    ] if resolved_work_root.exists() else []
-    
+
+    orphaned_files = (
+        [str(path) for path in resolved_work_root.rglob("*") if path.is_file()]
+        if resolved_work_root.exists()
+        else []
+    )
+
     # Identify discrepancies
     discrepancies = []
     if input_xml_count != csv_success_rows:
@@ -290,14 +309,14 @@ def generate_reconciliation_report(
         discrepancies.append(
             f"Actual ZIP count ({actual_zip_count}) != Valid ZIP count ({valid_zip_count})"
         )
-    
+
     return ReconciliationReport(
         input_xml_count=input_xml_count,
         csv_success_rows=csv_success_rows,
         actual_zip_count=actual_zip_count,
         valid_zip_count=valid_zip_count,
         discrepancies=discrepancies,
-        orphaned_files=orphaned_files
+        orphaned_files=orphaned_files,
     )
 
 
@@ -309,19 +328,19 @@ def pre_flight_checks(
 ) -> PreFlightResult:
     """
     Perform pre-flight checks before batch processing
-    
+
     This function validates:
     - Sufficient disk space available
     - Write permissions to output directory
     - Identifies orphaned files from previous runs
-    
+
     Args:
         photo_sets: List of PhotoSet objects to process
         output_dir: Directory where output will be written
-    
+
     Returns:
         PreFlightResult with pass/fail and warnings/blockers
-    
+
     Example:
         >>> result = pre_flight_checks(photo_sets, output_dir)
         >>> if not result.passed:
@@ -335,7 +354,7 @@ def pre_flight_checks(
     blockers = []
     resolved_work_root = _resolve_work_root(output_dir, work_root)
     disk_target = output_dir if output_dir.exists() else output_dir.parent
-    
+
     # Check disk space
     try:
         stat = shutil.disk_usage(disk_target)
@@ -343,11 +362,11 @@ def pre_flight_checks(
     except Exception as e:
         blockers.append(f"Cannot check disk space: {e}")
         disk_space_gb = 0.0
-    
+
     # Estimate required space (assume 10 MB per ZIP, conservative)
     total_files = sum(len(ps.xml_files) for ps in photo_sets)
     required_space_gb = (total_files * 10) / 1024  # MB to GB
-    
+
     if disk_space_gb < required_space_gb:
         blockers.append(
             f"Insufficient disk space: {disk_space_gb:.2f} GB available, "
@@ -358,10 +377,18 @@ def pre_flight_checks(
             f"Low disk space: {disk_space_gb:.2f} GB available, "
             f"{required_space_gb:.2f} GB estimated"
         )
-    
-    leftover_work_files = [path for path in resolved_work_root.rglob("*") if path.is_file()] if resolved_work_root.exists() else []
-    orphaned_tiff = [path for path in leftover_work_files if path.suffix.lower() in {".tif", ".tiff"}]
-    orphaned_xml = [path for path in leftover_work_files if path.suffix.lower() == ".xml"]
+
+    leftover_work_files = (
+        [path for path in resolved_work_root.rglob("*") if path.is_file()]
+        if resolved_work_root.exists()
+        else []
+    )
+    orphaned_tiff = [
+        path for path in leftover_work_files if path.suffix.lower() in {".tif", ".tiff"}
+    ]
+    orphaned_xml = [
+        path for path in leftover_work_files if path.suffix.lower() == ".xml"
+    ]
 
     if leftover_work_files:
         warnings.append(
@@ -373,7 +400,7 @@ def pre_flight_checks(
             blockers.append(f"Required path does not exist: {required_path}")
         elif not required_path.is_dir():
             blockers.append(f"Required path is not a directory: {required_path}")
-    
+
     # Check write permissions
     try:
         probe_dir = output_dir if output_dir.exists() else output_dir.parent
@@ -382,9 +409,9 @@ def pre_flight_checks(
         test_file.unlink()
     except Exception as e:
         blockers.append(f"No write permission to output directory: {e}")
-    
-    passed = (len(blockers) == 0)
-    
+
+    passed = len(blockers) == 0
+
     return PreFlightResult(
         passed=passed,
         disk_space_gb=disk_space_gb,
@@ -392,5 +419,5 @@ def pre_flight_checks(
         orphaned_tiff_count=len(orphaned_tiff),
         orphaned_xml_count=len(orphaned_xml),
         warnings=warnings,
-        blockers=blockers
+        blockers=blockers,
     )

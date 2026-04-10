@@ -34,7 +34,7 @@ jobs:
       run: |
         python -m pytest tests/ -v --tb=short
         
-    - name: Verify test collection (currently 62 tests)
+    - name: Verify test collection
       run: |
         python -m pytest tests/ --collect-only -q | findstr "test session starts"
         
@@ -233,3 +233,29 @@ jobs:
     - name: Summary
       run: |
         python -c "print('='*60); print('VALIDATION TESTS PASSED'); print('='*60); print('[PASS] ZIP content verification works'); print('[PASS] Batch output validation works'); print('[PASS] Reconciliation reporting works'); print('[PASS] Pre-flight checks work'); print('[PASS] All 27 validation tests passing'); print('='*60)"
+
+  security:
+    name: Security Scans
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install security tooling
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements/requirements.txt
+        pip install bandit pip-audit
+
+    - name: Run Bandit
+      run: |
+        bandit -r src/ -ll
+
+    - name: Run dependency audit
+      run: |
+        pip-audit -r requirements/requirements.txt
