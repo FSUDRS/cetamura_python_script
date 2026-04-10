@@ -8,6 +8,9 @@ on:
   workflow_dispatch:
     # Manual trigger
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
