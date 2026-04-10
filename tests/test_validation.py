@@ -483,5 +483,5 @@ class TestPreFlightChecks:
 
         # Should estimate space for 100 files
         # 100 files * 10 MB / 1024 = ~0.98 GB
-        assert result.required_space_gb > 0.9
-        assert result.required_space_gb < 1.0
+        expected_gb = 100 * 10 / 1024
+        assert abs(result.required_space_gb - expected_gb) < 0.05

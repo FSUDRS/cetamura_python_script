@@ -357,5 +357,5 @@ def main():
 
 if __name__ == "__main__":
     success = main()
-    input("\\nPress Enter to exit...")
+    input("\nPress Enter to exit...")
     exit(0 if success else 1)
