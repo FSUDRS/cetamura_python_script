@@ -1228,7 +1228,7 @@ def convert_to_tiff(
     """
     Converts an image file (JPG, PNG, PDF, etc.) to .tiff with proper EXIF orientation handling.
     Detects and attempts to fix corrupted files before skipping them.
-    Deletes the original file after successful conversion.
+    Deletes the original file only when delete_original=True.
     """
     try:
         tiff_path = (

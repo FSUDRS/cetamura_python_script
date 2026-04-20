@@ -1,7 +1,7 @@
 # Test Coverage Report
 
-**Date:** October 6, 2025  
-**Total Tests:** 52  
+**Date:** April 20, 2026
+**Total Tests:** 65
 **Status:** All Passing 
 
 ## Test Suite Overview
@@ -335,13 +335,13 @@ for xml_file in photo_set.xml_files:
 ## Running the Tests
 
 ```bash
-# Run all tests (52 total)
+# Run all tests (65 total)
 python -m pytest tests/ -v
 
-# Run only main tests (25 tests)
+# Run only main tests
 python -m pytest tests/test_main.py -v
 
-# Run only validation tests (27 tests)
+# Run only validation tests
 python -m pytest tests/test_validation.py -v
 
 # Run specific regression test
@@ -359,17 +359,19 @@ python -m pytest tests/ --cov=src --cov-report=html
 ## Continuous Integration
 
 These tests run automatically on every push to GitHub:
-- **Main tests:** 25 tests validating core functionality
-- **Validation tests:** 27 tests validating post-processing verification
-- **Total CI tests:** 52 tests
+- **Main tests:** core workflow functionality and regressions
+- **Validation tests:** post-processing verification and reconciliation
+- **Global recovery tests:** reporting and fallback strategy checks
+- **Total local pytest collection:** 65 tests
 
 **CI Pipeline includes:**
-- Test job: Runs all 52 tests on Python 3.9 and 3.11
+- Test job: Runs the full test suite on Python 3.9 and 3.11
 - Verify-script job: Validates module imports and data structures
 - Regression-tests job: Runs critical multi-file processing tests
-- **NEW: Validation-tests job:** Runs all validation module tests
+- Validation-tests job: Runs all validation module tests
+- Security job: Runs Bandit and dependency audit checks
 
-**Minimum passing threshold:** 100% (all 52 tests must pass)
+**Minimum passing threshold:** 100% (all collected tests must pass)
 
 ---
 
@@ -402,5 +404,5 @@ When modifying code:
 
 ---
 
-**Last Updated:** October 6, 2025  
+**Last Updated:** April 20, 2026
 **Next Review:** Before next major release

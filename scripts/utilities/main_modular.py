@@ -19,11 +19,11 @@ def main():
     try:
         # Initialize logging
         setup_logging("batch_tool.log", logging.INFO)
-        
+
         # Create and run application
         app = MainApplication()
         app.run()
-        
+
     except Exception as e:
         print(f"Critical error starting application: {e}")
         logging.critical(f"Failed to start application: {e}")

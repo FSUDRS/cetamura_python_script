@@ -1,25 +1,40 @@
-Write-Host "Starting Build Process for Cetamura Batch Tools..."
+param(
+    [switch]$InstallDependencies
+)
 
-# Ensure PyInstaller is installed
-if (-not (Get-Command pyinstaller -ErrorAction SilentlyContinue)) {
-    Write-Host "PyInstaller not found in path. Trying via python -m..."
-    $PY = ".venv\Scripts\python.exe"
-} else {
-    $PY = "pyinstaller"
+$ErrorActionPreference = "Stop"
+
+$RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
+Set-Location $RepoRoot
+
+$VenvPython = Join-Path $RepoRoot ".venv\Scripts\python.exe"
+$Python = "python"
+if (Test-Path $VenvPython) {
+    try {
+        & $VenvPython --version *> $null
+        if ($LASTEXITCODE -eq 0) {
+            $Python = $VenvPython
+        } else {
+            Write-Warning "Ignoring broken virtual environment Python at $VenvPython"
+        }
+    } catch {
+        Write-Warning "Ignoring broken virtual environment Python at $VenvPython"
+    }
 }
 
-# Clean previous builds
-if (Test-Path "build") { Remove-Item -Recurse -Force "build" }
-if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
+Write-Host "Building Cetamura Batch Ingest for Windows..." -ForegroundColor Cyan
+Write-Host "Repository: $RepoRoot"
+Write-Host "Python: $Python"
 
-# Run PyInstaller
-# --onefile: Create a single EXE
-# --windowed: No console window (GUI app)
-# --name: Output name
-# --add-data: Include src folder for runtime resources
-# --hidden-import: Ensure critical libraries are found
-Write-Host "Running PyInstaller..."
-& $PY -m PyInstaller src/main.py `
+if ($InstallDependencies) {
+    & $Python -m pip install --upgrade pip
+    if ($LASTEXITCODE -ne 0) { throw "pip upgrade failed with exit code $LASTEXITCODE" }
+
+    & $Python -m pip install -r requirements/requirements.txt
+    if ($LASTEXITCODE -ne 0) { throw "dependency install failed with exit code $LASTEXITCODE" }
+}
+
+& $Python -m PyInstaller src/main.py `
     --name "CetamuraBatchIngest" `
     --onefile `
     --windowed `
@@ -28,11 +43,6 @@ Write-Host "Running PyInstaller..."
     --hidden-import="PIL" `
     --hidden-import="fitz" `
     --collect-all="fitz"
+if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed with exit code $LASTEXITCODE" }
 
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "Build Successful!"
-    Write-Host "Executable is located at: dist\CetamuraBatchIngest.exe"
-} else {
-    Write-Host "Build Failed!"
-    exit 1
-}
+Write-Host "Build successful: dist\CetamuraBatchIngest.exe" -ForegroundColor Green

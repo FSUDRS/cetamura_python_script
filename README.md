@@ -158,6 +158,11 @@ python tests/run_tests.py
 
 The GitHub Actions workflow runs on pushes to `main`, `master`, and `ci-cd-development`.
 
+## Release Prep
+
+Release notes are maintained in [CHANGELOG.md](CHANGELOG.md).
+Use [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md) for verification and packaging.
+
 ## Repository Layout
 
 ```text
@@ -167,9 +172,16 @@ cetamura_python_script/
       ci.yml
   docs/
     readme.md
+    RELEASE_CHECKLIST.md
   requirements/
     requirements.txt
     requirements-dev.txt
+  scripts/
+    build/
+      build_exe.ps1
+      build_exe_macos.sh
+      build_cross_platform.sh
+      create_dist_package.ps1
   src/
     main.py
     validation.py

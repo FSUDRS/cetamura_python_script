@@ -89,7 +89,8 @@ class TestExpandedSupport(unittest.TestCase):
         )
 
         # Check if we have ghostscript by checking if success > 0
-        # If success == 0, it means conversion failed (caught exception), which is acceptable behavior on this dev machine
+        # If success == 0, conversion failed gracefully, which is acceptable
+        # on developer machines without PDF conversion support.
         if success > 0:
             output_dir = self.input_dir / "output"
             zip_file = output_dir / "IID_PDF_001.zip"

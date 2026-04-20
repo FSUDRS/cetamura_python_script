@@ -1,8 +1,12 @@
-# Build the Tkinter GUI into a single executable on Windows
-# Requires PyInstaller to be installed (pip install pyinstaller Pillow)
-# This version uses a self-contained main.py with all utility functions included
+param(
+    [switch]$InstallDependencies
+)
 
-# Use the virtual environment's pyinstaller
-C:\Users\saa24b\Cetamura_Fork\cetamura_python_script\.venv\Scripts\pyinstaller.exe --onefile --noconsole src\main.py --clean
+$ErrorActionPreference = "Stop"
+$RepoScript = Resolve-Path (Join-Path $PSScriptRoot "..\..\scripts\build\build_exe.ps1")
 
-Write-Host "Build completed! Check the 'dist' folder for the executable."
+if ($InstallDependencies) {
+    & $RepoScript -InstallDependencies
+} else {
+    & $RepoScript
+}

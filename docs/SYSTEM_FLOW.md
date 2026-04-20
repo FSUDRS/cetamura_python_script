@@ -548,9 +548,13 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
         csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'SUCCESS', 'DRY_RUN', '...'])
         return True
     
-    # PRODUCTION: Actually process
-    # Step 1: Convert JPG to TIFF
-    tiff_path = convert_jpg_to_tiff(jpg_file)
+    # PRODUCTION: Process in output-side scratch space
+    # Step 1: Convert image to TIFF without deleting the source
+    tiff_path = convert_to_tiff(
+        jpg_file,
+        output_path=package_work_dir / f"{package_name}.tiff",
+        delete_original=False,
+    )
     if tiff_path is None:
         csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'ERROR', 'CONVERT_FAILED', '...'])
         return False
@@ -560,8 +564,11 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
         csv_writer.writerow([iid, 'N/A', str(jpg_file), 'ERROR', 'MISSING_XML', '...'])
         return False
     
-    # Step 3: Rename files based on IID
-    new_tiff, new_xml = rename_files(subfolder, tiff_path, xml_file, iid)
+    # Step 3: Copy XML into package work directory based on IID
+    copied_xml_path = copy_file_to_path(
+        xml_file,
+        package_work_dir / f"{package_name}.xml",
+    )
     
     # Step 4: Find manifest
     manifest_files = list(subfolder.glob("*.ini")) + list(subfolder.glob("MANIFEST.ini"))
@@ -572,7 +579,15 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
         return False
     
     # Step 5: Package into ZIP
-    package_to_zip(new_tiff, new_xml, manifest_path, context.output_dir)
+    create_zip_archive(
+        [
+            (tiff_path, f"{package_name}.tiff"),
+            (copied_xml_path, f"{package_name}.xml"),
+            (manifest_path, manifest_path.name),
+        ],
+        context.output_dir,
+        package_name,
+    )
     
     # Success
     csv_writer.writerow([iid, str(xml_file), str(jpg_file), 'SUCCESS', 'PACKAGED', '...'])
@@ -581,10 +596,10 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
 
 **Processing Steps (Production):**
 1. **Orientation Check:** Read EXIF data
-2. **Convert:** JPG → TIFF with orientation correction
-3. **Rename:** Files renamed using sanitized IID
+2. **Convert:** Image -> TIFF with orientation correction in output scratch space
+3. **Copy:** XML is copied into the package work directory using the sanitized IID
 4. **Package:** Create ZIP with TIFF + XML + manifest.ini
-5. **Cleanup:** Original JPG deleted after successful conversion
+5. **Cleanup:** Temporary output-side scratch files are removed; source files remain unchanged
 
 **Processing Steps (Dry Run):**
 1. **Orientation Check:** Read EXIF data
@@ -596,33 +611,21 @@ def process_file_set_with_context(files: FilePair, iid: str, subfolder: Path, co
 
 #### JPG to TIFF Conversion
 
-**Function:** `convert_jpg_to_tiff(jpg_path)`  
-**Location:** Lines 699-735
+**Function:** `convert_to_tiff(image_path, output_path=None, delete_original=True)`
 
 ```python
-def convert_jpg_to_tiff(jpg_path: Path):
-    tiff_path = jpg_path.with_suffix('.tiff')
-    
-    # Open and apply EXIF orientation
-    with Image.open(jpg_path) as img:
-        img = apply_exif_orientation(img, jpg_path)
-    
-    # Save as TIFF
-    with Image.open(jpg_path) as img:
-        img = apply_exif_orientation(img, jpg_path)
-        img.save(tiff_path, 'TIFF', compression='tiff_deflate')
-    
-    # Delete original JPG
-    jpg_path.unlink()
-    
+def convert_to_tiff(image_path: Path, output_path: Optional[Path] = None, delete_original: bool = True):
+    tiff_path = output_path if output_path is not None else image_path.with_suffix(".tiff")
+    # Open, validate, apply EXIF orientation, and save TIFF.
+    # Current batch workflows pass delete_original=False and an output-side path.
     return tiff_path
 ```
 
 **Behavior:**
-- Reads JPG file with PIL
+- Reads image or PDF file with PIL/PyMuPDF support
 - Applies EXIF orientation correction (auto-rotate)
-- Saves as TIFF with deflate compression
-- Deletes original JPG after successful save
+- Saves as TIFF
+- Current batch workflows keep source files unchanged
 - Returns Path to new TIFF file
 
 #### File Renaming
@@ -964,23 +967,23 @@ Step 3a: If Dry Run
     Return True
     
 Step 3b: If Production
-    convert_jpg_to_tiff(jpg_file)
+    convert_to_tiff(image_file, output_path=package_work_dir / target_name, delete_original=False)
         ↓
-        Open JPG with PIL
+        Open source image/PDF
         ↓
         Apply EXIF orientation correction
         ↓
-        Save as TIFF
+        Save TIFF to output-side scratch space
         ↓
-        Delete original JPG
+        Leave source file unchanged
         ↓
         Return tiff_path
     
-    rename_files(subfolder, tiff_path, xml_file, iid)
+    copy XML into package work directory
         ↓
         Sanitize IID for filename
         ↓
-        Rename: FSU_Cetamura_photos_19900711_155N18W_001.tiff
+        Package: FSU_Cetamura_photos_19900711_155N18W_001.zip
         Rename: FSU_Cetamura_photos_19900711_155N18W_001.xml
     
     package_to_zip(tiff_path, xml_path, manifest_path, output_dir)
@@ -1044,10 +1047,10 @@ X:\Cetamura\1990\1990\
     FSU_Cetamura_photos_19900725_15.5N18W_001.zip
     ... (16 more ZIP files)
     batch_report_20251003_120000.csv
+ .work/
+     ... temporary package scratch space, removed after successful packaging
  15.5N-18W/
-     FSU_Cetamura_photos_19900711_155N18W_001.tiff  (converted)
-     FSU_Cetamura_photos_19900711_155N18W_001.xml   (renamed)
-     ... (original JPGs deleted after conversion)
+     ... source files unchanged
 ```
 
 ---
@@ -1113,10 +1116,10 @@ X:\Cetamura\1990\1990\
     FSU_Cetamura_photos_19900724_155N18W_001.zip
     ... (one ZIP per processed file)
     batch_report_20251003_120000.csv
+ .work/
+     ... temporary package scratch space, removed after successful packaging
  15.5N-18W/
-     FSU_Cetamura_photos_19900711_155N18W_001.tiff  (converted)
-     FSU_Cetamura_photos_19900711_155N18W_001.xml   (renamed)
-     ... (JPGs deleted after conversion)
+     ... source files unchanged
      manifest.ini  (unchanged)
 ```
 
@@ -1143,7 +1146,7 @@ These errors affect one file but don't stop the batch:
 | MISSING_JPG | XML has no matching JPG | Log warning, skip file | WARNING, MISSING_JPG |
 | MISSING_XML | JPG has no matching XML | Log warning, skip file | WARNING, MISSING_XML |
 | ORPHANED_XML | XML processed but JPG is None | Skip file | WARNING, ORPHANED_XML |
-| CONVERT_FAILED | JPG→TIFF conversion failed | Skip file | ERROR, CONVERT_FAILED |
+| CONVERT_FAILED | Image/PDF to TIFF conversion failed | Skip file | ERROR, CONVERT_FAILED |
 | NO_MANIFEST | manifest.ini not found | Skip file | ERROR, NO_MANIFEST |
 | INVALID_XML | XML parse error | Skip file | ERROR, INVALID_XML |
 
@@ -1213,14 +1216,14 @@ These errors stop the entire batch:
 - Peak: ~100-150 MB typical
 
 **Disk I/O:**
-- Read: Original JPG (full file)
+- Read: Source image/PDF (full file)
 - Write: TIFF (typically 2-3x JPG size)
 - Write: ZIP (TIFF + XML + manifest)
-- Delete: Original JPG after conversion
+- Delete: Temporary output-side scratch files after packaging
 
 **CPU:**
 - Light load during discovery
-- Heavy load during JPG→TIFF conversion (PIL image processing)
+- Heavy load during image/PDF to TIFF conversion
 - Light load during ZIP creation
 
 ### Optimization Notes
@@ -1240,7 +1243,7 @@ These errors stop the entire batch:
 
 **Test Coverage:**
 1. `test_find_photo_sets` - PhotoSet discovery
-2. `test_convert_jpg_to_tiff` - Image conversion
+2. `test_convert_to_tiff` / conversion coverage in main tests
 3. `test_extract_iid_from_xml_namespaced` - IID extraction with namespace
 4. `test_extract_iid_from_xml_non_namespaced` - IID extraction without namespace
 5. `test_sanitize_name` - Name sanitization
@@ -1309,7 +1312,7 @@ python -m pytest tests/ -v
 3. **Every** xml_file in PhotoSet creates a FilePair
 4. Matching is by **filename stem** (case-sensitive)
 5. Dry run changes **nothing** except creating CSV
-6. Original JPG is **deleted** after TIFF conversion (production only)
+6. Source files are **not** deleted by current staging or production workflows
 7. One **ZIP per file**, not per PhotoSet
 8. CSV has one row **per file processed**, plus summary row
 
@@ -1593,7 +1596,7 @@ See `tests/test_validation.py` for comprehensive test suite (27 tests):
 | Photo set finder | src/main.py | 471-530 |
 | Batch processing loop | src/main.py | 1020-1069 |
 | File processing | src/main.py | 878-948 |
-| JPG→TIFF conversion | src/main.py | 699-735 |
+| Image/PDF to TIFF conversion | src/main.py | `convert_to_tiff` |
 | ZIP packaging | src/main.py | 854-875 |
 | GUI main | src/main.py | 1290-1445 |
 

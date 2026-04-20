@@ -1,62 +1,40 @@
-# Windows Installation Script for Cetamura Batch Ingest Tool
-# Save this as install_windows.ps1 and run in PowerShell
+# Windows installation helper for Cetamura Batch Ingest Tool.
+
+$ErrorActionPreference = "Stop"
+$PackageRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+$Requirements = Join-Path $PackageRoot "requirements\requirements.txt"
+$MainScript = Join-Path $PackageRoot "src\main.py"
+$ExePath = Join-Path $PackageRoot "executables\CetamuraBatchIngest.exe"
+
+if (-not (Test-Path $Requirements)) {
+    $Requirements = Resolve-Path (Join-Path $PackageRoot "..\requirements\requirements.txt")
+}
+
+if (-not (Test-Path $MainScript)) {
+    $MainScript = Resolve-Path (Join-Path $PackageRoot "..\src\main.py")
+}
 
 Write-Host "Windows - Cetamura Batch Ingest Tool Installer" -ForegroundColor Cyan
 Write-Host "===============================================" -ForegroundColor Cyan
 
-# Check if Python is installed
 try {
-    $pythonVersion = python --version 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "Python found: $pythonVersion" -ForegroundColor Green
-    } else {
-        throw "Python not found"
-    }
+    $PythonVersion = python --version 2>&1
+    Write-Host "Python found: $PythonVersion" -ForegroundColor Green
 } catch {
-    Write-Host "Python 3 is not installed or not in PATH" -ForegroundColor Red
-    Write-Host "Please install Python 3 from: https://www.python.org/downloads/" -ForegroundColor Yellow
-    Write-Host "Make sure to check 'Add Python to PATH' during installation" -ForegroundColor Yellow
-    Read-Host "Press Enter to exit"
+    Write-Host "Python 3.9+ is not installed or not in PATH" -ForegroundColor Red
+    Write-Host "Install Python from https://www.python.org/downloads/ and enable PATH." -ForegroundColor Yellow
     exit 1
 }
 
-# Install required packages
-Write-Host "Installing required packages..." -ForegroundColor Yellow
-try {
-    pip install -r requirements/requirements.txt
-    Write-Host "Dependencies installed successfully" -ForegroundColor Green
-} catch {
-    Write-Host "Failed to install dependencies" -ForegroundColor Red
-    Read-Host "Press Enter to exit"
-    exit 1
+python -m pip install --upgrade pip
+python -m pip install -r $Requirements
+
+if (Test-Path $ExePath) {
+    Write-Host "Executable available: $ExePath" -ForegroundColor Green
+} else {
+    Write-Host "Run from source with:" -ForegroundColor Cyan
+    Write-Host "python `"$MainScript`"" -ForegroundColor White
 }
 
-# Copy source file to main directory for easy access
-Copy-Item "source\main.py" "." -Force
-Write-Host "Source file copied to main directory" -ForegroundColor Green
-
-# Create desktop shortcut for the executable
-$exePath = Join-Path (Get-Location) "executables\Cetamura_Batch_Tool_Windows.exe"
-$shortcutPath = Join-Path ([Environment]::GetFolderPath("Desktop")) "Cetamura Batch Tool.lnk"
-
-try {
-    $shell = New-Object -ComObject WScript.Shell
-    $shortcut = $shell.CreateShortcut($shortcutPath)
-    $shortcut.TargetPath = $exePath
-    $shortcut.WorkingDirectory = Get-Location
-    $shortcut.Description = "Cetamura Batch Ingest Tool"
-    $shortcut.Save()
-    Write-Host "Desktop shortcut created" -ForegroundColor Green
-} catch {
-    Write-Host "Could not create desktop shortcut" -ForegroundColor Yellow
-}
-
-Write-Host ""
-Write-Host "Installation completed successfully!" -ForegroundColor Green
-Write-Host ""
-Write-Host "How to run:" -ForegroundColor Cyan
-Write-Host "   1. Use desktop shortcut (if created)" -ForegroundColor White
-Write-Host "   2. Double-click: executables\Cetamura_Batch_Tool_Windows.exe" -ForegroundColor White
-Write-Host "   3. Run from Python: python main.py" -ForegroundColor White
-Write-Host ""
-Read-Host "Press Enter to exit"
+Write-Host "Installation completed successfully." -ForegroundColor Green

@@ -69,12 +69,13 @@ def test_validation_discrepancy():
 
     # Compare results
     print("=== COMPARISON ===")
-    print(
-        f"Dry Run - Success: {success_dry if 'success_dry' in locals() else 'ERROR'}, Errors: {error_dry if 'error_dry' in locals() else 'ERROR'}"
-    )
-    print(
-        f"Staging - Success: {success_staging if 'success_staging' in locals() else 'ERROR'}, Errors: {error_staging if 'error_staging' in locals() else 'ERROR'}"
-    )
+    dry_status = success_dry if "success_dry" in locals() else "ERROR"
+    dry_errors = error_dry if "error_dry" in locals() else "ERROR"
+    staging_status = success_staging if "success_staging" in locals() else "ERROR"
+    staging_errors = error_staging if "error_staging" in locals() else "ERROR"
+
+    print(f"Dry Run - Success: {dry_status}, Errors: {dry_errors}")
+    print(f"Staging - Success: {staging_status}, Errors: {staging_errors}")
 
     if "error_dry" in locals() and "error_staging" in locals():
         if error_dry != error_staging:

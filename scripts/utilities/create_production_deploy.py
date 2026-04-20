@@ -30,6 +30,7 @@ def create_production_deployment():
     # Define files as (source_rel_to_root, dest_rel_to_prod)
     files_candidates = [
         ("src/main.py", "main.py"),
+        ("src/validation.py", "validation.py"),
         ("requirements/requirements.txt", "requirements.txt"),
         ("README.md", "README.md"),
         ("batch_tool.log", "batch_tool.log"),
@@ -66,6 +67,7 @@ def create_production_deployment():
     print(f"📍 Location: {prod_dir}")
     print("\n📋 Deployment includes:")
     print("• Enhanced main.py with safety net features")
+    print("• validation.py post-processing validation module")
     print("• Dry-run and staging mode capabilities")
     print("• CSV reporting system")
     print("• Processing options dialog")
@@ -96,7 +98,7 @@ This production release includes comprehensive safety net improvements:
 - Test folder structure and file validity
 - Perfect for testing new datasets
 
-#### **Staging Mode**  
+#### **Staging Mode**
 - Output to separate staging directory
 - Keep original files completely untouched
 - Review and validate before final processing
@@ -172,8 +174,8 @@ Parent_Folder/
 - Contact system administrator for issues
 
 ---
-**Version:** Safety Net Release {datetime.now().strftime("%Y.%m.%d")}  
-**Build Date:** {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}  
+**Version:** Safety Net Release {datetime.now().strftime("%Y.%m.%d")}
+**Build Date:** {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 **Features:** Dry-Run, Staging, CSV Reporting, Enhanced UX
 """
 
@@ -197,7 +199,7 @@ REM Check Python installation
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo ERROR: Python is not installed or not in PATH
-    echo Please install Python 3.7+ from https://python.org
+    echo Please install Python 3.9+ from https://python.org
     pause
     exit /b 1
 )
@@ -237,7 +239,7 @@ echo "================================================"
 # Check Python installation
 if ! command -v python3 &> /dev/null; then
     echo "ERROR: Python 3 is not installed"
-    echo "Please install Python 3.7+ from your package manager or https://python.org"
+    echo "Please install Python 3.9+ from your package manager or https://python.org"
     exit 1
 fi
 
@@ -288,7 +290,7 @@ FEATURES = [
     "Expanded File Support - Native processing of PDF and TIFF formats",
     "Pre-Flight Checks - disk space and orphan file detection",
     "Dry-Run Mode - Preview processing without file changes",
-    "Staging Mode - Non-destructive output to staging directory", 
+    "Staging Mode - Non-destructive output to staging directory",
     "CSV Reporting - Detailed processing logs with timestamps",
     "Processing Options Dialog - User-friendly mode selection",
     "Enhanced Error Handling - Graceful failures with clear messages",
@@ -301,14 +303,14 @@ FEATURES = [
 COMPLETED_IMPROVEMENTS = [
     "#5 Post-Processing Validation - 100% Complete",
     "#8 UX Polish - 100% Complete",
-    "#3 Manifest Validation - 100% Complete", 
+    "#3 Manifest Validation - 100% Complete",
     "#6 Safety Nets - 100% Complete",
     "Expanded File Format Support (PDF/TIFF) - 100% Complete",
     "CI/Test Infrastructure - Refactored and Stable"
 ]
 
 # Technical Details:
-PYTHON_VERSION_MIN = "3.7"
+PYTHON_VERSION_MIN = "3.9"
 DEPENDENCIES = [
     "tkinter (GUI framework)",
     "PIL/Pillow (image processing)",
@@ -320,9 +322,9 @@ DEPENDENCIES = [
 
 # Deployment Tested On:
 TESTED_PLATFORMS = [
-    "Windows 10/11 with Python 3.7+",
-    "macOS with Python 3.7+", 
-    "Linux with Python 3.7+"
+    "Windows 10/11 with Python 3.9+",
+    "macOS with Python 3.9+",
+    "Linux with Python 3.9+"
 ]
 """
 

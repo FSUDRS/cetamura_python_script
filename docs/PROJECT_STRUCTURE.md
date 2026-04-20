@@ -4,12 +4,13 @@
 ```
 cetamura_python_script/
  src/
-    main.py              # Complete application (1500+ lines)
+    main.py              # Complete GUI application and batch workflow
+    validation.py        # Pre-flight, ZIP, and reconciliation validation
     __init__.py
  tests/
     test_main.py         # Core functionality tests
-    test_utils.py        # Utility function tests
-    test_pairing_improvements.py
+    test_validation.py   # Validation module tests
+    test_global_recovery.py
     run_tests.py         # Test runner
  dist_package/
     build_scripts/       # Cross-platform build scripts
@@ -17,9 +18,9 @@ cetamura_python_script/
     install_windows.ps1 # Windows installer
     install_macos.sh    # macOS installer
  docs/
-    cicd.md             # Build automation guide
-    project_structure.md # This file
+    PROJECT_STRUCTURE.md # This file
     readme.md           # User guide
+    RELEASE_CHECKLIST.md # Release verification and packaging steps
     bugs.md             # Known issues
  scripts/
     build/              # Legacy build scripts
@@ -41,10 +42,15 @@ cetamura_python_script/
 - Image orientation correction
 - File validation and conversion
 - CSV reporting
-- Everything runs from this one file
+
+**src/validation.py**
+- Pre-flight validation
+- ZIP content checks
+- Reconciliation reports
 
 **tests/**
-- Unit tests for all main functions
+- Unit and integration tests for main workflow behavior
+- Validation and recovery regression tests
 - Test runner and configuration
 - Validates core functionality
 
@@ -61,13 +67,15 @@ cetamura_python_script/
 ## How It Works
 1. User runs `python src/main.py` or the built executable
 2. GUI opens for folder selection
-3. App finds photo sets (JPG + XML + manifest files)
-4. Processes images with orientation correction
-5. Creates ZIP packages for each photo set
-6. Generates CSV report of results
+3. App scans the selected folder for the chosen workflow
+4. Runs validation and packaging without mutating source files
+5. Creates ingest ZIP packages under `output/` or `staging_output/`
+6. Generates CSV and reconciliation reports
 
 ## Dependencies
 - PIL/Pillow - Image processing and orientation correction
+- PyMuPDF - PDF rendering support
+- defusedxml - Safer XML parsing
 - tkinter - GUI (built into Python)
 - pathlib - File handling
 - csv - Report generation
@@ -78,6 +86,7 @@ cetamura_python_script/
 - Consolidated all functionality into `src/main.py`
 - Streamlined documentation to 4 essential files
 - Cleaned up generated files and build artifacts
+- Added patent workflow support, validation checks, and release checklist
 
 ### Building Executables
 ```bash
@@ -102,6 +111,6 @@ scripts/setup/setup_macos.sh
 
 ## Notes
 - The main working application is in `src/main.py`
-- The `cetamura/` directory contains modular components for future development
+- Validation helpers are in `src/validation.py`
 - All build and utility scripts are now organized under `scripts/`
 - Logs are automatically stored in the `logs/` directory
