@@ -10,6 +10,7 @@ from tkinter import (
     StringVar,
 )
 from tkinter.ttk import Button, Progressbar, Style, Frame, Radiobutton
+import tkinter.font as tkfont
 import threading
 import logging
 
@@ -73,6 +74,30 @@ TEXT_MUTED = "#6C5A38"
 SUCCESS_COLOR = "#782F40"
 WARNING_COLOR = "#8C6B1F"
 DISABLED_BG = "#D9C79B"
+UI_FONT = "Segoe UI"
+UI_FONT_SEMIBOLD = "Segoe UI Semibold"
+DISPLAY_FONT = "Georgia"
+MONO_FONT = "Consolas"
+FONT_SIZE_BADGE = 10
+FONT_SIZE_SMALL = 11
+FONT_SIZE_BODY = 12
+FONT_SIZE_CONTROL = 12
+FONT_SIZE_TOGGLE = 13
+FONT_SIZE_SECTION = 18
+FONT_SIZE_DIALOG_TITLE = 20
+FONT_SIZE_HERO_TITLE = 26
+FONT_SIZE_MONO = 11
+FONT_BADGE = (UI_FONT_SEMIBOLD, FONT_SIZE_BADGE)
+FONT_SMALL = (UI_FONT, FONT_SIZE_SMALL)
+FONT_BODY = (UI_FONT, FONT_SIZE_BODY)
+FONT_BODY_BOLD = (UI_FONT_SEMIBOLD, FONT_SIZE_BODY)
+FONT_CONTROL = (UI_FONT, FONT_SIZE_CONTROL)
+FONT_CONTROL_BOLD = (UI_FONT_SEMIBOLD, FONT_SIZE_CONTROL)
+FONT_TOGGLE = (UI_FONT_SEMIBOLD, FONT_SIZE_TOGGLE)
+FONT_SECTION = (DISPLAY_FONT, FONT_SIZE_SECTION, "bold")
+FONT_DIALOG_TITLE = (DISPLAY_FONT, FONT_SIZE_DIALOG_TITLE, "bold")
+FONT_HERO_TITLE = (DISPLAY_FONT, FONT_SIZE_HERO_TITLE, "bold")
+FONT_MONO = (MONO_FONT, FONT_SIZE_MONO)
 PATENT_SEARCH_ROOTS = [
     Path(path_str)
     for path_str in os.environ.get("CETAMURA_PATENT_SEARCH_ROOTS", "").split(os.pathsep)
@@ -83,6 +108,32 @@ PATENT_MANIFEST_REQUIRED_KEYS = (
     "content_model",
     "parent_collection",
 )
+
+
+def configure_application_fonts(window: Tk) -> None:
+    """Increase the default Tk fonts for better readability."""
+    default_fonts = {
+        "TkDefaultFont": (UI_FONT, FONT_SIZE_BODY),
+        "TkTextFont": (UI_FONT, FONT_SIZE_BODY),
+        "TkFixedFont": (MONO_FONT, FONT_SIZE_MONO),
+        "TkMenuFont": (UI_FONT, FONT_SIZE_BODY),
+        "TkHeadingFont": (UI_FONT_SEMIBOLD, FONT_SIZE_BODY),
+        "TkCaptionFont": (UI_FONT, FONT_SIZE_BODY),
+        "TkSmallCaptionFont": (UI_FONT, FONT_SIZE_SMALL),
+        "TkIconFont": (UI_FONT, FONT_SIZE_BODY),
+        "TkTooltipFont": (UI_FONT, FONT_SIZE_SMALL),
+    }
+
+    for font_name, font_spec in default_fonts.items():
+        try:
+            tkfont.nametofont(font_name).configure(
+                family=font_spec[0],
+                size=font_spec[1],
+            )
+        except Exception as exc:
+            logging.debug(f"Could not configure Tk font {font_name}: {exc}")
+
+    window.option_add("*Font", FONT_BODY)
 
 
 class FilePair(NamedTuple):
@@ -2426,7 +2477,7 @@ OUTPUTS
 
         instructions_window = Toplevel(root_window)
         instructions_window.title("How to Use")
-        instructions_window.geometry("760x620")
+        instructions_window.geometry("860x700")
         instructions_window.configure(bg=APP_BG)
         instructions_window.transient(root_window)
 
@@ -2435,7 +2486,7 @@ OUTPUTS
             text="Workflow Guide",
             bg=APP_BG,
             fg=TEXT_PRIMARY,
-            font=("Georgia", 18, "bold"),
+            font=FONT_DIALOG_TITLE,
         )
         header.pack(anchor="w", padx=18, pady=(18, 6))
 
@@ -2444,7 +2495,7 @@ OUTPUTS
             text="Photo and patent packaging now share the same non-mutating output model.",
             bg=APP_BG,
             fg=TEXT_MUTED,
-            font=("Segoe UI", 10),
+            font=FONT_BODY,
             justify="left",
         )
         subheader.pack(anchor="w", padx=18, pady=(0, 12))
@@ -2461,7 +2512,7 @@ OUTPUTS
             relief="flat",
             padx=18,
             pady=18,
-            font=("Consolas", 10),
+            font=FONT_MONO,
         )
         text_area.pack(expand=True, fill="both", padx=(18, 0), pady=(0, 18))
         text_area.insert("1.0", instruction_text)
@@ -2493,16 +2544,16 @@ def _show_processing_options_dialog_final():
 
     dialog = Toplevel(root_window)
     dialog.title("Run Settings")
-    dialog.geometry("520x560")
+    dialog.geometry("640x660")
     dialog.configure(bg=APP_BG)
     dialog.transient(root_window)
     dialog.grab_set()
     dialog.resizable(False, False)
 
     dialog.update_idletasks()
-    x = (dialog.winfo_screenwidth() // 2) - (520 // 2)
-    y = (dialog.winfo_screenheight() // 2) - (560 // 2)
-    dialog.geometry(f"520x560+{x}+{y}")
+    x = (dialog.winfo_screenwidth() // 2) - (640 // 2)
+    y = (dialog.winfo_screenheight() // 2) - (660 // 2)
+    dialog.geometry(f"640x660+{x}+{y}")
 
     dry_run_var = BooleanVar(value=False)
     staging_var = BooleanVar(value=False)
@@ -2517,7 +2568,7 @@ def _show_processing_options_dialog_final():
         text="Run Settings",
         bg=APP_BG,
         fg=TEXT_PRIMARY,
-        font=("Georgia", 18, "bold"),
+        font=FONT_DIALOG_TITLE,
     )
     title_label.pack(anchor="w")
 
@@ -2526,9 +2577,9 @@ def _show_processing_options_dialog_final():
         text=f"{workflow_name} workflow selected. Source files will remain unchanged in every mode.",
         bg=APP_BG,
         fg=TEXT_MUTED,
-        font=("Segoe UI", 10),
+        font=FONT_BODY,
         justify="left",
-        wraplength=460,
+        wraplength=580,
     )
     subtitle_label.pack(anchor="w", pady=(4, 14))
 
@@ -2540,25 +2591,25 @@ def _show_processing_options_dialog_final():
         text="Selected Folder",
         bg=CARD_BG,
         fg=TEXT_MUTED,
-        font=("Segoe UI Semibold", 9),
+        font=FONT_SMALL,
     ).pack(anchor="w", padx=14, pady=(12, 2))
     Label(
         summary_card,
         text=folder_text,
         bg=CARD_BG,
         fg=TEXT_PRIMARY,
-        font=("Segoe UI", 10),
+        font=FONT_BODY,
         justify="left",
-        wraplength=440,
+        wraplength=560,
     ).pack(anchor="w", padx=14, pady=(0, 6))
     Label(
         summary_card,
         text=get_workflow_description(workflow),
         bg=CARD_BG,
         fg=TEXT_MUTED,
-        font=("Segoe UI", 9),
+        font=FONT_SMALL,
         justify="left",
-        wraplength=440,
+        wraplength=560,
     ).pack(anchor="w", padx=14, pady=(0, 12))
 
     options_card = TkFrame(shell_frame, bg=SURFACE_BG, bd=1, relief="solid")
@@ -2569,9 +2620,9 @@ def _show_processing_options_dialog_final():
         text="",
         bg=SURFACE_BG,
         fg=TEXT_MUTED,
-        font=("Segoe UI", 10),
+        font=FONT_BODY,
         justify="left",
-        wraplength=430,
+        wraplength=550,
     )
     warning_label.pack(anchor="w", padx=14, pady=(14, 8))
 
@@ -2587,7 +2638,7 @@ def _show_processing_options_dialog_final():
             activebackground=SURFACE_BG,
             fg=TEXT_PRIMARY,
             selectcolor=CARD_BG,
-            font=("Segoe UI Semibold", 11),
+            font=FONT_TOGGLE,
             anchor="w",
             justify="left",
         )
@@ -2597,9 +2648,9 @@ def _show_processing_options_dialog_final():
             text=description,
             bg=SURFACE_BG,
             fg=TEXT_MUTED,
-            font=("Segoe UI", 9),
+            font=FONT_SMALL,
             justify="left",
-            wraplength=410,
+            wraplength=530,
         ).pack(anchor="w", padx=24, pady=(2, 0))
 
     def check_mode_conflict():
@@ -2691,8 +2742,8 @@ def _show_processing_options_dialog_final():
         activeforeground=SURFACE_BG,
         relief="flat",
         padx=16,
-        pady=10,
-        font=("Segoe UI Semibold", 10),
+        pady=12,
+        font=FONT_CONTROL_BOLD,
     )
     proceed_btn.pack(side="left")
 
@@ -2706,8 +2757,8 @@ def _show_processing_options_dialog_final():
         activeforeground=TEXT_PRIMARY,
         relief="flat",
         padx=16,
-        pady=10,
-        font=("Segoe UI", 10),
+        pady=12,
+        font=FONT_CONTROL,
     )
     cancel_btn.pack(side="left", padx=(10, 0))
 
@@ -2846,9 +2897,10 @@ def _main_final():
 
     selected_folder_path = None
     root_window = Tk()
+    configure_application_fonts(root_window)
     root_window.title("Cetamura Batch Ingest Tool")
-    root_window.geometry("860x680")
-    root_window.minsize(820, 620)
+    root_window.geometry("960x780")
+    root_window.minsize(920, 720)
     root_window.configure(bg=APP_BG)
 
     try:
@@ -2885,8 +2937,8 @@ def _main_final():
     style.configure("Hero.TFrame", background=ACCENT_BG)
     style.configure(
         "Primary.TButton",
-        padding=(16, 10),
-        font=("Segoe UI Semibold", 10),
+        padding=(18, 12),
+        font=FONT_CONTROL_BOLD,
         background=ACCENT_BG,
         foreground=SURFACE_BG,
         borderwidth=0,
@@ -2898,8 +2950,8 @@ def _main_final():
     )
     style.configure(
         "Secondary.TButton",
-        padding=(12, 9),
-        font=("Segoe UI", 10),
+        padding=(14, 11),
+        font=FONT_CONTROL,
         background=ACCENT_ALT,
         foreground=TEXT_PRIMARY,
         borderwidth=0,
@@ -2913,7 +2965,7 @@ def _main_final():
         "Workflow.TRadiobutton",
         background=CARD_BG,
         foreground=TEXT_PRIMARY,
-        font=("Segoe UI Semibold", 10),
+        font=FONT_CONTROL_BOLD,
     )
     style.map("Workflow.TRadiobutton", background=[("active", CARD_BG)])
     style.configure(
@@ -2922,7 +2974,7 @@ def _main_final():
         troughcolor=ACCENT_ALT_SOFT,
         lightcolor=ACCENT_ALT,
         darkcolor=ACCENT_ALT,
-        thickness=14,
+        thickness=18,
     )
 
     main_frame = Frame(root_window, style="App.TFrame")
@@ -2940,7 +2992,7 @@ def _main_final():
         text="PHOTO + PATENT WORKFLOWS",
         bg=ACCENT_ALT,
         fg=TEXT_PRIMARY,
-        font=("Segoe UI Semibold", 9),
+        font=FONT_BADGE,
         padx=10,
         pady=4,
     )
@@ -2951,7 +3003,7 @@ def _main_final():
         text="Cetamura Batch Ingest",
         bg=ACCENT_BG,
         fg=SURFACE_BG,
-        font=("Georgia", 24, "bold"),
+        font=FONT_HERO_TITLE,
     )
     title_label.pack(anchor="w", padx=18)
 
@@ -2963,9 +3015,9 @@ def _main_final():
         ),
         bg=ACCENT_BG,
         fg=ACCENT_ALT_SOFT,
-        font=("Segoe UI", 10),
+        font=FONT_BODY,
         justify="left",
-        wraplength=760,
+        wraplength=860,
     )
     subtitle_label.pack(anchor="w", padx=18, pady=(8, 18))
 
@@ -2980,16 +3032,16 @@ def _main_final():
         text="Workflow",
         bg=CARD_BG,
         fg=TEXT_PRIMARY,
-        font=("Georgia", 16, "bold"),
+        font=FONT_SECTION,
     ).pack(anchor="w", padx=18, pady=(16, 4))
     Label(
         workflow_card,
         text="Choose the workflow before selecting a folder so the readiness scan matches the batch type.",
         bg=CARD_BG,
         fg=TEXT_MUTED,
-        font=("Segoe UI", 10),
+        font=FONT_BODY,
         justify="left",
-        wraplength=760,
+        wraplength=860,
     ).pack(anchor="w", padx=18, pady=(0, 12))
 
     workflow_selector_var = StringVar(value=WORKFLOW_PHOTO)
@@ -3016,9 +3068,9 @@ def _main_final():
         text="Package image + XML pairs as TIFF-based ingest ZIPs.",
         bg=CARD_BG,
         fg=TEXT_MUTED,
-        font=("Segoe UI", 9),
+        font=FONT_SMALL,
         justify="left",
-        wraplength=320,
+        wraplength=390,
     ).pack(anchor="w", padx=22, pady=(2, 0))
 
     Radiobutton(
@@ -3034,9 +3086,9 @@ def _main_final():
         text="Package PDF + XML patent pairs using the shared manifest.ini.",
         bg=CARD_BG,
         fg=TEXT_MUTED,
-        font=("Segoe UI", 9),
+        font=FONT_SMALL,
         justify="left",
-        wraplength=320,
+        wraplength=390,
     ).pack(anchor="w", padx=22, pady=(2, 0))
 
     workflow_description_label = Label(
@@ -3044,9 +3096,9 @@ def _main_final():
         text="",
         bg=CARD_BG,
         fg=TEXT_MUTED,
-        font=("Segoe UI", 10),
+        font=FONT_BODY,
         justify="left",
-        wraplength=760,
+        wraplength=860,
     )
     workflow_description_label.pack(anchor="w", padx=18, pady=(2, 16))
 
@@ -3058,7 +3110,7 @@ def _main_final():
         text="Selected Folder",
         bg=CARD_BG,
         fg=TEXT_PRIMARY,
-        font=("Georgia", 16, "bold"),
+        font=FONT_SECTION,
     ).pack(anchor="w", padx=18, pady=(16, 4))
 
     label = Label(
@@ -3066,9 +3118,9 @@ def _main_final():
         text="No folder selected yet",
         bg=CARD_BG,
         fg=TEXT_MUTED,
-        font=("Segoe UI Semibold", 10),
+        font=FONT_BODY_BOLD,
         justify="left",
-        wraplength=760,
+        wraplength=860,
     )
     label.pack(anchor="w", padx=18)
 
@@ -3077,9 +3129,9 @@ def _main_final():
         text="",
         bg=CARD_BG,
         fg=TEXT_MUTED,
-        font=("Segoe UI", 10),
+        font=FONT_BODY,
         justify="left",
-        wraplength=760,
+        wraplength=860,
     )
     folder_summary_label.pack(anchor="w", padx=18, pady=(8, 16))
 
@@ -3091,7 +3143,7 @@ def _main_final():
         text="Actions",
         bg=CARD_BG,
         fg=TEXT_PRIMARY,
-        font=("Georgia", 16, "bold"),
+        font=FONT_SECTION,
     ).pack(anchor="w", padx=18, pady=(16, 4))
     Label(
         actions_card,
@@ -3101,9 +3153,9 @@ def _main_final():
         ),
         bg=CARD_BG,
         fg=TEXT_MUTED,
-        font=("Segoe UI", 10),
+        font=FONT_BODY,
         justify="left",
-        wraplength=760,
+        wraplength=860,
     ).pack(anchor="w", padx=18, pady=(0, 12))
 
     button_row = Frame(actions_card, style="Card.TFrame")
@@ -3131,7 +3183,7 @@ def _main_final():
         text="Run Status",
         bg=CARD_BG,
         fg=TEXT_PRIMARY,
-        font=("Georgia", 16, "bold"),
+        font=FONT_SECTION,
     ).pack(anchor="w", padx=18, pady=(16, 4))
 
     progress = Progressbar(
@@ -3147,7 +3199,7 @@ def _main_final():
         text="Ready",
         bg=CARD_BG,
         fg=TEXT_MUTED,
-        font=("Segoe UI Semibold", 10),
+        font=FONT_BODY_BOLD,
     )
     progress_label.pack(anchor="w", padx=18)
 
@@ -3156,9 +3208,9 @@ def _main_final():
         text="Status: Choose a workflow, then select a folder.",
         bg=CARD_BG,
         fg=TEXT_MUTED,
-        font=("Segoe UI", 10),
+        font=FONT_BODY,
         justify="left",
-        wraplength=760,
+        wraplength=860,
     )
     status_label.pack(anchor="w", padx=18, pady=(6, 12))
 

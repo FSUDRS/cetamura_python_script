@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+- Increased the Tkinter UI font scale for better readability across the main window, run-settings dialog, workflow guide, buttons, radio controls, status text, and helper copy.
+- Enlarged the main window, run-settings dialog, workflow guide, and progress bar to keep the larger text comfortable.
+
 ## 1.3.0 - 2026-04-20
 
 ### Added
