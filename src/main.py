@@ -5,6 +5,7 @@ from tkinter import (
     Menu,
     Toplevel,
     Text,
+    Canvas,
     Scrollbar,
     Label,
     StringVar,
@@ -98,6 +99,11 @@ FONT_SECTION = (DISPLAY_FONT, FONT_SIZE_SECTION, "bold")
 FONT_DIALOG_TITLE = (DISPLAY_FONT, FONT_SIZE_DIALOG_TITLE, "bold")
 FONT_HERO_TITLE = (DISPLAY_FONT, FONT_SIZE_HERO_TITLE, "bold")
 FONT_MONO = (MONO_FONT, FONT_SIZE_MONO)
+MAIN_WINDOW_WIDTH = 1100
+MAIN_WINDOW_HEIGHT = 700
+WINDOW_SCREEN_MARGIN_X = 80
+WINDOW_SCREEN_MARGIN_Y = 120
+NARROW_LAYOUT_WIDTH = 780
 PATENT_SEARCH_ROOTS = [
     Path(path_str)
     for path_str in os.environ.get("CETAMURA_PATENT_SEARCH_ROOTS", "").split(os.pathsep)
@@ -134,6 +140,58 @@ def configure_application_fonts(window: Tk) -> None:
             logging.debug(f"Could not configure Tk font {font_name}: {exc}")
 
     window.option_add("*Font", FONT_BODY)
+
+
+def get_adaptive_window_size(
+    window,
+    preferred_width: int,
+    preferred_height: int,
+    min_width: int,
+    min_height: int,
+) -> tuple[int, int]:
+    """Fit a preferred window size to the current screen."""
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    usable_width = max(480, screen_width - WINDOW_SCREEN_MARGIN_X)
+    usable_height = max(420, screen_height - WINDOW_SCREEN_MARGIN_Y)
+
+    width = min(preferred_width, int(screen_width * 0.9), usable_width)
+    height = min(preferred_height, int(screen_height * 0.9), usable_height)
+
+    width = max(min(min_width, usable_width), width)
+    height = max(min(min_height, usable_height), height)
+    return int(width), int(height)
+
+
+def apply_adaptive_geometry(
+    window,
+    preferred_width: int,
+    preferred_height: int,
+    min_width: int,
+    min_height: int,
+) -> tuple[int, int]:
+    """Set an adaptive, centered geometry for a Tk window."""
+    width, height = get_adaptive_window_size(
+        window,
+        preferred_width,
+        preferred_height,
+        min_width,
+        min_height,
+    )
+    x = max(0, (window.winfo_screenwidth() - width) // 2)
+    y = max(0, (window.winfo_screenheight() - height) // 2)
+    window.geometry(f"{width}x{height}+{x}+{y}")
+    return width, height
+
+
+def apply_fixed_main_geometry(window: Tk) -> None:
+    """Open the main app at the requested fixed release size."""
+    x = max(0, (window.winfo_screenwidth() - MAIN_WINDOW_WIDTH) // 2)
+    y = max(0, (window.winfo_screenheight() - MAIN_WINDOW_HEIGHT) // 2)
+    window.geometry(f"{MAIN_WINDOW_WIDTH}x{MAIN_WINDOW_HEIGHT}+{x}+{y}")
+    window.minsize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT)
+    window.maxsize(MAIN_WINDOW_WIDTH, MAIN_WINDOW_HEIGHT)
+    window.resizable(False, False)
 
 
 class FilePair(NamedTuple):
@@ -2477,7 +2535,7 @@ OUTPUTS
 
         instructions_window = Toplevel(root_window)
         instructions_window.title("How to Use")
-        instructions_window.geometry("860x700")
+        apply_adaptive_geometry(instructions_window, 860, 700, 620, 520)
         instructions_window.configure(bg=APP_BG)
         instructions_window.transient(root_window)
 
@@ -2544,16 +2602,16 @@ def _show_processing_options_dialog_final():
 
     dialog = Toplevel(root_window)
     dialog.title("Run Settings")
-    dialog.geometry("640x660")
+    dialog_width, dialog_height = apply_adaptive_geometry(dialog, 640, 660, 520, 520)
     dialog.configure(bg=APP_BG)
     dialog.transient(root_window)
     dialog.grab_set()
     dialog.resizable(False, False)
 
     dialog.update_idletasks()
-    x = (dialog.winfo_screenwidth() // 2) - (640 // 2)
-    y = (dialog.winfo_screenheight() // 2) - (660 // 2)
-    dialog.geometry(f"640x660+{x}+{y}")
+    x = (dialog.winfo_screenwidth() // 2) - (dialog_width // 2)
+    y = (dialog.winfo_screenheight() // 2) - (dialog_height // 2)
+    dialog.geometry(f"{dialog_width}x{dialog_height}+{x}+{y}")
 
     dry_run_var = BooleanVar(value=False)
     staging_var = BooleanVar(value=False)
@@ -2899,8 +2957,7 @@ def _main_final():
     root_window = Tk()
     configure_application_fonts(root_window)
     root_window.title("Cetamura Batch Ingest Tool")
-    root_window.geometry("960x780")
-    root_window.minsize(920, 720)
+    apply_fixed_main_geometry(root_window)
     root_window.configure(bg=APP_BG)
 
     try:
@@ -2977,8 +3034,115 @@ def _main_final():
         thickness=18,
     )
 
-    main_frame = Frame(root_window, style="App.TFrame")
-    main_frame.pack(fill="both", expand=True)
+    main_canvas = Canvas(
+        root_window,
+        bg=APP_BG,
+        highlightthickness=0,
+        borderwidth=0,
+    )
+    main_scrollbar = Scrollbar(
+        root_window, orient="vertical", command=main_canvas.yview
+    )
+    main_canvas.configure(yscrollcommand=main_scrollbar.set)
+    main_scrollbar.pack(side="right", fill="y")
+    main_canvas.pack(side="left", fill="both", expand=True)
+
+    main_frame = Frame(main_canvas, style="App.TFrame")
+    main_window = main_canvas.create_window((0, 0), window=main_frame, anchor="nw")
+
+    def update_scroll_region(_event=None):
+        main_canvas.configure(scrollregion=main_canvas.bbox("all"))
+
+    main_frame.bind("<Configure>", update_scroll_region)
+
+    responsive_wrap_labels = []
+
+    def track_wrap(label_widget, padding=110, min_length=280, max_length=960):
+        responsive_wrap_labels.append((label_widget, padding, min_length, max_length))
+        return label_widget
+
+    def update_text_wraps(viewport_width: int):
+        for label_widget, padding, min_length, max_length in responsive_wrap_labels:
+            parent_width = label_widget.master.winfo_width()
+            base_width = parent_width if parent_width > 1 else viewport_width
+            wraplength = max(min_length, min(max_length, base_width - padding))
+            label_widget.configure(wraplength=wraplength)
+
+    workflow_layout_state = {"stacked": None}
+
+    def update_workflow_layout(viewport_width: int):
+        stacked = viewport_width < NARROW_LAYOUT_WIDTH
+        if workflow_layout_state["stacked"] == stacked:
+            return
+
+        workflow_layout_state["stacked"] = stacked
+        photo_option.grid_forget()
+        patent_option.grid_forget()
+
+        if stacked:
+            workflow_options.columnconfigure(0, weight=1)
+            workflow_options.columnconfigure(1, weight=0)
+            photo_option.grid(row=0, column=0, sticky="ew", padx=0, pady=(0, 12))
+            patent_option.grid(row=1, column=0, sticky="ew", padx=0, pady=0)
+        else:
+            workflow_options.columnconfigure(0, weight=1)
+            workflow_options.columnconfigure(1, weight=1)
+            photo_option.grid(row=0, column=0, sticky="nsew", padx=(0, 8), pady=0)
+            patent_option.grid(row=0, column=1, sticky="nsew", padx=(8, 0), pady=0)
+
+    action_layout_state = {"stacked": None}
+
+    def update_action_layout(viewport_width: int):
+        stacked = viewport_width < 680
+        if action_layout_state["stacked"] == stacked:
+            return
+
+        action_layout_state["stacked"] = stacked
+        for action_button in (btn_select, btn_process):
+            action_button.grid_forget()
+        for utility_button in (
+            how_to_button,
+            summary_log_button,
+            technical_log_button,
+        ):
+            utility_button.grid_forget()
+
+        if stacked:
+            button_row.columnconfigure(0, weight=1)
+            btn_select.grid(row=0, column=0, sticky="ew", pady=(0, 8))
+            btn_process.grid(row=1, column=0, sticky="ew")
+
+            utility_row.columnconfigure(0, weight=1)
+            how_to_button.grid(row=0, column=0, sticky="ew", pady=(0, 8))
+            summary_log_button.grid(row=1, column=0, sticky="ew", pady=(0, 8))
+            technical_log_button.grid(row=2, column=0, sticky="ew")
+        else:
+            button_row.columnconfigure(0, weight=0)
+            btn_select.grid(row=0, column=0, padx=(0, 10))
+            btn_process.grid(row=0, column=1)
+
+            utility_row.columnconfigure(0, weight=0)
+            how_to_button.grid(row=0, column=0, padx=(0, 8))
+            summary_log_button.grid(row=0, column=1, padx=(0, 8))
+            technical_log_button.grid(row=0, column=2)
+
+    def refresh_responsive_layout(viewport_width: Optional[int] = None):
+        width = viewport_width or main_canvas.winfo_width() or MAIN_WINDOW_WIDTH
+        main_canvas.itemconfigure(main_window, width=width)
+        update_text_wraps(width)
+        update_workflow_layout(width)
+        update_action_layout(width)
+
+    def on_main_canvas_configure(event):
+        refresh_responsive_layout(event.width)
+
+    def on_main_mousewheel(event):
+        if getattr(event, "num", None) == 4:
+            main_canvas.yview_scroll(-1, "units")
+        elif getattr(event, "num", None) == 5:
+            main_canvas.yview_scroll(1, "units")
+        else:
+            main_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
     hero_frame = Frame(main_frame, style="Hero.TFrame")
     hero_frame.pack(fill="x", padx=22, pady=(22, 14))
@@ -3019,6 +3183,7 @@ def _main_final():
         justify="left",
         wraplength=860,
     )
+    track_wrap(subtitle_label, max_length=960)
     subtitle_label.pack(anchor="w", padx=18, pady=(8, 18))
 
     content_frame = Frame(main_frame, style="App.TFrame")
@@ -3034,7 +3199,7 @@ def _main_final():
         fg=TEXT_PRIMARY,
         font=FONT_SECTION,
     ).pack(anchor="w", padx=18, pady=(16, 4))
-    Label(
+    workflow_intro_label = Label(
         workflow_card,
         text="Choose the workflow before selecting a folder so the readiness scan matches the batch type.",
         bg=CARD_BG,
@@ -3042,7 +3207,9 @@ def _main_final():
         font=FONT_BODY,
         justify="left",
         wraplength=860,
-    ).pack(anchor="w", padx=18, pady=(0, 12))
+    )
+    track_wrap(workflow_intro_label, max_length=960)
+    workflow_intro_label.pack(anchor="w", padx=18, pady=(0, 12))
 
     workflow_selector_var = StringVar(value=WORKFLOW_PHOTO)
     workflow_options = Frame(workflow_card, style="Card.TFrame")
@@ -3063,7 +3230,7 @@ def _main_final():
         command=on_workflow_changed,
         style="Workflow.TRadiobutton",
     ).pack(anchor="w")
-    Label(
+    photo_description_label = Label(
         photo_option,
         text="Package image + XML pairs as TIFF-based ingest ZIPs.",
         bg=CARD_BG,
@@ -3071,7 +3238,9 @@ def _main_final():
         font=FONT_SMALL,
         justify="left",
         wraplength=390,
-    ).pack(anchor="w", padx=22, pady=(2, 0))
+    )
+    track_wrap(photo_description_label, padding=44, min_length=220, max_length=430)
+    photo_description_label.pack(anchor="w", padx=22, pady=(2, 0))
 
     Radiobutton(
         patent_option,
@@ -3081,7 +3250,7 @@ def _main_final():
         command=on_workflow_changed,
         style="Workflow.TRadiobutton",
     ).pack(anchor="w")
-    Label(
+    patent_description_label = Label(
         patent_option,
         text="Package PDF + XML patent pairs using the shared manifest.ini.",
         bg=CARD_BG,
@@ -3089,7 +3258,9 @@ def _main_final():
         font=FONT_SMALL,
         justify="left",
         wraplength=390,
-    ).pack(anchor="w", padx=22, pady=(2, 0))
+    )
+    track_wrap(patent_description_label, padding=44, min_length=220, max_length=430)
+    patent_description_label.pack(anchor="w", padx=22, pady=(2, 0))
 
     workflow_description_label = Label(
         workflow_card,
@@ -3100,6 +3271,7 @@ def _main_final():
         justify="left",
         wraplength=860,
     )
+    track_wrap(workflow_description_label, max_length=960)
     workflow_description_label.pack(anchor="w", padx=18, pady=(2, 16))
 
     selection_card = Frame(content_frame, style="Card.TFrame")
@@ -3122,6 +3294,7 @@ def _main_final():
         justify="left",
         wraplength=860,
     )
+    track_wrap(label, max_length=960)
     label.pack(anchor="w", padx=18)
 
     folder_summary_label = Label(
@@ -3133,6 +3306,7 @@ def _main_final():
         justify="left",
         wraplength=860,
     )
+    track_wrap(folder_summary_label, max_length=960)
     folder_summary_label.pack(anchor="w", padx=18, pady=(8, 16))
 
     actions_card = Frame(content_frame, style="Card.TFrame")
@@ -3145,7 +3319,7 @@ def _main_final():
         fg=TEXT_PRIMARY,
         font=FONT_SECTION,
     ).pack(anchor="w", padx=18, pady=(16, 4))
-    Label(
+    actions_intro_label = Label(
         actions_card,
         text=(
             "Use Select Folder to scan readiness. Review and Run opens the "
@@ -3156,7 +3330,9 @@ def _main_final():
         font=FONT_BODY,
         justify="left",
         wraplength=860,
-    ).pack(anchor="w", padx=18, pady=(0, 12))
+    )
+    track_wrap(actions_intro_label, max_length=960)
+    actions_intro_label.pack(anchor="w", padx=18, pady=(0, 12))
 
     button_row = Frame(actions_card, style="Card.TFrame")
     button_row.pack(anchor="w", padx=18, pady=(0, 16))
@@ -3212,29 +3388,33 @@ def _main_final():
         justify="left",
         wraplength=860,
     )
+    track_wrap(status_label, max_length=960)
     status_label.pack(anchor="w", padx=18, pady=(6, 12))
 
     utility_row = Frame(status_card, style="Card.TFrame")
     utility_row.pack(anchor="w", padx=18, pady=(0, 16))
 
-    Button(
+    how_to_button = Button(
         utility_row,
         text="How to Use",
         command=show_instructions,
         style="Secondary.TButton",
-    ).grid(row=0, column=0, padx=(0, 8))
-    Button(
+    )
+    how_to_button.grid(row=0, column=0, padx=(0, 8))
+    summary_log_button = Button(
         utility_row,
         text="Summary Log",
         command=view_user_friendly_log,
         style="Secondary.TButton",
-    ).grid(row=0, column=1, padx=(0, 8))
-    Button(
+    )
+    summary_log_button.grid(row=0, column=1, padx=(0, 8))
+    technical_log_button = Button(
         utility_row,
         text="Technical Log",
         command=view_log_file,
         style="Secondary.TButton",
-    ).grid(row=0, column=2)
+    )
+    technical_log_button.grid(row=0, column=2)
 
     menu_bar = Menu(root_window)
     root_window.config(menu=menu_bar)
@@ -3251,6 +3431,12 @@ def _main_final():
     help_menu.add_command(label="View Technical Log", command=view_log_file)
     help_menu.add_command(label="View Summary Log", command=view_user_friendly_log)
     menu_bar.add_cascade(label="Help", menu=help_menu)
+
+    main_canvas.bind("<Configure>", on_main_canvas_configure)
+    main_canvas.bind_all("<MouseWheel>", on_main_mousewheel)
+    main_canvas.bind_all("<Button-4>", on_main_mousewheel)
+    main_canvas.bind_all("<Button-5>", on_main_mousewheel)
+    root_window.after(0, refresh_responsive_layout)
 
     refresh_folder_selection_summary()
     root_window.mainloop()

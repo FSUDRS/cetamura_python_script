@@ -4,7 +4,8 @@
 
 ### Changed
 - Increased the Tkinter UI font scale for better readability across the main window, run-settings dialog, workflow guide, buttons, radio controls, status text, and helper copy.
-- Enlarged the main window, run-settings dialog, workflow guide, and progress bar to keep the larger text comfortable.
+- Set the main app window to a fixed 1100x700 size while keeping scrollable main content, dynamic text wrapping, and narrow-window stacking for workflow/action controls.
+- Enlarged the run-settings dialog, workflow guide, and progress bar to keep the larger text comfortable.
 
 ## 1.3.0 - 2026-04-20
 
