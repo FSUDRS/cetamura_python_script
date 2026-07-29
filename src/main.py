@@ -867,20 +867,30 @@ def find_hierarchical_sets(
     """
     hierarchical_sets = []
 
-    # For each manifest file, look for associated images and XML in subdirectories
-    for manifest_file in files["manifest"]:
+    # Each image/XML file may belong to only one photo set. Manifests are
+    # visited deepest-first so the manifest closest to the files claims them;
+    # a stray manifest higher up (e.g. at the batch root) can no longer
+    # re-claim files and produce duplicate packages with the wrong manifest.
+    claimed_files: set = set()
+    manifests_deepest_first = sorted(
+        files["manifest"], key=lambda m: len(m.parent.parts), reverse=True
+    )
+
+    for manifest_file in manifests_deepest_first:
         manifest_dir = manifest_file.parent
 
-        # Find all images and XML files that are descendants of this manifest's directory
+        # Find all unclaimed images and XML files that are descendants of this manifest's directory
         associated_image = [
             f
             for f in files["image"]
-            if manifest_dir in f.parents or f.parent == manifest_dir
+            if (manifest_dir in f.parents or f.parent == manifest_dir)
+            and f not in claimed_files
         ]
         associated_xml = [
             f
             for f in files["xml"]
-            if manifest_dir in f.parents or f.parent == manifest_dir
+            if (manifest_dir in f.parents or f.parent == manifest_dir)
+            and f not in claimed_files
         ]
 
         if associated_image and associated_xml:
@@ -920,6 +930,8 @@ def find_hierarchical_sets(
                             structure_type="hierarchical",
                         )
                         hierarchical_sets.append(photo_set)
+                        claimed_files.update(grouped["image"])
+                        claimed_files.update(grouped["xml"])
                         logging.info(
                             "Hierarchical photo set found: "
                             f"{subdir.relative_to(base_path)} "
@@ -935,6 +947,8 @@ def find_hierarchical_sets(
                     structure_type="standard",
                 )
                 hierarchical_sets.append(photo_set)
+                claimed_files.update(associated_image)
+                claimed_files.update(associated_xml)
                 logging.debug(
                     f"Standard photo set found via hierarchical search: {manifest_dir.relative_to(base_path)}"
                 )
@@ -982,6 +996,25 @@ def validate_photo_set(photo_set: PhotoSet) -> bool:
         f"Valid photo set {photo_set.base_directory}: {len(photo_set.image_files)} Image, {valid_xml_count} valid XML"
     )
     return True
+
+
+def is_mods_collection_xml(xml_file: Path) -> bool:
+    """
+    Detect MODS collection master files (root element <modsCollection>).
+
+    These are aggregate catalogs, not per-photo metadata. If treated as photo
+    metadata, the first record's IID gets extracted and a bogus duplicate
+    package is created for that photo.
+    """
+    try:
+        tree = ET.parse(xml_file)
+        root = tree.getroot()
+        local_name = root.tag.rsplit("}", 1)[-1]
+        return local_name.lower() == "modscollection"
+    except Exception:
+        # Unparseable files are left in the pipeline so they surface as
+        # normal processing errors instead of being silently dropped.
+        return False
 
 
 def extract_iid_from_xml_enhanced(xml_file: Path) -> Optional[str]:
@@ -1033,6 +1066,18 @@ def find_photo_sets_enhanced(
     # Find all relevant files recursively
     all_files = find_all_files_recursive(parent_path)
 
+    # Exclude MODS collection master files: they are aggregate catalogs, not
+    # per-photo metadata, and would otherwise generate bogus duplicate packages.
+    photo_xml_files = []
+    for xml_file in all_files["xml"]:
+        if is_mods_collection_xml(xml_file):
+            logging.warning(
+                f"Skipping MODS collection file (not per-photo metadata): {xml_file}"
+            )
+        else:
+            photo_xml_files.append(xml_file)
+    all_files["xml"] = photo_xml_files
+
     photo_sets = []
 
     if flexible_structure:
@@ -1045,18 +1090,25 @@ def find_photo_sets_enhanced(
     # Also try standard directory-based grouping for any missed sets
     file_groups = group_files_by_directory(all_files)
 
+    # Files already claimed by a hierarchical set must not be packaged again
+    claimed_xml = {x for ps in photo_sets for x in ps.xml_files}
+    claimed_image = {i for ps in photo_sets for i in ps.image_files}
+
     for group in file_groups:
         # Skip if we already found this as a hierarchical set
         if any(ps.base_directory == group["directory"] for ps in photo_sets):
             continue
 
+        unclaimed_xml = [x for x in group["xml_files"] if x not in claimed_xml]
+        unclaimed_image = [i for i in group["image_files"] if i not in claimed_image]
+
         # Relaxed condition: If we have XMLs and Manifest, we treat it as a set to process.
         # This allows detecting "Orphaned XMLs" where the image is missing or located elsewhere (Global Recovery).
-        if group["xml_files"] and group["manifest_files"]:
+        if unclaimed_xml and group["manifest_files"]:
             photo_set = PhotoSet(
                 base_directory=group["directory"],
-                image_files=group["image_files"],  # Might be empty
-                xml_files=group["xml_files"],
+                image_files=unclaimed_image,  # Might be empty
+                xml_files=unclaimed_xml,
                 manifest_file=group["manifest_files"][
                     0
                 ],  # Take first manifest if multiple
@@ -1064,6 +1116,8 @@ def find_photo_sets_enhanced(
             )
             if validate_photo_set(photo_set):
                 photo_sets.append(photo_set)
+                claimed_xml.update(unclaimed_xml)
+                claimed_image.update(unclaimed_image)
 
     # Log structure type breakdown for analytics
     structure_counts = defaultdict(int)
@@ -2075,10 +2129,32 @@ def _batch_process_core(
                     except Exception as idx_err:
                         logger.warning(f"Failed to build global index: {idx_err}")
 
+                    # Safety net: never package the same IID twice in one run,
+                    # even if discovery produced overlapping photo sets.
+                    processed_iids: set = set()
+
                     for photo_set in photo_sets:
                         for xml_file in photo_set.xml_files:
                             try:
                                 iid = extract_iid_from_xml(xml_file)
+
+                                if iid in processed_iids:
+                                    logger.warning(
+                                        f"Duplicate IID {iid} from {xml_file} - "
+                                        "already packaged in this run, skipping"
+                                    )
+                                    if context.csv_writer is not None:
+                                        write_csv_row(
+                                            context,
+                                            iid,
+                                            xml_file,
+                                            None,
+                                            "WARNING",
+                                            "DUPLICATE_METADATA",
+                                            "IID already packaged in this run; duplicate skipped",
+                                        )
+                                    continue
+
                                 matching_image = None
 
                                 for image_file in photo_set.image_files:
@@ -2153,6 +2229,7 @@ def _batch_process_core(
                                 )
                                 if success:
                                     success_count += 1
+                                    processed_iids.add(iid)
                                 else:
                                     error_count += 1
 
